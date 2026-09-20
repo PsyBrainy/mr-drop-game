@@ -49,15 +49,9 @@ export function SandboxPage() {
         <span className="badge badge--soon">modo prueba</span>
       </div>
       <p className="muted">
-        Juego libre para probar: sin backend, sin código de acceso y sin gastar intentos.
+        Juego libre para probar: sin código de acceso y sin gastar intentos.
         <strong> El puntaje no se guarda ni entra en el ranking.</strong>
       </p>
-      {!import.meta.env.DEV && (
-        <div className="alert alert--warn">
-          Esta ruta está habilitada con <code>VITE_ENABLE_SANDBOX</code>. Acordate de
-          apagarla cuando el concurso esté en marcha.
-        </div>
-      )}
 
       <div className="row">
         <select

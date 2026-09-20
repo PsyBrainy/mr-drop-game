@@ -14,10 +14,6 @@ export function SandboxOffPage() {
     <div className="container container--narrow">
       <div className="card card--pad-lg stack">
         <h1 style={{ fontSize: '1.6rem', marginBottom: 0 }}>El sandbox está apagado</h1>
-        <p className="muted">
-          Esta ruta solo existe si el build se hizo con <code>VITE_ENABLE_SANDBOX</code>
-          en <code>true</code>.
-        </p>
 
         <div className="alert alert--warn">
           Valor horneado en este build: <strong>{sandboxFlagValue}</strong>
