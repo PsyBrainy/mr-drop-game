@@ -191,8 +191,8 @@ describe('carteles de puntaje', () => {
 
 describe('cartel del final', () => {
   it('dice una cosa distinta según contra qué chocaste', () => {
-    expect(DEATH_MESSAGES.policia).toBe('¡Atrapado!')
-    expect(DEATH_MESSAGES.pozo).toBe('Yendo al mecánico')
+    expect(DEATH_MESSAGES.policia).toBe('Se choco a la gorra')
+    expect(DEATH_MESSAGES.pozo).toBe('Se comio un pozo')
   })
 })
 
