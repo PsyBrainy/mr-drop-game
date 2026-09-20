@@ -1,11 +1,13 @@
 import {
   useCallback,
   useEffect,
+  useLayoutEffect,
   useRef,
   useState,
   type CSSProperties,
   type ReactNode,
 } from 'react'
+import { contentBox, fitInside, type Size } from '../lib/layout'
 
 interface Props {
   /** ancho / alto del juego: define la forma del marco. */
@@ -35,6 +37,7 @@ const orientation = () => screen.orientation as unknown as OrientationLock | und
 export function GameStage({ aspectRatio, children }: Props) {
   const stageRef = useRef<HTMLDivElement>(null)
   const [immersive, setImmersive] = useState(false)
+  const [frameSize, setFrameSize] = useState<Size | null>(null)
   const [portrait, setPortrait] = useState(
     () => typeof window !== 'undefined' && window.matchMedia('(orientation: portrait)').matches,
   )
@@ -107,11 +110,50 @@ export function GameStage({ aspectRatio, children }: Props) {
     return () => window.removeEventListener('keydown', onKey)
   }, [immersive, exit])
 
+  /**
+   * En modo inmersivo el marco se mide contra el escenario real en vez de
+   * calcularse con unidades de viewport: en mobile el alto del viewport y el
+   * del contenedor no coinciden mientras el navegador mueve su barra, y el área
+   * segura del teléfono recorta todavía más. Midiendo, el marco no se puede pasar.
+   */
+  useLayoutEffect(() => {
+    const stage = stageRef.current
+    if (!immersive || !stage) {
+      setFrameSize(null)
+      return
+    }
+
+    const measure = () => setFrameSize(fitInside(aspectRatio, contentBox(stage)))
+    measure()
+
+    const observer = new ResizeObserver(measure)
+    observer.observe(stage)
+    // iOS no siempre avisa por el observer cuando cambia la barra o se rota.
+    window.addEventListener('orientationchange', measure)
+    window.addEventListener('resize', measure)
+    window.visualViewport?.addEventListener('resize', measure)
+
+    return () => {
+      observer.disconnect()
+      window.removeEventListener('orientationchange', measure)
+      window.removeEventListener('resize', measure)
+      window.visualViewport?.removeEventListener('resize', measure)
+    }
+  }, [immersive, aspectRatio])
+
   const needsRotate = immersive && portrait && aspectRatio > 1
 
   return (
     <div ref={stageRef} className={`game-stage ${immersive ? 'is-immersive' : ''}`}>
-      <div className="game-frame" style={{ '--game-ar': aspectRatio } as CSSProperties}>
+      <div
+        className="game-frame"
+        style={
+          {
+            '--game-ar': aspectRatio,
+            ...(frameSize && { width: frameSize.width, height: frameSize.height }),
+          } as CSSProperties
+        }
+      >
         {children}
         <button
           type="button"

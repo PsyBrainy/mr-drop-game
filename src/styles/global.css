@@ -164,31 +164,46 @@ p { margin: 0 0 1em; }
   border: 1px solid var(--surface-border-strong);
   background: #0a100c;
   box-shadow: var(--shadow);
+  /*
+   * Todo lo que va encima del juego se mide contra el ANCHO DEL MARCO y no
+   * contra la pantalla ni en rem: a pantalla completa en un teléfono el marco
+   * puede quedar muy chico, y un HUD de tamaño fijo se comía el borde.
+   */
+  container-type: inline-size;
 }
 
 .game-stage__toggle {
-  position: absolute; top: 0.55rem; right: 0.55rem; z-index: 6;
+  position: absolute; top: 1.5cqw; right: 1.5cqw; z-index: 6;
   display: grid; place-items: center;
-  width: 40px; height: 40px;
+  width: clamp(30px, 4.6cqw, 44px); height: clamp(30px, 4.6cqw, 44px);
   border-radius: 10px; border: 1px solid rgba(255, 255, 255, 0.18);
   background: rgba(6, 10, 8, 0.62); color: var(--text);
-  font: inherit; font-size: 1.05rem; line-height: 1; cursor: pointer;
+  font: inherit; font-size: clamp(0.8rem, 2cqw, 1.15rem); line-height: 1; cursor: pointer;
   backdrop-filter: blur(4px);
   opacity: 0.55; transition: opacity 0.15s ease, background 0.15s ease;
 }
 .game-stage__toggle:hover, .game-stage__toggle:focus-visible { opacity: 1; }
 .game-stage__toggle:hover { background: rgba(6, 10, 8, 0.88); border-color: var(--accent); }
 
-.game-stage.is-immersive { position: fixed; inset: 0; z-index: 1000; align-items: center; background: #05080a; }
+/*
+ * El padding del área segura deja el juego fuera de la muesca y de la barra de
+ * gestos. Como el marco se mide contra la caja de contenido de este elemento,
+ * ese recorte entra solo en la cuenta.
+ */
+.game-stage.is-immersive {
+  position: fixed; inset: 0; z-index: 1000;
+  align-items: center;
+  background: #05080a;
+  box-sizing: border-box;
+  padding:
+    env(safe-area-inset-top) env(safe-area-inset-right)
+    env(safe-area-inset-bottom) env(safe-area-inset-left);
+}
+/* El tamaño lo pone GameStage midiendo: ver src/ui/lib/layout.ts. */
 .game-stage.is-immersive .game-frame {
-  width: min(100vw, calc(100vh * var(--game-ar)));
-  width: min(100vw, calc(100dvh * var(--game-ar)));
-  height: min(100vh, calc(100vw / var(--game-ar)));
-  height: min(100dvh, calc(100vw / var(--game-ar)));
   aspect-ratio: auto;
   border: none; border-radius: 0; box-shadow: none;
 }
-.game-stage.is-immersive .game-stage__toggle { top: max(0.55rem, env(safe-area-inset-top)); right: max(0.55rem, env(safe-area-inset-right)); }
 
 .game-stage__rotate {
   position: absolute; left: 50%; bottom: 1.2rem; transform: translateX(-50%);
@@ -210,21 +225,27 @@ body.is-immersive { overflow: hidden; }
  */
 .game-hud {
   position: absolute; top: 0; right: 0; z-index: 4;
-  display: flex; gap: 1.1rem; align-items: flex-start;
-  padding: 0.55rem 3.5rem 0.55rem 0.9rem;
+  display: flex; gap: 3cqw; align-items: flex-start;
+  /*
+   * El hueco de la derecha se calcula contra el botón de verdad: su separación
+   * (1.5cqw) + su ancho (que tiene mínimo fijo, así que en marcos chicos pesa
+   * más que el porcentaje) + 2cqw de aire. Con un porcentaje fijo quedaban
+   * pegados en las pantallas chicas.
+   */
+  padding: 1.5cqw calc(3.5cqw + clamp(30px, 4.6cqw, 44px)) 1.5cqw 2.5cqw;
   pointer-events: none;
   font-variant-numeric: tabular-nums;
   text-shadow: 0 2px 7px rgba(0, 0, 0, 0.85);
 }
 .game-hud__cell { text-align: right; }
-.game-hud__value { font-size: 1.35rem; font-weight: 700; color: var(--text); line-height: 1.12; }
-.game-hud__value.is-strong { font-size: 1.95rem; color: var(--accent); }
-.game-hud__label { font-size: 0.64rem; text-transform: uppercase; letter-spacing: 0.09em; color: var(--text-muted); }
+.game-hud__value { font-size: clamp(12px, 2.3cqw, 22px); font-weight: 700; color: var(--text); line-height: 1.12; }
+.game-hud__value.is-strong { font-size: clamp(16px, 3.3cqw, 32px); color: var(--accent); }
+.game-hud__label { font-size: clamp(7px, 1.1cqw, 11px); text-transform: uppercase; letter-spacing: 0.09em; color: var(--text-muted); }
 
-.game-over__title { margin: 0; font-size: clamp(1.3rem, 5vw, 2rem); color: var(--danger); }
+.game-over__title { margin: 0; font-size: clamp(1.1rem, 5cqw, 2rem); color: var(--danger); }
 .game-over__score {
   margin: 0; line-height: 1; font-weight: 800; color: var(--accent);
-  font-size: clamp(2.4rem, 11vw, 3.8rem); font-variant-numeric: tabular-nums;
+  font-size: clamp(2rem, 11cqw, 3.8rem); font-variant-numeric: tabular-nums;
 }
 
 /* ---------- ranking ---------- */
@@ -292,7 +313,6 @@ body.is-immersive { overflow: hidden; }
   .game-stage { margin-inline: calc(var(--container-inset) * -1); }
   .game-frame { --game-reserve: 9rem; border-radius: 0; border-left: 0; border-right: 0; }
   .play-stage { gap: 0.9rem; }
-  .game-hud { gap: 0.8rem; padding-right: 3.2rem; }
 
   .board th:nth-child(3), .board td:nth-child(3) { display: none; }
 }
