@@ -10,6 +10,7 @@ import { AccountPage } from './pages/AccountPage'
 import { AdminPage } from './pages/AdminPage'
 import { NotFoundPage } from './pages/NotFoundPage'
 import { SandboxPage } from './pages/SandboxPage'
+import { sandboxEnabled } from './lib/features'
 
 export function App() {
   return (
@@ -33,8 +34,8 @@ export function App() {
           <Route path="/admin" element={<AdminPage />} />
         </Route>
 
-        {/* Banco de pruebas de juegos: no se incluye en el build de produccion */}
-        {import.meta.env.DEV && <Route path="/sandbox" element={<SandboxPage />} />}
+        {/* Banco de pruebas de juegos. Ver src/ui/lib/features.ts */}
+        {sandboxEnabled && <Route path="/sandbox" element={<SandboxPage />} />}
 
         <Route path="*" element={<NotFoundPage />} />
       </Route>

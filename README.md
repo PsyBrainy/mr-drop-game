@@ -211,8 +211,23 @@ Los vehículos se dibujan al 75% de su tamaño original y el jugador va en `x=25
 así entra más ruta en pantalla y la explosión se ve entera. La física y las
 velocidades están escaladas en la misma proporción, así que se juega igual.
 
-Para desarrollar sin backend está `/sandbox` (solo en `npm run dev`): monta cualquier
-juego del registry sin evento, código ni sesión.
+### `/sandbox`: probar sin backend
+
+Monta cualquier juego del registry sin evento, sin código y sin sesión. El puntaje
+no se guarda ni entra en el ranking.
+
+En desarrollo va siempre. Para probar en un build de producción hay que pedirlo:
+
+```bash
+VITE_ENABLE_SANDBOX=true npm run build
+```
+
+Sin esa variable la ruta **no existe** y el componente se va entero del bundle
+(verificado: 513 kB sin el flag, 516 kB con él). Es un flag de build, así que
+apagarlo es rebuildear, no editar código.
+
+Conviene dejarlo apagado cuando el concurso esté en marcha: es una ruta de juego
+libre, y aunque no toca el ranking ni gasta intentos, permite practicar sin código.
 
 > Kaplay pausa su loop cuando la pestaña no está visible: si la dejás en segundo plano,
 > el canvas se ve negro hasta que volvés. Es del motor, no del juego.

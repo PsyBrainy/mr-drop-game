@@ -46,11 +46,18 @@ export function SandboxPage() {
     <div className="container stack">
       <div className="row">
         <h1 style={{ margin: 0 }}>Sandbox de juegos</h1>
-        <span className="badge badge--soon">solo dev</span>
+        <span className="badge badge--soon">modo prueba</span>
       </div>
       <p className="muted">
-        Probá los módulos de <code>src/games/modules</code> sin backend. El puntaje no se guarda.
+        Juego libre para probar: sin backend, sin código de acceso y sin gastar intentos.
+        <strong> El puntaje no se guarda ni entra en el ranking.</strong>
       </p>
+      {!import.meta.env.DEV && (
+        <div className="alert alert--warn">
+          Esta ruta está habilitada con <code>VITE_ENABLE_SANDBOX</code>. Acordate de
+          apagarla cuando el concurso esté en marcha.
+        </div>
+      )}
 
       <div className="row">
         <select
