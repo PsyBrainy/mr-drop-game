@@ -83,7 +83,13 @@ export function SandboxPage() {
 
       ctx.font = '30px sans-serif'
       ctx.fillStyle = '#ff7979'
-      ctx.fillText(`💀 Razón: ${result.message}`, 400, y + 40)
+      let shareReason = result.message
+      if (result.rawPayload.reason === 'policia') {
+        shareReason = 'Se choco a la gorra'
+      } else if (result.rawPayload.reason === 'pozo') {
+        shareReason = 'Se comio un pozo'
+      }
+      ctx.fillText(`💀 Razón: ${shareReason}`, 400, y + 40)
 
       ctx.font = '24px sans-serif'
       ctx.fillStyle = '#888888'

@@ -397,8 +397,8 @@ export type DeathCause = 'policia' | 'pozo'
 
 /** Lo que dice el cartel según contra qué chocaste. */
 export const DEATH_MESSAGES: Record<DeathCause, string> = {
-  policia: 'Se choco a la gorra',
-  pozo: 'Se comio un pozo',
+  policia: '¡Atrapado!',
+  pozo: 'Yendo al mecánico',
 }
 
 export function speedForDodged(dodged: number, tuning: Tuning): number {
