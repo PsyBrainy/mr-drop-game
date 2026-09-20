@@ -1,0 +1,43 @@
+import { RedeemAccessCode } from '../application/usecases/RedeemAccessCode'
+import { LoadEventBoard } from '../application/usecases/LoadEventBoard'
+import { FinishGameSession, PrepareGameEntry, StartGameSession } from '../application/usecases/PlayGame'
+import { GetLeaderboard } from '../application/usecases/GetLeaderboard'
+import { ManageEventGames } from '../application/usecases/ManageEventGames'
+import { SupabaseAuthAdapter } from './supabase/SupabaseAuthAdapter'
+import { SupabaseEventRepository } from './supabase/SupabaseEventRepository'
+import { SupabaseGameRepository } from './supabase/SupabaseGameRepository'
+import { SupabaseParticipationRepository } from './supabase/SupabaseParticipationRepository'
+import { SupabaseSessionRepository } from './supabase/SupabaseSessionRepository'
+import { SupabaseLeaderboardRepository } from './supabase/SupabaseLeaderboardRepository'
+import { SupabaseAccessCodeRepository } from './supabase/SupabaseAccessCodeRepository'
+
+/**
+ * Único punto donde se cablea infraestructura con casos de uso.
+ * La UI solo conoce esta interfaz, así que cambiar Supabase por otra cosa
+ * no toca ni el dominio ni las pantallas.
+ */
+export function createContainer() {
+  const auth = new SupabaseAuthAdapter()
+  const events = new SupabaseEventRepository()
+  const games = new SupabaseGameRepository()
+  const participations = new SupabaseParticipationRepository()
+  const sessions = new SupabaseSessionRepository()
+  const leaderboards = new SupabaseLeaderboardRepository()
+  const accessCodes = new SupabaseAccessCodeRepository()
+
+  return {
+    auth,
+    repositories: { events, games, participations, sessions, leaderboards, accessCodes },
+    usecases: {
+      redeemAccessCode: new RedeemAccessCode(participations),
+      loadEventBoard: new LoadEventBoard(events, games, participations),
+      prepareGameEntry: new PrepareGameEntry(games, sessions),
+      startGameSession: new StartGameSession(sessions),
+      finishGameSession: new FinishGameSession(sessions),
+      getLeaderboard: new GetLeaderboard(leaderboards),
+      manageEventGames: new ManageEventGames(games),
+    },
+  }
+}
+
+export type Container = ReturnType<typeof createContainer>

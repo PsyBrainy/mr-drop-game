@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/drop.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <!--
+      Va en el HTML y no solo en el CSS a propósito: en desarrollo Vite inyecta
+      los estilos por JS, así que en el primer pintado no habría color-scheme y
+      el tema oscuro automático de Chrome Android invierte la página. Al estar
+      acá, el navegador sabe desde el arranque que la página ya es oscura y no
+      la toca.
+    -->
+    <meta name="color-scheme" content="dark" />
+    <meta name="theme-color" content="#0a0f0c" />
+    <meta name="description" content="Comunidad MrDrop: concursos, juegos y premios." />
+    <title>MrDrop · Comunidad</title>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>
