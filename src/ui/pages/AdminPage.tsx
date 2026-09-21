@@ -56,7 +56,9 @@ export function AdminPage() {
                 onClick={() => setSelectedId(event.id)}
               >
                 {event.name}
-                <div style={{ fontSize: '0.75rem', opacity: 0.75 }}>{event.status}</div>
+                <div style={{ fontSize: '0.75rem', opacity: 0.75 }}>
+                  {event.isFreePlay ? 'juego libre · ' : ''}{event.status}
+                </div>
               </button>
             ))}
             {list.length === 0 && !eventList.loading && (
@@ -95,6 +97,13 @@ function EventAdmin({ event, onChanged }: { event: ContestEvent; onChanged: () =
           <span className="muted" style={{ fontSize: '0.85rem' }}>/{event.slug}</span>
         </div>
         <h2 style={{ margin: 0 }}>{event.name}</h2>
+        {event.isFreePlay && (
+          <p className="muted" style={{ margin: 0, fontSize: '0.88rem' }}>
+            Sección de juego libre: se juega sin código y sin límite de intentos en{' '}
+            <span className="code-pill">{window.location.origin}/jugar</span>. Dejala en
+            &quot;En vivo&quot; para que aparezca.
+          </p>
+        )}
         {event.prize && <p className="event-card__prize" style={{ margin: 0 }}>🏆 {event.prize}</p>}
 
         {setStatus.error && <div className="alert alert--error">{setStatus.error}</div>}
@@ -113,13 +122,15 @@ function EventAdmin({ event, onChanged }: { event: ContestEvent; onChanged: () =
           ))}
         </div>
 
-        <p className="muted" style={{ margin: 0, fontSize: '0.88rem' }}>
-          Link para repartir: <span className="code-pill">{joinLink}/TUCODIGO</span>
-        </p>
+        {!event.isFreePlay && (
+          <p className="muted" style={{ margin: 0, fontSize: '0.88rem' }}>
+            Link para repartir: <span className="code-pill">{joinLink}/TUCODIGO</span>
+          </p>
+        )}
       </section>
 
       <GameAvailabilityPanel eventId={event.id} />
-      <AccessCodePanel eventId={event.id} />
+      {!event.isFreePlay && <AccessCodePanel eventId={event.id} />}
     </>
   )
 }

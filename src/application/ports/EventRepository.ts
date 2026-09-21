@@ -8,11 +8,14 @@ export interface EventDraft {
   status: EventStatus
   startsAt: Date | null
   endsAt: Date | null
+  isFreePlay: boolean
 }
 
 export interface EventRepository {
-  /** Eventos visibles en la home (no borradores). */
+  /** Concursos visibles en la home (no borradores, sin la sección de juego libre). */
   listPublic(): Promise<ContestEvent[]>
+  /** La sección de juego libre en vivo, si el admin la publicó. */
+  findFreePlay(): Promise<ContestEvent | null>
   /** Todos, incluidos borradores. Requiere admin (lo resuelve RLS). */
   listAll(): Promise<ContestEvent[]>
   findBySlug(slug: string): Promise<ContestEvent | null>

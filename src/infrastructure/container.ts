@@ -1,5 +1,6 @@
 import { RedeemAccessCode } from '../application/usecases/RedeemAccessCode'
 import { LoadEventBoard } from '../application/usecases/LoadEventBoard'
+import { LoadFreePlayBoard } from '../application/usecases/LoadFreePlayBoard'
 import { FinishGameSession, PrepareGameEntry, StartGameSession } from '../application/usecases/PlayGame'
 import { GetLeaderboard } from '../application/usecases/GetLeaderboard'
 import { ManageEventGames } from '../application/usecases/ManageEventGames'
@@ -31,6 +32,7 @@ export function createContainer() {
     usecases: {
       redeemAccessCode: new RedeemAccessCode(participations),
       loadEventBoard: new LoadEventBoard(events, games, participations),
+      loadFreePlayBoard: new LoadFreePlayBoard(events, games, sessions, leaderboards),
       prepareGameEntry: new PrepareGameEntry(games, sessions),
       startGameSession: new StartGameSession(sessions),
       finishGameSession: new FinishGameSession(sessions),

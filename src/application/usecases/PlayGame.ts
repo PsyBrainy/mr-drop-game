@@ -1,13 +1,15 @@
 import { domainError } from '../../domain/shared/DomainError'
 import { sanitizeScore, type GameSession } from '../../domain/session/GameSession'
-import type { EventGame } from '../../domain/game/Game'
+import type { ContestEvent } from '../../domain/event/Event'
+import { playsLeft, type EventGame } from '../../domain/game/Game'
 import type { GameRepository } from '../ports/GameRepository'
 import type { SessionRepository } from '../ports/SessionRepository'
 
 export interface GameEntry {
   eventGame: EventGame
   playsUsed: number
-  playsLeft: number
+  /** `null` = ilimitado (juego libre). */
+  playsLeft: number | null
   bestScore: number | null
 }
 
@@ -18,8 +20,8 @@ export class PrepareGameEntry {
     private readonly sessions: SessionRepository,
   ) {}
 
-  async execute(eventId: string, gameSlug: string): Promise<GameEntry> {
-    const eventGame = await this.games.findEventGame(eventId, gameSlug)
+  async execute(event: ContestEvent, gameSlug: string): Promise<GameEntry> {
+    const eventGame = await this.games.findEventGame(event.id, gameSlug)
     if (!eventGame || !eventGame.isEnabled) throw domainError('GAME_DISABLED')
 
     const [playsUsed, bestScore] = await Promise.all([
@@ -30,7 +32,7 @@ export class PrepareGameEntry {
     return {
       eventGame,
       playsUsed,
-      playsLeft: Math.max(0, eventGame.maxPlays - playsUsed),
+      playsLeft: playsLeft(eventGame, playsUsed, event.isFreePlay),
       bestScore,
     }
   }

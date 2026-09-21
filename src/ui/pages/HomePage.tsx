@@ -24,8 +24,20 @@ export function HomePage() {
           habilitados para ese evento y quedás en el ranking. El que más puntos hace, gana.
         </p>
         <div className="hero__actions">
-          <Link to="/codigo" className="btn">Tengo un código</Link>
-          <Link to="/entrar" className="btn btn--ghost">Crear mi cuenta</Link>
+          <Link to="/jugar" className="btn">Jugar ahora</Link>
+          <Link to="/codigo" className="btn btn--ghost">Tengo un código</Link>
+        </div>
+      </section>
+
+      <section className="container stack" style={{ marginBottom: '3rem' }}>
+        <div className="card row">
+          <div style={{ flex: 1, minWidth: '220px' }}>
+            <strong>Juego libre</strong>
+            <p className="muted" style={{ margin: 0, fontSize: '0.92rem' }}>
+              Sin código y sin límite de intentos. Superá tu récord y subí en el ranking general.
+            </p>
+          </div>
+          <Link to="/jugar" className="btn btn--ghost btn--sm">Ver juegos</Link>
         </div>
       </section>
 

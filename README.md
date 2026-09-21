@@ -30,7 +30,8 @@ La home funciona sin Supabase configurado: muestra un aviso y oculta login y con
 En el SQL Editor de tu proyecto Supabase, en orden:
 
 1. `supabase/migrations/0001_init.sql` — tablas, RLS y funciones
-2. `supabase/seed.sql` — un concurso de ejemplo con el juego `mrdrop-run` y el código `MRDROP24`
+2. `supabase/migrations/0002_free_play.sql` — sección de juego libre (`/jugar`)
+3. `supabase/seed.sql` — un concurso de ejemplo con el juego `mrdrop-run` y el código `MRDROP24`
 
 Después registrate en la app y date permisos de admin:
 
@@ -51,6 +52,11 @@ events ──< event_games >── games          event_games.is_enabled = el sw
              │
              └──< game_sessions ──> leaderboard (vista: mejor score por usuario y juego)
 ```
+
+**Juego libre:** un evento con `is_free_play = true` es la sección `/jugar`. No pide código
+(la primera partida inscribe al usuario), no limita intentos y su ranking es permanente. El
+admin habilita sus juegos desde el Panel como en cualquier concurso; `0002_free_play.sql` crea
+el evento `juego-libre` ya en vivo.
 
 **Reglas que impone la base, no el front:**
 

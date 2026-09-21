@@ -1,4 +1,4 @@
-import { Link, useLocation, useParams } from 'react-router-dom'
+import { Link, Navigate, useLocation, useParams } from 'react-router-dom'
 import { useAuth } from '../providers/AuthProvider'
 import { useUseCases } from '../providers/ContainerProvider'
 import { useAsync } from '../hooks/useAsync'
@@ -40,6 +40,7 @@ export function EventPage() {
   }
 
   const { event, games, isParticipant, isOpen } = board.data
+  if (event.isFreePlay) return <Navigate to="/jugar" replace />
   const justJoined = (location.state as { joined?: boolean } | null)?.joined
 
   return (

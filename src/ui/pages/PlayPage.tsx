@@ -30,12 +30,12 @@ export function PlayPage() {
   const [endMessage, setEndMessage] = useState<string | null>(null)
 
   const event = useAsync(() => events.findBySlug(slug), [slug, events])
-  const eventId = event.data?.id
+  const contest = event.data
 
   const entry = useAsync(
-    () => prepareGameEntry.execute(eventId ?? '', gameSlug),
-    [eventId, gameSlug, prepareGameEntry],
-    { enabled: Boolean(eventId) },
+    () => prepareGameEntry.execute(contest!, gameSlug),
+    [contest, gameSlug, prepareGameEntry],
+    { enabled: Boolean(contest) },
   )
 
   const eventGameId = entry.data?.eventGame.id
@@ -82,20 +82,28 @@ export function PlayPage() {
         <div className="empty-state">
           <h2>No podés jugar este juego ahora</h2>
           <p className="muted">{entry.error ?? event.error ?? 'El juego no está disponible.'}</p>
-          <Link to={`/concurso/${slug}`} className="btn btn--ghost btn--sm">Volver al concurso</Link>
+          <Link to={event.data?.isFreePlay ? '/jugar' : `/concurso/${slug}`} className="btn btn--ghost btn--sm">
+            {event.data?.isFreePlay ? 'Volver a juego libre' : 'Volver al concurso'}
+          </Link>
         </div>
       </div>
     )
   }
 
   const { eventGame, playsLeft, bestScore } = entry.data
+  const canPlay = playsLeft === null || playsLeft > 0
+  const backTo = event.data.isFreePlay ? '/jugar' : `/concurso/${slug}`
 
   return (
     <div className="container stack">
       <div className="row">
-        <Link to={`/concurso/${slug}`} className="muted">← {event.data.name}</Link>
+        <Link to={backTo} className="muted">← {event.data.name}</Link>
         <span className="spacer" />
-        <span className="badge">{playsLeft} {playsLeft === 1 ? 'intento' : 'intentos'} restantes</span>
+        {playsLeft === null ? (
+          <span className="badge badge--live">Intentos ilimitados</span>
+        ) : (
+          <span className="badge">{playsLeft} {playsLeft === 1 ? 'intento' : 'intentos'} restantes</span>
+        )}
       </div>
 
       <h1 style={{ marginBottom: 0 }}>{eventGame.game.name}</h1>
@@ -128,7 +136,7 @@ export function PlayPage() {
               <div className="stack">
                 <h2 style={{ marginBottom: 0 }}>¿Listo?</h2>
                 <p className="muted">{eventGame.game.description}</p>
-                {playsLeft > 0 ? (
+                {canPlay ? (
                   <button className="btn" onClick={() => void start.run()} disabled={start.pending}>
                     {start.pending ? 'Preparando…' : 'Empezar'}
                   </button>
@@ -148,12 +156,12 @@ export function PlayPage() {
                   {submit.pending ? 'Guardando tu puntaje…' : 'Tu puntaje ya está en el ranking.'}
                 </p>
                 <div className="row" style={{ justifyContent: 'center' }}>
-                  {playsLeft > 0 && (
+                  {canPlay && (
                     <button className="btn" onClick={() => void start.run()} disabled={start.pending}>
                       Volver a empezar
                     </button>
                   )}
-                  <Link to={`/concurso/${slug}`} className="btn btn--ghost">Salir</Link>
+                  <Link to={backTo} className="btn btn--ghost">Salir</Link>
                 </div>
               </div>
             </div>

@@ -32,6 +32,7 @@ export const toEvent = (row: EventRow): ContestEvent => ({
   status: row.status,
   startsAt: toDate(row.starts_at),
   endsAt: toDate(row.ends_at),
+  isFreePlay: row.is_free_play,
 })
 
 export const toGame = (row: GameRow): Game => ({

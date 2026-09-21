@@ -5,6 +5,7 @@ import { HomePage } from './pages/HomePage'
 import { LoginPage } from './pages/LoginPage'
 import { JoinPage } from './pages/JoinPage'
 import { EventPage } from './pages/EventPage'
+import { FreePlayPage } from './pages/FreePlayPage'
 import { PlayPage } from './pages/PlayPage'
 import { AccountPage } from './pages/AccountPage'
 import { AdminPage } from './pages/AdminPage'
@@ -23,6 +24,7 @@ export function App() {
         <Route path="/codigo" element={<JoinPage />} />
         <Route path="/codigo/:code" element={<JoinPage />} />
         <Route path="/concurso/:slug" element={<EventPage />} />
+        <Route path="/jugar" element={<FreePlayPage />} />
 
         {/* Requiere sesión */}
         <Route element={<RequireAuth />}>

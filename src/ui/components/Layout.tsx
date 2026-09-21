@@ -15,6 +15,7 @@ export function Layout() {
           </Link>
           <nav className="site-nav">
             <NavLink to="/" end>Inicio</NavLink>
+            <NavLink to="/jugar">Jugar</NavLink>
             <NavLink to="/codigo" aria-label="Tengo un código">
               <span className="nav-full">Tengo un código</span>
               <span className="nav-short">Código</span>

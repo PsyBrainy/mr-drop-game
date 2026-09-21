@@ -19,6 +19,7 @@ export function EventForm({ onCreated }: { onCreated: () => void }) {
       status: 'draft',
       startsAt: new Date(),
       endsAt: endsAt ? new Date(endsAt) : null,
+      isFreePlay: false,
     })
     onCreated()
   })

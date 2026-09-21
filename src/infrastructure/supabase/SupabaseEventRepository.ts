@@ -5,7 +5,7 @@ import { toEvent } from './mappers'
 import { translateError, unwrap } from './errors'
 import type { EventRow } from './rows'
 
-const COLUMNS = 'id, slug, name, description, prize, status, starts_at, ends_at'
+const COLUMNS = 'id, slug, name, description, prize, status, starts_at, ends_at, is_free_play'
 
 const toRow = (patch: Partial<EventDraft>) => ({
   ...(patch.slug !== undefined && { slug: patch.slug }),
@@ -15,6 +15,7 @@ const toRow = (patch: Partial<EventDraft>) => ({
   ...(patch.status !== undefined && { status: patch.status }),
   ...(patch.startsAt !== undefined && { starts_at: patch.startsAt?.toISOString() ?? null }),
   ...(patch.endsAt !== undefined && { ends_at: patch.endsAt?.toISOString() ?? null }),
+  ...(patch.isFreePlay !== undefined && { is_free_play: patch.isFreePlay }),
 })
 
 export class SupabaseEventRepository implements EventRepository {
@@ -23,9 +24,23 @@ export class SupabaseEventRepository implements EventRepository {
       .from('events')
       .select(COLUMNS)
       .neq('status', 'draft')
+      .eq('is_free_play', false)
       .order('starts_at', { ascending: false, nullsFirst: false })
       .returns<EventRow[]>()
     return unwrap(result).map(toEvent)
+  }
+
+  async findFreePlay(): Promise<ContestEvent | null> {
+    const { data, error } = await getSupabase()
+      .from('events')
+      .select(COLUMNS)
+      .eq('is_free_play', true)
+      .eq('status', 'live')
+      .order('created_at', { ascending: true })
+      .limit(1)
+      .maybeSingle<EventRow>()
+    if (error) throw translateError(error)
+    return data ? toEvent(data) : null
   }
 
   async listAll(): Promise<ContestEvent[]> {

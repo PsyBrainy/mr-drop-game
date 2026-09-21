@@ -9,6 +9,8 @@ export interface ContestEvent {
   readonly status: EventStatus
   readonly startsAt: Date | null
   readonly endsAt: Date | null
+  /** Sección de juego libre: sin código y sin límite de intentos. */
+  readonly isFreePlay: boolean
 }
 
 /** Un concurso acepta jugadas solo si está publicado y dentro de su ventana. */

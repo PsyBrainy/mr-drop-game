@@ -3,6 +3,7 @@ import { AccessCode } from '../access/AccessCode'
 import { DomainError } from '../shared/DomainError'
 import { hasEnded, isOpen, isUpcoming, type ContestEvent } from '../event/Event'
 import { positionOf, rank } from '../leaderboard/LeaderboardEntry'
+import { generalRanking } from '../leaderboard/GeneralRanking'
 import { sanitizeScore, MAX_SCORE } from '../session/GameSession'
 import { playsLeft, sortByPosition, type EventGame } from '../game/Game'
 
@@ -29,6 +30,7 @@ const baseEvent = (patch: Partial<ContestEvent> = {}): ContestEvent => ({
   description: '',
   prize: '',
   status: 'live',
+  isFreePlay: false,
   startsAt: null,
   endsAt: null,
   ...patch,
@@ -112,5 +114,42 @@ describe('EventGame', () => {
   it('nunca devuelve intentos negativos', () => {
     expect(playsLeft(eventGame('a', 0, 'A', 3), 5)).toBe(0)
     expect(playsLeft(eventGame('a', 0, 'A', 3), 1)).toBe(2)
+  })
+
+  it('en juego libre los intentos son ilimitados', () => {
+    expect(playsLeft(eventGame('a', 0, 'A', 1), 99, true)).toBeNull()
+  })
+})
+
+describe('ranking general', () => {
+  const entry = (userId: string, gameSlug: string, bestScore: number, at: string) => ({
+    userId,
+    displayName: userId,
+    avatarUrl: null,
+    gameSlug,
+    bestScore,
+    firstFinishedAt: new Date(at),
+    plays: 1,
+  })
+
+  it('suma el récord de cada juego por usuario', () => {
+    const board = generalRanking([
+      entry('ana', 'run', 100, '2026-01-01T10:00:00Z'),
+      entry('ana', 'jump', 50, '2026-01-02T10:00:00Z'),
+      entry('beto', 'run', 120, '2026-01-01T09:00:00Z'),
+    ])
+    expect(board.map((e) => [e.userId, e.totalScore, e.gamesPlayed])).toEqual([
+      ['ana', 150, 2],
+      ['beto', 120, 1],
+    ])
+  })
+
+  it('a igual total gana quien completó su marca antes', () => {
+    const board = generalRanking([
+      entry('ana', 'run', 100, '2026-01-03T10:00:00Z'),
+      entry('beto', 'run', 60, '2026-01-01T10:00:00Z'),
+      entry('beto', 'jump', 40, '2026-01-02T10:00:00Z'),
+    ])
+    expect(board.map((e) => e.userId)).toEqual(['beto', 'ana'])
   })
 })

@@ -18,6 +18,7 @@ export interface EventRow {
   status: 'draft' | 'live' | 'closed'
   starts_at: string | null
   ends_at: string | null
+  is_free_play: boolean
 }
 
 export interface GameRow {
