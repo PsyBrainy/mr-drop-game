@@ -1,9 +1,14 @@
-import { Link, NavLink, Outlet } from 'react-router-dom'
+import { useEffect, useState } from 'react'
+import { Link, NavLink, Outlet, useLocation } from 'react-router-dom'
 import { useAuth } from '../providers/AuthProvider'
 import { isSupabaseConfigured } from '../../infrastructure/supabase/client'
 
 export function Layout() {
   const { isAuthenticated, isAdmin, profile, signOut } = useAuth()
+  const [menuOpen, setMenuOpen] = useState(false)
+  const location = useLocation()
+
+  useEffect(() => setMenuOpen(false), [location.pathname])
 
   return (
     <div className="app-shell">
@@ -13,20 +18,26 @@ export function Layout() {
             <img src="/drop.svg" alt="" aria-hidden="true" />
             Mister Drop
           </Link>
-          <nav className="site-nav">
+          <button
+            type="button"
+            className={`nav-toggle ${menuOpen ? 'is-open' : ''}`}
+            aria-expanded={menuOpen}
+            aria-controls="site-nav"
+            aria-label={menuOpen ? 'Cerrar menú' : 'Abrir menú'}
+            onClick={() => setMenuOpen((value) => !value)}
+          >
+            <span />
+            <span />
+            <span />
+          </button>
+          <nav id="site-nav" className={`site-nav ${menuOpen ? 'is-open' : ''}`}>
             <NavLink to="/" end>Inicio</NavLink>
             <NavLink to="/jugar">Jugar</NavLink>
-            <NavLink to="/codigo" aria-label="Tengo un código">
-              <span className="nav-full">Tengo un código</span>
-              <span className="nav-short">Código</span>
-            </NavLink>
+            <NavLink to="/codigo">Tengo un código</NavLink>
             {isAdmin && <NavLink to="/admin">Panel</NavLink>}
             {isAuthenticated ? (
               <>
-                <NavLink to="/cuenta" aria-label="Mi cuenta">
-                  <span className="nav-full">{profile?.displayName || 'Mi cuenta'}</span>
-                  <span className="nav-short">Cuenta</span>
-                </NavLink>
+                <NavLink to="/cuenta">{profile?.displayName || 'Mi cuenta'}</NavLink>
                 <button type="button" className="btn btn--ghost btn--sm" onClick={() => void signOut()}>
                   Salir
                 </button>

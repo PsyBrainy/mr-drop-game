@@ -60,7 +60,7 @@ export function AddressesAdminPage() {
               </span>
             </div>
 
-            <table className="board">
+            <table className="board board--stack">
               <thead>
                 <tr>
                   <th>Usuario</th>
@@ -73,18 +73,18 @@ export function AddressesAdminPage() {
               <tbody>
                 {filtered.map((item) => (
                   <tr key={item.userId}>
-                    <td>
+                    <td data-label="Usuario">
                       <div className="board__player">
                         <Avatar displayName={item.displayName} avatarUrl={item.avatarUrl} />
                         {item.displayName}
                       </div>
                     </td>
-                    <td className="muted">{item.label || '—'}</td>
-                    <td className="muted" style={{ fontVariantNumeric: 'tabular-nums' }}>
+                    <td className="muted" data-label="Referencia">{item.label || '—'}</td>
+                    <td className="muted" data-label="Coordenadas" style={{ fontVariantNumeric: 'tabular-nums' }}>
                       {formatCoordinates(item)}
                     </td>
-                    <td className="muted">{dateFormat.format(item.updatedAt)}</td>
-                    <td style={{ textAlign: 'right' }}>
+                    <td className="muted" data-label="Actualizado">{dateFormat.format(item.updatedAt)}</td>
+                    <td data-label="" style={{ textAlign: 'right' }}>
                       <a
                         className="btn btn--sm"
                         href={wazeNavigationUrl(item)}

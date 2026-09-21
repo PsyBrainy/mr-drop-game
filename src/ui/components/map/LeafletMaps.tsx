@@ -103,11 +103,18 @@ export function AddressesOverviewMap({ addresses }: { addresses: AddressWithProf
       {addresses.map((address) => (
         <Marker key={address.userId} position={toLatLng(address)}>
           <Popup>
-            <strong>{address.displayName}</strong>
-            {address.label && <div>{address.label}</div>}
-            <a href={wazeNavigationUrl(address)} target="_blank" rel="noopener noreferrer">
-              Ir con Waze
-            </a>
+            <div className="map__popup">
+              <strong>{address.displayName}</strong>
+              {address.label && <span>{address.label}</span>}
+              <a
+                className="btn btn--sm"
+                href={wazeNavigationUrl(address)}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                Ir con Waze
+              </a>
+            </div>
           </Popup>
         </Marker>
       ))}
