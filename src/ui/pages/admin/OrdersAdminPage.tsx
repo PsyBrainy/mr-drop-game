@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState, type FormEvent } from 'react'
-import { Package, Leaf, Truck, ArrowLeft } from 'lucide-react'
+import { Leaf, Truck, ArrowLeft } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import type { OrderWithProfile } from '../../../application/ports/OrderRepository'
 import { isRoundOpen, ORDER_STATUS_LABEL, type OrderRound, type OrderStatus } from '../../../domain/order/Order'
