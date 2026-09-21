@@ -11,6 +11,7 @@ import { GameStage } from '../components/GameStage'
 import { Leaderboard } from '../components/Leaderboard'
 import { PageSpinner } from '../components/ProtectedRoute'
 import { gameAspectRatio } from '../../games/registry'
+import { shareScore } from '../lib/shareScore'
 
 type Phase = 'ready' | 'playing' | 'finished'
 
@@ -28,6 +29,7 @@ export function PlayPage() {
   const [status, setStatus] = useState<GameStatus>(NO_STATUS)
   const [finalScore, setFinalScore] = useState<number | null>(null)
   const [endMessage, setEndMessage] = useState<string | null>(null)
+  const [endPayload, setEndPayload] = useState<Record<string, unknown>>({})
 
   const event = useAsync(() => events.findBySlug(slug), [slug, events])
   const contest = event.data
@@ -53,6 +55,7 @@ export function PlayPage() {
     setStatus(NO_STATUS)
     setFinalScore(null)
     setEndMessage(null)
+    setEndPayload({})
     setPhase('playing')
   })
 
@@ -69,6 +72,7 @@ export function PlayPage() {
     (score: number, payload?: Record<string, unknown>) => {
       const message = payload?.['message']
       setEndMessage(typeof message === 'string' ? message : null)
+      setEndPayload(payload ?? {})
       void submit.run(score, payload)
     },
     [submit],
@@ -93,6 +97,15 @@ export function PlayPage() {
   const { eventGame, playsLeft, bestScore } = entry.data
   const canPlay = playsLeft === null || playsLeft > 0
   const backTo = event.data.isFreePlay ? '/jugar' : `/concurso/${slug}`
+
+  const share = () =>
+    void shareScore({
+      score: finalScore ?? 0,
+      message: endMessage ?? '¡Terminó!',
+      payload: endPayload,
+      modeLabel: eventGame.game.name,
+      shareUrl: `${window.location.origin}${backTo}`,
+    })
 
   return (
     <div className="container stack">
@@ -159,6 +172,11 @@ export function PlayPage() {
                   {canPlay && (
                     <button className="btn" onClick={() => void start.run()} disabled={start.pending}>
                       Volver a empezar
+                    </button>
+                  )}
+                  {event.data.isFreePlay && (
+                    <button className="btn btn--ghost" onClick={share} disabled={submit.pending}>
+                      Compartir en WhatsApp
                     </button>
                   )}
                   <Link to={backTo} className="btn btn--ghost">Salir</Link>

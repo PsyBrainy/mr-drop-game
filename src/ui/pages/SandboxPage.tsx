@@ -5,6 +5,7 @@ import { GameCanvas } from '../components/GameCanvas'
 import { GameHud } from '../components/GameHud'
 import { GameStage } from '../components/GameStage'
 import { gameAspectRatio, implementedSlugs } from '../../games/registry'
+import { shareScore } from '../lib/shareScore'
 
 const EMPTY_CONFIG = Object.freeze({})
 const NO_STATUS: GameStatus = {}
@@ -46,81 +47,15 @@ export function SandboxPage() {
     setPlaying(false)
   }, [])
 
-  const handleShare = async () => {
+  const handleShare = () => {
     if (!result) return
-
-    try {
-      const canvas = document.createElement('canvas')
-      canvas.width = 800
-      canvas.height = 800
-      const ctx = canvas.getContext('2d')
-      if (!ctx) return
-
-      ctx.fillStyle = '#1e1e2e'
-      ctx.fillRect(0, 0, canvas.width, canvas.height)
-      ctx.textAlign = 'center'
-
-      ctx.font = 'bold 50px sans-serif'
-      ctx.fillStyle = '#ffffff'
-      ctx.fillText('¡Resultados en Mister Drop!', 400, 120)
-
-      ctx.font = 'bold 160px sans-serif'
-      ctx.fillStyle = '#f9ca24'
-      ctx.fillText(result.score.toString(), 400, 320)
-
-      ctx.font = '36px sans-serif'
-      ctx.fillStyle = '#ffffff'
-      let y = 440
-
-      if (result.rawPayload.obstaculos !== undefined) {
-        ctx.fillText(`🚦 Obstáculos pasados: ${result.rawPayload.obstaculos}`, 400, y)
-        y += 60
-      }
-      if (result.rawPayload.cogollos !== undefined) {
-        ctx.fillText(`🌿 Cogollos fumados: ${result.rawPayload.cogollos}`, 400, y)
-        y += 60
-      }
-
-      ctx.font = '30px sans-serif'
-      ctx.fillStyle = '#ff7979'
-      let shareReason = result.message
-      if (result.rawPayload.reason === 'policia') {
-        shareReason = 'Se choco a la gorra'
-      } else if (result.rawPayload.reason === 'pozo') {
-        shareReason = 'Se comio un pozo'
-      }
-      ctx.fillText(`💀 Razón: ${shareReason}`, 400, y + 40)
-
-      ctx.font = '24px sans-serif'
-      ctx.fillStyle = '#888888'
-      ctx.fillText(`Modo: ${slug} | mrdrop.psybrainy.com`, 400, 740)
-
-      const blob = await new Promise<Blob | null>((resolve) => canvas.toBlob(resolve, 'image/png'))
-      if (!blob) return
-
-      const file = new File([blob], 'puntaje.png', { type: 'image/png' })
-      const shareText = `¡Acabo de hacer ${result.score} puntos en Mister Drop!\n¿Te animás a superarme? Jugalo acá: ${window.location.href}`
-
-      if (navigator.canShare && navigator.canShare({ files: [file] })) {
-        await navigator.share({
-          title: 'Mister Drop - Puntaje',
-          text: shareText,
-          files: [file],
-        })
-      } else {
-        const url = URL.createObjectURL(blob)
-        const a = document.createElement('a')
-        a.href = url
-        a.download = 'puntaje-mrdrop.png'
-        a.click()
-        URL.revokeObjectURL(url)
-        alert('Tu navegador descargó la imagen porque no soporta compartirla directamente. ¡Adjuntala en WhatsApp!')
-        window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(shareText)}`, '_blank')
-      }
-    } catch (err) {
-      console.error('Error al compartir:', err)
-      alert('Hubo un error al intentar compartir.')
-    }
+    void shareScore({
+      score: result.score,
+      message: result.message,
+      payload: result.rawPayload,
+      modeLabel: `Modo: ${slug}`,
+      shareUrl: window.location.href,
+    })
   }
 
   return (
