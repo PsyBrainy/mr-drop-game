@@ -14,6 +14,8 @@ import { contentBox, fitInside, type Size } from '../lib/layout'
 interface Props {
   /** ancho / alto del juego: define la forma del marco. */
   aspectRatio: number
+  /** Notifica al padre cuando cambia el estado de inmersión */
+  onImmersiveChange?: (immersive: boolean) => void
   children: ReactNode
 }
 
@@ -42,7 +44,7 @@ export interface GameStageRef {
  * del API nativa el botón no haría nada en medio parque de celulares.
  */
 export const GameStage = forwardRef<GameStageRef, Props>(function GameStage(
-  { aspectRatio, children },
+  { aspectRatio, onImmersiveChange, children },
   ref,
 ) {
   const stageRef = useRef<HTMLDivElement>(null)
@@ -104,8 +106,11 @@ export const GameStage = forwardRef<GameStageRef, Props>(function GameStage(
   // Sin esto la página de atrás sigue scrolleando bajo el juego en mobile.
   useEffect(() => {
     document.body.classList.toggle('is-immersive', immersive)
-    return () => document.body.classList.remove('is-immersive')
-  }, [immersive])
+    onImmersiveChange?.(immersive)
+    return () => {
+      document.body.classList.remove('is-immersive')
+    }
+  }, [immersive, onImmersiveChange])
 
   // Si se sale de la pantalla del juego (volver, terminar la partida) hay que
   // soltar el fullscreen: el navegador no siempre lo hace solo en una SPA.

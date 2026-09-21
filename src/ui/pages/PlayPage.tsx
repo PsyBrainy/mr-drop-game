@@ -31,6 +31,7 @@ export function PlayPage() {
   const [endMessage, setEndMessage] = useState<string | null>(null)
   const [endPayload, setEndPayload] = useState<Record<string, unknown>>({})
   const stageRef = useRef<GameStageRef>(null)
+  const [isImmersive, setIsImmersive] = useState(false)
 
   const event = useAsync(() => events.findBySlug(slug), [slug, events])
   const contest = event.data
@@ -134,7 +135,11 @@ export function PlayPage() {
       <div className="play-stage">
         {/* Todo lo que el jugador necesita va adentro del marco: en pantalla
             completa no se ve nada de la página que está atrás. */}
-        <GameStage ref={stageRef} aspectRatio={gameAspectRatio(gameSlug)}>
+        <GameStage 
+          ref={stageRef} 
+          aspectRatio={gameAspectRatio(gameSlug)}
+          onImmersiveChange={setIsImmersive}
+        >
           {phase === 'playing' && sessionId && (
             <GameCanvas
               gameSlug={eventGame.game.slug}
@@ -149,14 +154,30 @@ export function PlayPage() {
             <GameHud score={liveScore} best={bestScore} status={status} />
           )}
 
-          {phase === 'ready' && (
+          {phase === 'ready' && !isImmersive && (
+            <div className="game-overlay">
+              <div className="stack">
+                <h2 style={{ marginBottom: 0 }}>Modo inmersivo</h2>
+                <p className="muted">Preparate para jugar a pantalla completa.</p>
+                {canPlay ? (
+                  <button className="btn" onClick={() => void stageRef.current?.enter()}>
+                    Ingresar al juego
+                  </button>
+                ) : (
+                  <p className="alert alert--warn">Ya usaste todos tus intentos en este juego.</p>
+                )}
+              </div>
+            </div>
+          )}
+
+          {phase === 'ready' && isImmersive && (
             <div className="game-overlay">
               <div className="stack">
                 <h2 style={{ marginBottom: 0 }}>¿Listo?</h2>
                 <p className="muted">{eventGame.game.description}</p>
                 {canPlay ? (
                   <button className="btn" onClick={() => void start.run()} disabled={start.pending}>
-                    {start.pending ? 'Preparando…' : 'Empezar'}
+                    {start.pending ? 'Preparando…' : 'Comenzar'}
                   </button>
                 ) : (
                   <p className="alert alert--warn">Ya usaste todos tus intentos en este juego.</p>
