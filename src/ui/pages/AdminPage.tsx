@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { Package, Leaf, Truck, MapPin, Plus, X } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import type { ContestEvent, EventStatus } from '../../domain/event/Event'
 import { useRepositories, useUseCases } from '../providers/ContainerProvider'
@@ -25,15 +26,28 @@ export function AdminPage() {
 
   return (
     <div className="container stack">
-      <div className="row">
+      <div className="row admin-header">
         <h1 style={{ margin: 0 }}>Panel Mister Drop</h1>
         <span className="spacer" />
-        <Link to="/admin/pedidos" className="btn btn--ghost btn--sm">Pedidos</Link>
-        <Link to="/admin/combos" className="btn btn--ghost btn--sm">Combos</Link>
-        <Link to="/admin/envio" className="btn btn--ghost btn--sm">Envío</Link>
-        <Link to="/admin/direcciones" className="btn btn--ghost btn--sm">Direcciones</Link>
+        <Link to="/admin/pedidos" className="btn btn--ghost btn--sm">
+          <Package className="admin-tab-icon" size={18} />
+          <span className="admin-tab-text">Pedidos</span>
+        </Link>
+        <Link to="/admin/combos" className="btn btn--ghost btn--sm">
+          <Leaf className="admin-tab-icon" size={18} />
+          <span className="admin-tab-text">Combos</span>
+        </Link>
+        <Link to="/admin/envio" className="btn btn--ghost btn--sm">
+          <Truck className="admin-tab-icon" size={18} />
+          <span className="admin-tab-text">Envío</span>
+        </Link>
+        <Link to="/admin/direcciones" className="btn btn--ghost btn--sm">
+          <MapPin className="admin-tab-icon" size={18} />
+          <span className="admin-tab-text">Direcciones</span>
+        </Link>
         <button className="btn btn--sm" onClick={() => setCreating((value) => !value)}>
-          {creating ? 'Cancelar' : '+ Nuevo concurso'}
+          {creating ? <X className="admin-tab-icon" size={18} /> : <Plus className="admin-tab-icon" size={18} />}
+          <span className="admin-tab-text">{creating ? 'Cancelar' : 'Nuevo concurso'}</span>
         </button>
       </div>
 

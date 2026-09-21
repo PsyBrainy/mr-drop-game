@@ -131,6 +131,7 @@ p { margin: 0 0 1em; }
 .stack > * + * { margin-top: 1rem; }
 .row { display: flex; gap: 0.7rem; align-items: center; flex-wrap: wrap; }
 .spacer { flex: 1; }
+
 .center { text-align: center; }
 
 /* ---------- home ---------- */
@@ -353,6 +354,10 @@ body.is-immersive { overflow: hidden; }
 }
 
 @media (max-width: 600px) {
+  .admin-header h1 { width: 100%; }
+  .admin-header .spacer { display: none; }
+  .admin-tab-text { display: none; }
+  .admin-tab-icon { display: block !important; margin: 0 auto; }
   :root { --container-inset: 0.8rem; }
 
   /* La barra superior pasa a hamburguesa: el menú cae debajo del header. */

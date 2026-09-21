@@ -1,4 +1,5 @@
 import { useState, type FormEvent } from 'react'
+import { Package, ArrowLeft } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { formatPrice, type Product } from '../../../domain/order/Product'
 import { useRepositories } from '../../providers/ContainerProvider'
@@ -12,11 +13,17 @@ export function ProductsAdminPage() {
 
   return (
     <div className="container stack">
-      <div className="row">
+      <div className="row admin-header">
         <h1 style={{ margin: 0 }}>Combos</h1>
         <span className="spacer" />
-        <Link to="/admin/pedidos" className="btn btn--ghost btn--sm">Pedidos</Link>
-        <Link to="/admin" className="btn btn--ghost btn--sm">← Concursos</Link>
+        <Link to="/admin/pedidos" className="btn btn--ghost btn--sm">
+          <Package className="admin-tab-icon" size={18} />
+          <span className="admin-tab-text">Pedidos</span>
+        </Link>
+        <Link to="/admin" className="btn btn--ghost btn--sm">
+          <ArrowLeft className="admin-tab-icon" size={18} />
+          <span className="admin-tab-text">← Concursos</span>
+        </Link>
       </div>
       <p className="muted" style={{ margin: 0, fontSize: '0.9rem' }}>
         Lo que los usuarios pueden pedir. Un combo desactivado deja de aparecer, pero los

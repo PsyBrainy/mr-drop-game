@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react'
+import { ArrowLeft } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { useRepositories } from '../../providers/ContainerProvider'
 import { useAsync } from '../../hooks/useAsync'
@@ -25,10 +26,13 @@ export function AddressesAdminPage() {
 
   return (
     <div className="container stack">
-      <div className="row">
+      <div className="row admin-header">
         <h1 style={{ margin: 0 }}>Direcciones</h1>
         <span className="spacer" />
-        <Link to="/admin" className="btn btn--ghost btn--sm">← Concursos</Link>
+        <Link to="/admin" className="btn btn--ghost btn--sm">
+          <ArrowLeft className="admin-tab-icon" size={18} />
+          <span className="admin-tab-text">← Concursos</span>
+        </Link>
       </div>
 
       <p className="muted" style={{ margin: 0, fontSize: '0.9rem' }}>
