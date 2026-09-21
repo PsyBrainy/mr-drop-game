@@ -10,6 +10,7 @@ import {
   type OrderRound,
 } from '../../domain/order/Order'
 import { formatPrice, type Product } from '../../domain/order/Product'
+import { quoteDelivery } from '../../domain/order/Delivery'
 import type { UserAddress } from '../../domain/user/UserAddress'
 import { AddressPicker } from '../components/AddressPicker'
 import { useRepositories } from '../providers/ContainerProvider'
@@ -105,10 +106,11 @@ function JoinForm({ round, onJoined }: { round: OrderRound; onJoined: () => void
 }
 
 function OrderBuilder({ round, onOrderChanged }: { round: OrderRound; onOrderChanged: () => void }) {
-  const { orders, products } = useRepositories()
+  const { orders, products, delivery } = useRepositories()
   const confirm = useConfirm()
   const catalog = useAsync(() => products.list(), [products])
   const mine = useAsync(() => orders.getMyOrder(round.id), [round.id, orders])
+  const shipping = useAsync(() => delivery.get(), [delivery])
   // La carga la hace el AddressPicker; acá solo se refleja lo último que guardó.
   const [address, setAddress] = useState<UserAddress | null | undefined>(undefined)
 
@@ -135,7 +137,9 @@ function OrderBuilder({ round, onOrderChanged }: { round: OrderRound; onOrderCha
     () => new Map((catalog.data ?? []).map((product) => [product.id, product.price])),
     [catalog.data],
   )
-  const total = draftTotal(lines, prices)
+  const subtotal = draftTotal(lines, prices)
+  const quote = address && shipping.data ? quoteDelivery(address, shipping.data) : null
+  const total = subtotal + (quote?.fee ?? 0)
 
   const place = useAction(async () => {
     const order = await orders.placeOrder(lines, notes)
@@ -168,7 +172,7 @@ function OrderBuilder({ round, onOrderChanged }: { round: OrderRound; onOrderCha
 
   const current = mine.data && mine.data.status !== 'cancelled' ? mine.data : null
   const delivered = current?.status === 'delivered'
-  const loading = catalog.loading || mine.loading || address === undefined
+  const loading = catalog.loading || mine.loading || shipping.loading || address === undefined
   const noAddress = address === null
   // El pedido guarda una copia de la dirección: si cambió después, hay que reenviarlo.
   const addressMoved =
@@ -212,8 +216,10 @@ function OrderBuilder({ round, onOrderChanged }: { round: OrderRound; onOrderCha
         </div>
       )}
 
-      {(catalog.error || mine.error || place.error || cancel.error) && (
-        <div className="alert alert--error">{catalog.error ?? mine.error ?? place.error ?? cancel.error}</div>
+      {(catalog.error || mine.error || shipping.error || place.error || cancel.error) && (
+        <div className="alert alert--error">
+          {catalog.error ?? mine.error ?? shipping.error ?? place.error ?? cancel.error}
+        </div>
       )}
 
       {loading ? (
@@ -250,9 +256,21 @@ function OrderBuilder({ round, onOrderChanged }: { round: OrderRound; onOrderCha
             />
           </label>
 
-          <div className="card row" style={{ justifyContent: 'space-between' }}>
-            <span className="muted">Total</span>
-            <strong style={{ fontSize: '1.3rem', color: 'var(--accent)' }}>{formatPrice(total)}</strong>
+          <div className="card stack" style={{ gap: '0.4rem' }}>
+            <div className="row" style={{ justifyContent: 'space-between' }}>
+              <span className="muted">Combos</span>
+              <span>{formatPrice(subtotal)}</span>
+            </div>
+            <div className="row" style={{ justifyContent: 'space-between' }}>
+              <span className="muted">
+                Envío{quote ? ` · ${quote.inside ? 'dentro' : 'fuera'} del casco urbano` : ''}
+              </span>
+              <span>{quote ? formatPrice(quote.fee) : '—'}</span>
+            </div>
+            <div className="row" style={{ justifyContent: 'space-between', borderTop: '1px solid var(--surface-border)', paddingTop: '0.5rem' }}>
+              <strong>Total</strong>
+              <strong style={{ fontSize: '1.3rem', color: 'var(--accent)' }}>{formatPrice(total)}</strong>
+            </div>
           </div>
 
           {saved && <div className="alert alert--ok">Pedido guardado.</div>}
@@ -339,6 +357,9 @@ function OrderSummary({ order }: { order: Order }) {
       </div>
       <div style={{ fontSize: '0.92rem' }}>
         {order.items.map((item) => `${item.quantity}× ${item.name}`).join(', ')}
+        {order.deliveryFee > 0 && (
+          <span className="muted"> · envío {formatPrice(order.deliveryFee)}</span>
+        )}
       </div>
     </div>
   )

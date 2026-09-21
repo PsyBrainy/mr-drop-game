@@ -35,6 +35,7 @@ export function OrdersAdminPage() {
         <h1 style={{ margin: 0 }}>Pedidos</h1>
         <span className="spacer" />
         <Link to="/admin/combos" className="btn btn--ghost btn--sm">Combos</Link>
+        <Link to="/admin/envio" className="btn btn--ghost btn--sm">Envío</Link>
         <Link to="/admin" className="btn btn--ghost btn--sm">← Concursos</Link>
       </div>
 
@@ -398,6 +399,11 @@ function OrderCard({
       </div>
 
       <div className="muted" style={{ fontSize: '0.85rem' }}>
+        {order.deliveryInside !== null && (
+          <>
+            {order.deliveryInside ? 'Casco urbano' : 'Fuera del casco'} · envío {formatPrice(order.deliveryFee)} ·{' '}
+          </>
+        )}
         {order.addressLabel || 'Sin referencia'} · pedido {dateFormat.format(order.createdAt)}
         {order.deliveredAt && ` · entregado ${dateFormat.format(order.deliveredAt)}`}
       </div>

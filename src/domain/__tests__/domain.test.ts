@@ -8,6 +8,7 @@ import { sanitizeScore, MAX_SCORE } from '../session/GameSession'
 import { playsLeft, sortByPosition, type EventGame } from '../game/Game'
 import { isValidCoordinates, wazeNavigationUrl } from '../user/UserAddress'
 import { draftTotal, isRoundOpen, itemCount, normalizeDraft, MAX_ITEM_QUANTITY } from '../order/Order'
+import { isInsideZone, quoteDelivery } from '../order/Delivery'
 
 describe('AccessCode', () => {
   it('normaliza espacios y minúsculas', () => {
@@ -199,5 +200,35 @@ describe('Order', () => {
     expect(isRoundOpen(null)).toBe(false)
     expect(isRoundOpen({ id: 'r', name: '', status: 'open', openedAt: new Date(), closedAt: null })).toBe(true)
     expect(isRoundOpen({ id: 'r', name: '', status: 'closed', openedAt: new Date(), closedAt: new Date() })).toBe(false)
+  })
+})
+
+describe('Delivery', () => {
+  // Casco urbano de La Plata: vértices N, E, S, O.
+  const casco = [
+    { lat: -34.8875541, lng: -57.9534794 },
+    { lat: -34.9175123, lng: -57.9131216 },
+    { lat: -34.9539303, lng: -57.9530324 },
+    { lat: -34.9225633, lng: -57.9940849 },
+  ]
+
+  it('Plaza Moreno está adentro del casco', () => {
+    expect(isInsideZone({ lat: -34.9214, lng: -57.9544 }, casco)).toBe(true)
+  })
+
+  it('Villa Elvira (81 y 120) y City Bell están afuera', () => {
+    expect(isInsideZone({ lat: -34.9265, lng: -57.9059 }, casco)).toBe(false)
+    expect(isInsideZone({ lat: -34.87, lng: -58.04 }, casco)).toBe(false)
+  })
+
+  it('sin zona definida todo cuenta como adentro', () => {
+    expect(isInsideZone({ lat: 0, lng: 0 }, [])).toBe(true)
+    expect(isInsideZone({ lat: 0, lng: 0 }, casco.slice(0, 2))).toBe(true)
+  })
+
+  it('cotiza según la zona', () => {
+    const settings = { feeInside: 1000, feeOutside: 2500, zone: casco }
+    expect(quoteDelivery({ lat: -34.9214, lng: -57.9544 }, settings)).toEqual({ inside: true, fee: 1000 })
+    expect(quoteDelivery({ lat: -34.9265, lng: -57.9059 }, settings)).toEqual({ inside: false, fee: 2500 })
   })
 })

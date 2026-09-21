@@ -115,10 +115,18 @@ export interface OrderRow {
   lat: number
   lng: number
   address_label: string
+  delivery_fee: number | string
+  delivery_inside: boolean | null
   created_at: string
   delivered_at: string | null
   order_items?: OrderItemRow[] | null
   profiles?: Pick<ProfileRow, 'display_name' | 'avatar_url'> | null
+}
+
+export interface DeliverySettingsRow {
+  fee_inside: number | string
+  fee_outside: number | string
+  zone: { lat: number; lng: number }[] | null
 }
 
 export interface RedeemRow {

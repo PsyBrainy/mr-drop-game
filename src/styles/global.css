@@ -281,6 +281,7 @@ body.is-immersive { overflow: hidden; }
 .leaflet-container .leaflet-control-attribution { font-size: 0.65rem; }
 .leaflet-container .map__caption { background: var(--bg-elevated); color: var(--text); border: 1px solid var(--accent); border-radius: var(--radius-sm); font-weight: 600; font-size: 0.82rem; padding: 0.3rem 0.55rem; box-shadow: var(--shadow); width: max-content; max-width: min(240px, 70vw); white-space: normal; text-align: center; }
 .leaflet-container .map__caption::before { border-top-color: var(--accent); }
+.leaflet-container .map__vertex { width: 16px; height: 16px; border-radius: 50%; background: var(--accent); border: 2px solid #05140b; box-shadow: 0 0 0 2px rgba(61, 220, 132, 0.4); cursor: grab; }
 /* Botones de zoom más cómodos para el dedo. */
 .leaflet-touch .leaflet-bar a { width: 36px; height: 36px; line-height: 36px; }
 

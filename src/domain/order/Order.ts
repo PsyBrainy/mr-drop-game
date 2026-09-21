@@ -24,7 +24,11 @@ export interface Order extends Coordinates {
   readonly userId: string
   readonly status: OrderStatus
   readonly notes: string
+  /** Combos + envío. */
   readonly total: number
+  readonly deliveryFee: number
+  /** null en pedidos anteriores al costo de envío. */
+  readonly deliveryInside: boolean | null
   readonly addressLabel: string
   readonly items: OrderItem[]
   readonly createdAt: Date

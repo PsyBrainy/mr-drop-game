@@ -29,6 +29,7 @@ export function AdminPage() {
         <span className="spacer" />
         <Link to="/admin/pedidos" className="btn btn--ghost btn--sm">Pedidos</Link>
         <Link to="/admin/combos" className="btn btn--ghost btn--sm">Combos</Link>
+        <Link to="/admin/envio" className="btn btn--ghost btn--sm">Envío</Link>
         <Link to="/admin/direcciones" className="btn btn--ghost btn--sm">Direcciones</Link>
         <button className="btn btn--sm" onClick={() => setCreating((value) => !value)}>
           {creating ? 'Cancelar' : '+ Nuevo concurso'}

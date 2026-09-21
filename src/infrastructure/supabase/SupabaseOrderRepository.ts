@@ -12,7 +12,7 @@ import type { OrderRoundRow, OrderRow } from './rows'
 
 const ROUND_COLUMNS = 'id, name, status, opened_at, closed_at'
 const ORDER_COLUMNS =
-  'id, round_id, user_id, status, notes, total, lat, lng, address_label, created_at, delivered_at, order_items (product_id, name, unit_price, quantity)'
+  'id, round_id, user_id, status, notes, total, delivery_fee, delivery_inside, lat, lng, address_label, created_at, delivered_at, order_items (product_id, name, unit_price, quantity)'
 
 export class SupabaseOrderRepository implements OrderRepository {
   async getOpenRound(): Promise<OrderRound | null> {

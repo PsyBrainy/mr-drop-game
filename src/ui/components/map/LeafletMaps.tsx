@@ -1,6 +1,6 @@
 import { useEffect } from 'react'
 import L from 'leaflet'
-import { MapContainer, Marker, Popup, TileLayer, Tooltip, useMap, useMapEvents } from 'react-leaflet'
+import { MapContainer, Marker, Polygon, Popup, TileLayer, Tooltip, useMap, useMapEvents } from 'react-leaflet'
 import 'leaflet/dist/leaflet.css'
 import markerIcon from 'leaflet/dist/images/marker-icon.png'
 import markerIcon2x from 'leaflet/dist/images/marker-icon-2x.png'
@@ -122,6 +122,58 @@ export function PinsOverviewMap({ pins }: { pins: MapPin[] }) {
             </div>
           </Popup>
         </Marker>
+      ))}
+    </MapContainer>
+  )
+}
+
+const vertexIcon = L.divIcon({ className: 'map__vertex', iconSize: [16, 16] })
+
+interface ZoneEditorMapProps {
+  zone: Coordinates[]
+  onChange: (zone: Coordinates[]) => void
+}
+
+/** Polígono con vértices arrastrables. Click en un vértice lo borra (si quedan más de 3). */
+export function ZoneEditorMap({ zone, onChange }: ZoneEditorMapProps) {
+  const move = (index: number, point: Coordinates) =>
+    onChange(zone.map((vertex, i) => (i === index ? point : vertex)))
+  const remove = (index: number) => {
+    if (zone.length > 3) onChange(zone.filter((_, i) => i !== index))
+  }
+
+  return (
+    <MapContainer center={toLatLng(DEFAULT_CENTER)} zoom={12} className="map map--tall" scrollWheelZoom>
+      <TileLayer url={OSM_URL} attribution={OSM_ATTRIBUTION} />
+      <FitAll points={zone} />
+      <Polygon
+        positions={zone.map(toLatLng)}
+        pathOptions={{ color: '#3ddc84', weight: 2, fillOpacity: 0.12 }}
+        eventHandlers={{
+          // Doble click sobre el polígono agrega un vértice ahí.
+          dblclick(event) {
+            L.DomEvent.stopPropagation(event)
+            onChange([...zone, { lat: event.latlng.lat, lng: event.latlng.lng }])
+          },
+        }}
+      />
+      {zone.map((vertex, index) => (
+        <Marker
+          key={index}
+          position={toLatLng(vertex)}
+          icon={vertexIcon}
+          draggable
+          eventHandlers={{
+            dragend(event) {
+              const { lat, lng } = (event.target as L.Marker).getLatLng()
+              move(index, { lat, lng })
+            },
+            dblclick(event) {
+              L.DomEvent.stopPropagation(event)
+              remove(index)
+            },
+          }}
+        />
       ))}
     </MapContainer>
   )

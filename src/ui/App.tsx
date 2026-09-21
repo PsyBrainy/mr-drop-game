@@ -12,6 +12,7 @@ import { AdminPage } from './pages/AdminPage'
 import { AddressesAdminPage } from './pages/admin/AddressesAdminPage'
 import { ProductsAdminPage } from './pages/admin/ProductsAdminPage'
 import { OrdersAdminPage } from './pages/admin/OrdersAdminPage'
+import { DeliveryAdminPage } from './pages/admin/DeliveryAdminPage'
 import { OrdersPage } from './pages/OrdersPage'
 import { NotFoundPage } from './pages/NotFoundPage'
 import { SandboxPage } from './pages/SandboxPage'
@@ -43,6 +44,7 @@ export function App() {
           <Route path="/admin/direcciones" element={<AddressesAdminPage />} />
           <Route path="/admin/combos" element={<ProductsAdminPage />} />
           <Route path="/admin/pedidos" element={<OrdersAdminPage />} />
+          <Route path="/admin/envio" element={<DeliveryAdminPage />} />
         </Route>
 
         {/* Banco de pruebas de juegos. Ver src/ui/lib/features.ts.

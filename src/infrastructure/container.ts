@@ -15,6 +15,7 @@ import { SupabaseAddressRepository } from './supabase/SupabaseAddressRepository'
 import { NominatimGeocoder } from './nominatim/NominatimGeocoder'
 import { SupabaseProductRepository } from './supabase/SupabaseProductRepository'
 import { SupabaseOrderRepository } from './supabase/SupabaseOrderRepository'
+import { SupabaseDeliveryRepository } from './supabase/SupabaseDeliveryRepository'
 
 /**
  * Único punto donde se cablea infraestructura con casos de uso.
@@ -33,6 +34,7 @@ export function createContainer() {
   const geocoder = new NominatimGeocoder()
   const products = new SupabaseProductRepository()
   const orders = new SupabaseOrderRepository()
+  const delivery = new SupabaseDeliveryRepository()
 
   return {
     auth,
@@ -47,6 +49,7 @@ export function createContainer() {
       addresses,
       products,
       orders,
+      delivery,
     },
     usecases: {
       redeemAccessCode: new RedeemAccessCode(participations),

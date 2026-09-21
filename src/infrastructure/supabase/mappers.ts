@@ -8,6 +8,7 @@ import type { AddressWithProfile } from '../../application/ports/AddressReposito
 import type { OrderWithProfile } from '../../application/ports/OrderRepository'
 import type { Product } from '../../domain/order/Product'
 import type { Order, OrderItem, OrderRound } from '../../domain/order/Order'
+import type { DeliverySettings } from '../../domain/order/Delivery'
 import type { AccessCodeSummary } from '../../application/ports/AccessCodeRepository'
 import type {
   AccessCodeRow,
@@ -16,6 +17,7 @@ import type {
   GameRow,
   GameSessionRow,
   LeaderboardRow,
+  DeliverySettingsRow,
   OrderItemRow,
   OrderRoundRow,
   OrderRow,
@@ -146,6 +148,8 @@ export const toOrder = (row: OrderRow): Order => ({
   status: row.status,
   notes: row.notes,
   total: toNumber(row.total),
+  deliveryFee: toNumber(row.delivery_fee ?? 0),
+  deliveryInside: row.delivery_inside,
   lat: row.lat,
   lng: row.lng,
   addressLabel: row.address_label,
@@ -158,4 +162,10 @@ export const toOrderWithProfile = (row: OrderRow): OrderWithProfile => ({
   ...toOrder(row),
   displayName: row.profiles?.display_name ?? 'Dropper',
   avatarUrl: row.profiles?.avatar_url ?? null,
+})
+
+export const toDeliverySettings = (row: DeliverySettingsRow): DeliverySettings => ({
+  feeInside: toNumber(row.fee_inside),
+  feeOutside: toNumber(row.fee_outside),
+  zone: (row.zone ?? []).map((point) => ({ lat: Number(point.lat), lng: Number(point.lng) })),
 })
