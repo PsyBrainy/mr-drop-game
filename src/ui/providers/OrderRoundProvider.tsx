@@ -19,13 +19,14 @@ const OrderRoundContext = createContext<OrderRoundState | null>(null)
  * abrir/cerrar desde el panel se refleje sin recargar.
  */
 export function OrderRoundProvider({ children }: { children: ReactNode }) {
-  const { isAuthenticated } = useAuth()
+  const { isAuthenticated, loading: authLoading } = useAuth()
   const { orders } = useRepositories()
   const { pathname } = useLocation()
   const [openRound, setOpenRound] = useState<OrderRound | null>(null)
   const [loading, setLoading] = useState(true)
 
   const refresh = useCallback(async () => {
+    if (authLoading) return
     if (!isAuthenticated) {
       setOpenRound(null)
       setLoading(false)
@@ -38,7 +39,7 @@ export function OrderRoundProvider({ children }: { children: ReactNode }) {
     } finally {
       setLoading(false)
     }
-  }, [isAuthenticated, orders])
+  }, [authLoading, isAuthenticated, orders])
 
   useEffect(() => {
     void refresh()

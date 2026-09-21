@@ -1,5 +1,5 @@
 import { useEffect, useState, type FormEvent } from 'react'
-import type { Coordinates } from '../../domain/user/UserAddress'
+import type { Coordinates, UserAddress } from '../../domain/user/UserAddress'
 import { formatCoordinates, MAX_ADDRESS_LABEL } from '../../domain/user/UserAddress'
 import { useContainer, useRepositories } from '../providers/ContainerProvider'
 import { useConfirm } from '../providers/ConfirmProvider'
@@ -10,7 +10,21 @@ import { LazyAddressPickerMap } from './map/lazy'
 type Resolved =
   { status: 'idle' } | { status: 'loading' } | { status: 'done'; address: string | null }
 
-export function AddressPicker() {
+interface Props {
+  title?: string
+  /** Texto del resumen cuando no hay dirección cargada. */
+  emptyHint?: string
+  /** Se despliega solo si no hay dirección cargada (cuando es obligatoria). */
+  openWhenEmpty?: boolean
+  onChange?: (address: UserAddress | null) => void
+}
+
+export function AddressPicker({
+  title = 'Mi dirección',
+  emptyHint = 'Opcional · sin cargar',
+  openWhenEmpty = false,
+  onChange,
+}: Props) {
   const { addresses } = useRepositories()
   const { geocoder } = useContainer()
   const confirm = useConfirm()
@@ -25,14 +39,21 @@ export function AddressPicker() {
   const [open, setOpen] = useState(false)
 
   useEffect(() => {
-    if (!current.data) return
+    if (current.loading) return
+    onChange?.(current.data)
+    if (!current.data) {
+      if (openWhenEmpty) setOpen(true)
+      return
+    }
     setPoint({ lat: current.data.lat, lng: current.data.lng })
     setLabel(current.data.label)
-  }, [current.data])
+    // onChange se omite a propósito: avisa el dato, no la identidad del callback.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [current.data, current.loading, openWhenEmpty])
 
   // Nominatim pide máximo 1 request/segundo: se espera a que el pin se quede quieto.
   useEffect(() => {
-    if (!point || !open) {
+    if (!point) {
       setResolved({ status: 'idle' })
       return
     }
@@ -51,7 +72,7 @@ export function AddressPicker() {
       controller.abort()
       window.clearTimeout(timer)
     }
-  }, [point, open, geocoder])
+  }, [point, geocoder])
 
   const save = useAction(async () => {
     if (!point) return
@@ -108,8 +129,13 @@ export function AddressPicker() {
   const summary = current.loading
     ? 'Cargando…'
     : current.data
-      ? `Cargada${current.data.label ? ` · ${current.data.label}` : ''}`
-      : 'Opcional · sin cargar'
+      ? [
+          resolved.status === 'loading' ? 'Buscando dirección…' : (detected ?? formatCoordinates(current.data)),
+          current.data.label,
+        ]
+          .filter(Boolean)
+          .join(' · ')
+      : emptyHint
 
   return (
     <div className="card stack">
@@ -121,7 +147,7 @@ export function AddressPicker() {
         onClick={() => setOpen((value) => !value)}
       >
         <span className="stack" style={{ gap: '0.1rem' }}>
-          <h2 style={{ fontSize: '1.2rem', margin: 0 }}>Mi dirección</h2>
+          <h2 style={{ fontSize: '1.2rem', margin: 0 }}>{title}</h2>
           <span className="muted" style={{ fontSize: '0.85rem' }}>
             {summary}
           </span>

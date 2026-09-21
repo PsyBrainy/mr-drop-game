@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState, type FormEvent } from 'react'
-import { Link, Navigate } from 'react-router-dom'
+import { Navigate } from 'react-router-dom'
 import {
   draftTotal,
   MAX_ITEM_QUANTITY,
@@ -10,6 +10,8 @@ import {
   type OrderRound,
 } from '../../domain/order/Order'
 import { formatPrice, type Product } from '../../domain/order/Product'
+import type { UserAddress } from '../../domain/user/UserAddress'
+import { AddressPicker } from '../components/AddressPicker'
 import { useRepositories } from '../providers/ContainerProvider'
 import { useConfirm } from '../providers/ConfirmProvider'
 import { useOpenRound } from '../providers/OrderRoundProvider'
@@ -103,11 +105,12 @@ function JoinForm({ round, onJoined }: { round: OrderRound; onJoined: () => void
 }
 
 function OrderBuilder({ round, onOrderChanged }: { round: OrderRound; onOrderChanged: () => void }) {
-  const { orders, products, addresses } = useRepositories()
+  const { orders, products } = useRepositories()
   const confirm = useConfirm()
   const catalog = useAsync(() => products.list(), [products])
   const mine = useAsync(() => orders.getMyOrder(round.id), [round.id, orders])
-  const address = useAsync(() => addresses.getMine(), [addresses])
+  // La carga la hace el AddressPicker; acá solo se refleja lo último que guardó.
+  const [address, setAddress] = useState<UserAddress | null | undefined>(undefined)
 
   const [quantities, setQuantities] = useState<Record<string, number>>({})
   const [notes, setNotes] = useState('')
@@ -165,8 +168,14 @@ function OrderBuilder({ round, onOrderChanged }: { round: OrderRound; onOrderCha
 
   const current = mine.data && mine.data.status !== 'cancelled' ? mine.data : null
   const delivered = current?.status === 'delivered'
-  const loading = catalog.loading || mine.loading || address.loading
-  const noAddress = !address.loading && !address.error && !address.data
+  const loading = catalog.loading || mine.loading || address === undefined
+  const noAddress = address === null
+  // El pedido guarda una copia de la dirección: si cambió después, hay que reenviarlo.
+  const addressMoved =
+    !!current &&
+    !!address &&
+    !delivered &&
+    (current.lat !== address.lat || current.lng !== address.lng || current.addressLabel !== address.label)
 
   return (
     <div className="stack">
@@ -175,10 +184,22 @@ function OrderBuilder({ round, onOrderChanged }: { round: OrderRound; onOrderCha
         {round.name && <span className="muted">{round.name}</span>}
       </div>
 
+      <AddressPicker
+        title="Dirección de entrega"
+        emptyHint="Falta cargarla · sin dirección no se puede pedir"
+        openWhenEmpty
+        onChange={setAddress}
+      />
+
       {noAddress && (
         <div className="alert alert--warn">
-          Para pedir necesitamos saber a dónde llevarlo.{' '}
-          <Link to="/cuenta">Cargá tu dirección en Mi cuenta</Link> y volvé.
+          Marcá tu dirección en el mapa de arriba para poder pedir.
+        </div>
+      )}
+      {addressMoved && (
+        <div className="alert alert--warn">
+          Cambiaste la dirección después de pedir. Tocá <strong>Actualizar pedido</strong> para que
+          se entregue en la nueva.
         </div>
       )}
 
@@ -241,7 +262,7 @@ function OrderBuilder({ round, onOrderChanged }: { round: OrderRound; onOrderCha
               <button
                 type="submit"
                 className="btn"
-                disabled={place.pending || lines.length === 0 || noAddress}
+                disabled={place.pending || lines.length === 0 || !address}
               >
                 {place.pending ? 'Enviando…' : current ? 'Actualizar pedido' : 'Confirmar pedido'}
               </button>
