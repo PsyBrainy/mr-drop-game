@@ -22,7 +22,7 @@ export function Leaderboard({ entries, currentUserId, showGame = false }: Props)
         <tr>
           <th className="board__pos">#</th>
           <th>Jugador</th>
-          {showGame && <th>Juego</th>}
+          {showGame && <th className="board__col-game">Juego</th>}
           <th style={{ textAlign: 'right' }}>Puntaje</th>
         </tr>
       </thead>
@@ -36,12 +36,12 @@ export function Leaderboard({ entries, currentUserId, showGame = false }: Props)
                 {entry.displayName || 'Dropper'}
               </span>
             </td>
-            {showGame && <td className="muted">{entry.gameSlug}</td>}
+            {showGame && <td className="board__col-game muted">{entry.gameSlug}</td>}
             <td className="board__score">
               <div>{entry.bestScore.toLocaleString('es-AR')}</div>
               {entry.payload && (typeof entry.payload.obstaculos === 'number' || typeof entry.payload.cogollos === 'number') && (
                 <div className="muted" style={{ fontSize: '0.75em', marginTop: '2px', fontWeight: 'normal' }}>
-                  {(entry.payload.obstaculos as number) ?? 0} obst. / {(entry.payload.cogollos as number) ?? 0} cog.
+                  <span style={{ whiteSpace: 'nowrap' }}>{(entry.payload.obstaculos as number) ?? 0} obst.</span> <span style={{ whiteSpace: 'nowrap' }}>{(entry.payload.cogollos as number) ?? 0} cog.</span>
                 </div>
               )}
             </td>

@@ -393,7 +393,7 @@ body.is-immersive { overflow: hidden; }
   .game-frame { --game-reserve: 9rem; border-radius: 0; border-left: 0; border-right: 0; }
   .play-stage { gap: 0.9rem; }
 
-  .board th:nth-child(3), .board td:nth-child(3) { display: none; }
+  .board__col-game { display: none; }
 }
 
 /*
