@@ -46,6 +46,12 @@ export function Layout() {
         <div className="container site-footer__inner">
           <span>MrDrop · comunidad</span>
           <span className="muted">+18. Jugá con responsabilidad.</span>
+          <span className="muted">
+            Desarrollado por{' '}
+            <a href="https://psybrainy.com" target="_blank" rel="noopener noreferrer">
+              Psybrainy
+            </a>
+          </span>
         </div>
       </footer>
     </div>

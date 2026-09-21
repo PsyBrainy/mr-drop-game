@@ -1,5 +1,4 @@
 import { Link } from 'react-router-dom'
-import { sandboxFlagValue } from '../lib/features'
 
 /**
  * Se muestra cuando alguien entra a /sandbox en un build que lo tiene apagado.
