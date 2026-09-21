@@ -6,7 +6,7 @@
 insert into public.games (slug, name, description, engine)
 values (
   'mrdrop-run',
-  'MrDrop Run',
+  'Mister Drop Run',
   'Manejá la pickup y saltá los pozos y los patrulleros. Agarrá cogollos al vuelo y no choques.',
   'kaplay'
 )
@@ -17,8 +17,8 @@ insert into public.events (slug, name, description, prize, status, starts_at, en
 values (
   'primer-drop',
   'Primer Drop',
-  'El concurso inaugural de la comunidad MrDrop.',
-  'Kit MrDrop + merch para el top 3',
+  'El concurso inaugural de la comunidad Mister Drop.',
+  'Kit Mister Drop + merch para el top 3',
   'live',
   now() - interval '1 hour',
   now() + interval '30 days'

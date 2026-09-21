@@ -22,7 +22,7 @@ export function RequireAdmin() {
       <div className="container">
         <div className="empty-state">
           <h2>Zona de admins</h2>
-          <p className="muted">Tu cuenta no tiene permisos para el panel de MrDrop.</p>
+          <p className="muted">Tu cuenta no tiene permisos para el panel de Mister Drop.</p>
         </div>
       </div>
     )

@@ -5,7 +5,7 @@ import { Link } from 'react-router-dom'
  *
  * Existe para que el diagnóstico sea evidente: si ves ESTA página, el ruteo del
  * hosting funciona y lo que falló es la variable. Si en cambio ves el 404 del
- * hosting (sin la barra de MrDrop), el problema es que falta la regla de
+ * hosting (sin la barra de Mister Drop), el problema es que falta la regla de
  * reescritura a index.html.
  */
 export function SandboxOffPage() {

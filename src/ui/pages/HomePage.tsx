@@ -17,7 +17,7 @@ export function HomePage() {
   return (
     <>
       <section className="container hero">
-        <span className="hero__eyebrow">Comunidad MrDrop</span>
+        <span className="hero__eyebrow">Comunidad Mister Drop</span>
         <h1>Jugá, sumá puntos<br />y llevate premios.</h1>
         <p className="hero__lead">
           Concursos para la comunidad. Te llega un link con tu código, entrás, jugás los juegos

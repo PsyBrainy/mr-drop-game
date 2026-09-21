@@ -24,7 +24,7 @@ export function AdminPage() {
   return (
     <div className="container stack">
       <div className="row">
-        <h1 style={{ margin: 0 }}>Panel MrDrop</h1>
+        <h1 style={{ margin: 0 }}>Panel Mister Drop</h1>
         <span className="spacer" />
         <button className="btn btn--sm" onClick={() => setCreating((value) => !value)}>
           {creating ? 'Cancelar' : '+ Nuevo concurso'}

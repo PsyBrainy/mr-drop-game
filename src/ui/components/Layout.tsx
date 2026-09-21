@@ -11,7 +11,7 @@ export function Layout() {
         <div className="container site-header__inner">
           <Link to="/" className="brand">
             <img src="/drop.svg" alt="" aria-hidden="true" />
-            MrDrop
+            Mister Drop
           </Link>
           <nav className="site-nav">
             <NavLink to="/" end>Inicio</NavLink>
@@ -44,12 +44,12 @@ export function Layout() {
 
       <footer className="site-footer">
         <div className="container site-footer__inner">
-          <span>MrDrop · comunidad</span>
+          <span>Mister Drop · comunidad</span>
           <span className="muted">+18. Jugá con responsabilidad.</span>
           <span className="muted">
             Desarrollado por{' '}
             <a href="https://psybrainy.com" target="_blank" rel="noopener noreferrer">
-              Psybrainy
+              PsyBrainy
             </a>
           </span>
         </div>

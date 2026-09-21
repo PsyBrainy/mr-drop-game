@@ -62,7 +62,7 @@ export function SandboxPage() {
 
       ctx.font = 'bold 50px sans-serif'
       ctx.fillStyle = '#ffffff'
-      ctx.fillText('¡Resultados en MrDrop!', 400, 120)
+      ctx.fillText('¡Resultados en Mister Drop!', 400, 120)
 
       ctx.font = 'bold 160px sans-serif'
       ctx.fillStyle = '#f9ca24'
@@ -93,17 +93,17 @@ export function SandboxPage() {
 
       ctx.font = '24px sans-serif'
       ctx.fillStyle = '#888888'
-      ctx.fillText(`Modo: ${slug} | mrdrop.com`, 400, 740)
+      ctx.fillText(`Modo: ${slug} | mrdrop.psybrainy.com`, 400, 740)
 
       const blob = await new Promise<Blob | null>((resolve) => canvas.toBlob(resolve, 'image/png'))
       if (!blob) return
 
       const file = new File([blob], 'puntaje.png', { type: 'image/png' })
-      const shareText = `¡Acabo de hacer ${result.score} puntos en MrDrop!\n¿Te animás a superarme? Jugalo acá: ${window.location.href}`
+      const shareText = `¡Acabo de hacer ${result.score} puntos en Mister Drop!\n¿Te animás a superarme? Jugalo acá: ${window.location.href}`
 
       if (navigator.canShare && navigator.canShare({ files: [file] })) {
         await navigator.share({
-          title: 'MrDrop - Puntaje',
+          title: 'Mister Drop - Puntaje',
           text: shareText,
           files: [file],
         })
