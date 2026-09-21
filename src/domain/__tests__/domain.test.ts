@@ -6,6 +6,7 @@ import { positionOf, rank } from '../leaderboard/LeaderboardEntry'
 import { generalRanking } from '../leaderboard/GeneralRanking'
 import { sanitizeScore, MAX_SCORE } from '../session/GameSession'
 import { playsLeft, sortByPosition, type EventGame } from '../game/Game'
+import { isValidCoordinates, wazeNavigationUrl } from '../user/UserAddress'
 
 describe('AccessCode', () => {
   it('normaliza espacios y minúsculas', () => {
@@ -151,5 +152,20 @@ describe('ranking general', () => {
       entry('beto', 'jump', 40, '2026-01-02T10:00:00Z'),
     ])
     expect(board.map((e) => e.userId)).toEqual(['beto', 'ana'])
+  })
+})
+
+describe('UserAddress', () => {
+  it('arma el deep link de Waze con navegación activada', () => {
+    expect(wazeNavigationUrl({ lat: -34.6037, lng: -58.3816 })).toBe(
+      'https://waze.com/ul?ll=-34.603700,-58.381600&navigate=yes',
+    )
+  })
+
+  it('rechaza coordenadas fuera de rango', () => {
+    expect(isValidCoordinates({ lat: 91, lng: 0 })).toBe(false)
+    expect(isValidCoordinates({ lat: 0, lng: -181 })).toBe(false)
+    expect(isValidCoordinates({ lat: Number.NaN, lng: 0 })).toBe(false)
+    expect(() => wazeNavigationUrl({ lat: 100, lng: 0 })).toThrow(RangeError)
   })
 })

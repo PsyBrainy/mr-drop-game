@@ -9,6 +9,7 @@ import { FreePlayPage } from './pages/FreePlayPage'
 import { PlayPage } from './pages/PlayPage'
 import { AccountPage } from './pages/AccountPage'
 import { AdminPage } from './pages/AdminPage'
+import { AddressesAdminPage } from './pages/admin/AddressesAdminPage'
 import { NotFoundPage } from './pages/NotFoundPage'
 import { SandboxPage } from './pages/SandboxPage'
 import { SandboxOffPage } from './pages/SandboxOffPage'
@@ -35,6 +36,7 @@ export function App() {
         {/* Solo admin */}
         <Route element={<RequireAdmin />}>
           <Route path="/admin" element={<AdminPage />} />
+          <Route path="/admin/direcciones" element={<AddressesAdminPage />} />
         </Route>
 
         {/* Banco de pruebas de juegos. Ver src/ui/lib/features.ts.

@@ -5,6 +5,7 @@ import { useContainer, useRepositories } from '../providers/ContainerProvider'
 import { useAsync } from '../hooks/useAsync'
 import { useAction } from '../hooks/useAction'
 import { EventStatusBadge } from '../components/EventStatusBadge'
+import { AddressPicker } from '../components/AddressPicker'
 
 export function AccountPage() {
   const { profile, refresh, signOut } = useAuth()
@@ -60,6 +61,8 @@ export function AccountPage() {
           </div>
         </form>
       </div>
+
+      <AddressPicker />
 
       <section className="stack">
         <h2 style={{ fontSize: '1.2rem' }}>Mis concursos</h2>

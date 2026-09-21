@@ -3,6 +3,8 @@ import type { EventGame, Game } from '../../domain/game/Game'
 import type { LeaderboardEntry } from '../../domain/leaderboard/LeaderboardEntry'
 import type { GameSession } from '../../domain/session/GameSession'
 import type { Profile } from '../../domain/user/Profile'
+import type { UserAddress } from '../../domain/user/UserAddress'
+import type { AddressWithProfile } from '../../application/ports/AddressRepository'
 import type { AccessCodeSummary } from '../../application/ports/AccessCodeRepository'
 import type {
   AccessCodeRow,
@@ -12,6 +14,7 @@ import type {
   GameSessionRow,
   LeaderboardRow,
   ProfileRow,
+  UserAddressRow,
 } from './rows'
 
 const toDate = (value: string | null): Date | null => (value ? new Date(value) : null)
@@ -86,4 +89,18 @@ export const toAccessCode = (row: AccessCodeRow): AccessCodeSummary => ({
   usedCount: row.used_count,
   expiresAt: toDate(row.expires_at),
   isActive: row.is_active,
+})
+
+export const toUserAddress = (row: UserAddressRow): UserAddress => ({
+  userId: row.user_id,
+  lat: row.lat,
+  lng: row.lng,
+  label: row.label,
+  updatedAt: new Date(row.updated_at),
+})
+
+export const toAddressWithProfile = (row: UserAddressRow): AddressWithProfile => ({
+  ...toUserAddress(row),
+  displayName: row.profiles?.display_name ?? 'Dropper',
+  avatarUrl: row.profiles?.avatar_url ?? null,
 })

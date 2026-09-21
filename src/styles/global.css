@@ -259,6 +259,20 @@ body.is-immersive { overflow: hidden; }
 .avatar { width: 28px; height: 28px; border-radius: 50%; background: var(--accent-soft); color: var(--accent); display: grid; place-items: center; font-size: 0.7rem; font-weight: 700; flex-shrink: 0; object-fit: cover; }
 
 /* ---------- admin ---------- */
+/* Mapa (Leaflet). isolation evita que sus controles (z-index 1000) tapen el header sticky. */
+.map { height: 320px; width: 100%; border-radius: var(--radius-sm); border: 1px solid var(--surface-border); position: relative; z-index: 0; isolation: isolate; background: var(--bg-input); }
+.map--tall { height: 420px; }
+.leaflet-container { font-family: var(--font); }
+.leaflet-popup-content-wrapper, .leaflet-popup-tip { background: var(--bg-elevated); color: var(--text); }
+.leaflet-popup-content a { color: var(--accent); }
+.leaflet-control-attribution { font-size: 0.65rem; }
+.map__caption { background: var(--bg-elevated); color: var(--text); border: 1px solid var(--accent); border-radius: var(--radius-sm); font-weight: 600; font-size: 0.82rem; padding: 0.3rem 0.55rem; box-shadow: var(--shadow); }
+.map__caption::before { border-top-color: var(--accent); }
+
+.pin-status { display: flex; flex-direction: column; gap: 0.15rem; padding: 0.7rem 0.9rem; border-radius: var(--radius-sm); border: 1px dashed var(--surface-border-strong); font-size: 0.92rem; }
+.pin-status.is-set { border-style: solid; border-color: var(--accent); background: var(--accent-soft); }
+.pin-status .muted { font-size: 0.85rem; }
+
 .admin-layout { display: grid; gap: 1.5rem; grid-template-columns: minmax(0, 260px) minmax(0, 1fr); align-items: start; }
 .admin-list { display: flex; flex-direction: column; gap: 0.35rem; }
 .admin-list__item { text-align: left; width: 100%; background: transparent; border: 1px solid transparent; border-radius: var(--radius-sm); padding: 0.6rem 0.75rem; color: var(--text-muted); cursor: pointer; font: inherit; }

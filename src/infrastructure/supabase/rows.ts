@@ -72,6 +72,15 @@ export interface AccessCodeRow {
   is_active: boolean
 }
 
+export interface UserAddressRow {
+  user_id: string
+  lat: number
+  lng: number
+  label: string
+  updated_at: string
+  profiles?: Pick<ProfileRow, 'display_name' | 'avatar_url'> | null
+}
+
 export interface RedeemRow {
   event_id: string
   event_slug: string
