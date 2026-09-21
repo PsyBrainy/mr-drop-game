@@ -185,9 +185,14 @@ create index if not exists game_sessions_lookup_idx
 
 -- -----------------------------------------------------------------------------
 -- Leaderboard: mejor score por usuario y juego dentro de un evento
+--
+-- Es publico a proposito: corre con los permisos del duenio (no del que
+-- consulta), asi cualquiera (incluso sin cuenta) ve el ranking completo. Solo
+-- expone nombre, avatar y mejor puntaje; las partidas individuales siguen
+-- protegidas por el RLS de game_sessions.
 -- -----------------------------------------------------------------------------
 create or replace view public.leaderboard
-with (security_invoker = true)
+with (security_invoker = false)
 as
 select
   eg.event_id,
@@ -206,6 +211,8 @@ join public.participations p on p.id  = s.participation_id
 join public.profiles      pr on pr.id = p.user_id
 where s.status = 'finished'
 group by eg.event_id, eg.id, g.slug, p.user_id, pr.display_name, pr.avatar_url;
+
+grant select on public.leaderboard to anon, authenticated;
 
 -- =============================================================================
 -- RLS
@@ -433,13 +440,20 @@ begin
     raise exception 'AUTH_REQUIRED' using errcode = '28000';
   end if;
 
-  select s.*, p.user_id into v_session, v_owner
-  from public.game_sessions s
-  join public.participations p on p.id = s.participation_id
-  where s.id = p_session_id
-  for update of s;
+  select * into v_session
+  from public.game_sessions
+  where id = p_session_id
+  for update;
 
-  if not found or v_owner <> auth.uid() then
+  if not found then
+    raise exception 'SESSION_NOT_FOUND' using errcode = 'P0002';
+  end if;
+
+  select user_id into v_owner
+  from public.participations
+  where id = v_session.participation_id;
+
+  if v_owner is distinct from auth.uid() then
     raise exception 'SESSION_NOT_FOUND' using errcode = 'P0002';
   end if;
 

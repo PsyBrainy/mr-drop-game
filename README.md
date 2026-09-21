@@ -31,7 +31,9 @@ En el SQL Editor de tu proyecto Supabase, en orden:
 
 1. `supabase/migrations/0001_init.sql` — tablas, RLS y funciones
 2. `supabase/migrations/0002_free_play.sql` — sección de juego libre (`/jugar`)
-3. `supabase/seed.sql` — un concurso de ejemplo con el juego `mrdrop-run` y el código `MRDROP24`
+3. `supabase/migrations/0003_fix_finish_session.sql` — cierre de partida
+4. `supabase/migrations/0004_public_leaderboard.sql` — ranking visible para todos
+5. `supabase/seed.sql` — un concurso de ejemplo con el juego `mrdrop-run` y el código `MRDROP24`
 
 Después registrate en la app y date permisos de admin:
 
