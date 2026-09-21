@@ -273,6 +273,11 @@ body.is-immersive { overflow: hidden; }
 .pin-status.is-set { border-style: solid; border-color: var(--accent); background: var(--accent-soft); }
 .pin-status .muted { font-size: 0.85rem; }
 
+.collapsible__toggle { display: flex; align-items: center; gap: 1rem; width: 100%; padding: 0; background: none; border: 0; color: inherit; font: inherit; text-align: left; cursor: pointer; }
+.collapsible__toggle:focus-visible { outline: 2px solid var(--accent); outline-offset: 6px; border-radius: 4px; }
+.collapsible__chevron { margin-left: auto; width: 0.6rem; height: 0.6rem; border-right: 2px solid var(--text-muted); border-bottom: 2px solid var(--text-muted); transform: rotate(45deg); transition: transform 0.18s ease; flex: none; }
+.collapsible__chevron.is-open { transform: rotate(-135deg); }
+
 .admin-layout { display: grid; gap: 1.5rem; grid-template-columns: minmax(0, 260px) minmax(0, 1fr); align-items: start; }
 .admin-list { display: flex; flex-direction: column; gap: 0.35rem; }
 .admin-list__item { text-align: left; width: 100%; background: transparent; border: 1px solid transparent; border-radius: var(--radius-sm); padding: 0.6rem 0.75rem; color: var(--text-muted); cursor: pointer; font: inherit; }
