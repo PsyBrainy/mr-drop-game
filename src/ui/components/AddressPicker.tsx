@@ -2,6 +2,7 @@ import { useEffect, useState, type FormEvent } from 'react'
 import type { Coordinates } from '../../domain/user/UserAddress'
 import { formatCoordinates, MAX_ADDRESS_LABEL } from '../../domain/user/UserAddress'
 import { useContainer, useRepositories } from '../providers/ContainerProvider'
+import { useConfirm } from '../providers/ConfirmProvider'
 import { useAsync } from '../hooks/useAsync'
 import { useAction } from '../hooks/useAction'
 import { LazyAddressPickerMap } from './map/lazy'
@@ -12,6 +13,7 @@ type Resolved =
 export function AddressPicker() {
   const { addresses } = useRepositories()
   const { geocoder } = useContainer()
+  const confirm = useConfirm()
   const current = useAsync(() => addresses.getMine(), [addresses])
 
   const [point, setPoint] = useState<Coordinates | null>(null)
@@ -211,9 +213,17 @@ export function AddressPicker() {
               {current.data && (
                 <button
                   type="button"
-                  className="btn btn--ghost btn--sm"
+                  className="btn btn--danger btn--sm"
                   disabled={remove.pending}
-                  onClick={() => void remove.run()}
+                  onClick={async () => {
+                    const ok = await confirm({
+                      title: '¿Borrar tu dirección?',
+                      message: 'Sin dirección no vas a poder hacer pedidos hasta que cargues otra.',
+                      confirmLabel: 'Borrar dirección',
+                      danger: true,
+                    })
+                    if (ok) void remove.run()
+                  }}
                 >
                   Borrar dirección
                 </button>

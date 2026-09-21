@@ -13,6 +13,8 @@ import { SupabaseLeaderboardRepository } from './supabase/SupabaseLeaderboardRep
 import { SupabaseAccessCodeRepository } from './supabase/SupabaseAccessCodeRepository'
 import { SupabaseAddressRepository } from './supabase/SupabaseAddressRepository'
 import { NominatimGeocoder } from './nominatim/NominatimGeocoder'
+import { SupabaseProductRepository } from './supabase/SupabaseProductRepository'
+import { SupabaseOrderRepository } from './supabase/SupabaseOrderRepository'
 
 /**
  * Único punto donde se cablea infraestructura con casos de uso.
@@ -29,11 +31,23 @@ export function createContainer() {
   const accessCodes = new SupabaseAccessCodeRepository()
   const addresses = new SupabaseAddressRepository()
   const geocoder = new NominatimGeocoder()
+  const products = new SupabaseProductRepository()
+  const orders = new SupabaseOrderRepository()
 
   return {
     auth,
     geocoder,
-    repositories: { events, games, participations, sessions, leaderboards, accessCodes, addresses },
+    repositories: {
+      events,
+      games,
+      participations,
+      sessions,
+      leaderboards,
+      accessCodes,
+      addresses,
+      products,
+      orders,
+    },
     usecases: {
       redeemAccessCode: new RedeemAccessCode(participations),
       loadEventBoard: new LoadEventBoard(events, games, participations),

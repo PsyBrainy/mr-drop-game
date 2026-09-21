@@ -21,6 +21,13 @@ export type DomainErrorCode =
   | 'NO_PLAYS_LEFT'
   | 'SESSION_CLOSED'
   | 'SESSION_NOT_FOUND'
+  | 'ORDERS_CLOSED'
+  | 'ROUND_CODE_REQUIRED'
+  | 'ROUND_ALREADY_OPEN'
+  | 'ADDRESS_REQUIRED'
+  | 'ORDER_EMPTY'
+  | 'ORDER_DELIVERED'
+  | 'PRODUCT_UNAVAILABLE'
   | 'UNEXPECTED'
 
 const MESSAGES: Record<DomainErrorCode, string> = {
@@ -35,6 +42,13 @@ const MESSAGES: Record<DomainErrorCode, string> = {
   NO_PLAYS_LEFT: 'Ya usaste todos tus intentos en este juego.',
   SESSION_CLOSED: 'Esa partida ya estaba cerrada.',
   SESSION_NOT_FOUND: 'No encontramos esa partida.',
+  ORDERS_CLOSED: 'Los pedidos están cerrados en este momento.',
+  ROUND_CODE_REQUIRED: 'Primero tenés que ingresar el código de esta camada de pedidos.',
+  ROUND_ALREADY_OPEN: 'Ya hay una camada de pedidos abierta. Cerrala antes de abrir otra.',
+  ADDRESS_REQUIRED: 'Cargá tu dirección en Mi cuenta antes de pedir.',
+  ORDER_EMPTY: 'Elegí al menos un combo para hacer el pedido.',
+  ORDER_DELIVERED: 'Ese pedido ya fue entregado y no se puede cambiar.',
+  PRODUCT_UNAVAILABLE: 'Uno de los combos ya no está disponible. Revisá tu pedido.',
   UNEXPECTED: 'Algo salió mal. Probá de nuevo en un momento.',
 }
 

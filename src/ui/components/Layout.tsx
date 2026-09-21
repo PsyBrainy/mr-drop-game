@@ -1,10 +1,12 @@
 import { useEffect, useState } from 'react'
 import { Link, NavLink, Outlet, useLocation } from 'react-router-dom'
 import { useAuth } from '../providers/AuthProvider'
+import { useOpenRound } from '../providers/OrderRoundProvider'
 import { isSupabaseConfigured } from '../../infrastructure/supabase/client'
 
 export function Layout() {
   const { isAuthenticated, isAdmin, profile, signOut } = useAuth()
+  const { openRound } = useOpenRound()
   const [menuOpen, setMenuOpen] = useState(false)
   const location = useLocation()
 
@@ -34,6 +36,7 @@ export function Layout() {
             <NavLink to="/" end>Inicio</NavLink>
             <NavLink to="/jugar">Jugar</NavLink>
             <NavLink to="/codigo">Tengo un código</NavLink>
+            {isAuthenticated && openRound && <NavLink to="/pedidos">Pedidos</NavLink>}
             {isAdmin && <NavLink to="/admin">Panel</NavLink>}
             {isAuthenticated ? (
               <>

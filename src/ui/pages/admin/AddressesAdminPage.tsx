@@ -4,7 +4,7 @@ import { useRepositories } from '../../providers/ContainerProvider'
 import { useAsync } from '../../hooks/useAsync'
 import { formatCoordinates, wazeNavigationUrl } from '../../../domain/user/UserAddress'
 import { Avatar } from '../../components/Avatar'
-import { LazyAddressesOverviewMap } from '../../components/map/lazy'
+import { LazyPinsOverviewMap } from '../../components/map/lazy'
 
 const dateFormat = new Intl.DateTimeFormat('es-AR', { dateStyle: 'short', timeStyle: 'short' })
 
@@ -44,7 +44,15 @@ export function AddressesAdminPage() {
         <div className="empty-state">Todavía nadie cargó su dirección.</div>
       ) : (
         <>
-          <LazyAddressesOverviewMap addresses={filtered} />
+          <LazyPinsOverviewMap
+            pins={filtered.map((item) => ({
+              id: item.userId,
+              lat: item.lat,
+              lng: item.lng,
+              title: item.displayName,
+              subtitle: item.label || undefined,
+            }))}
+          />
 
           <section className="card stack">
             <div className="row">

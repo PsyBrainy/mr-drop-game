@@ -81,6 +81,46 @@ export interface UserAddressRow {
   profiles?: Pick<ProfileRow, 'display_name' | 'avatar_url'> | null
 }
 
+export interface ProductRow {
+  id: string
+  name: string
+  description: string
+  price: number | string
+  is_active: boolean
+  position: number
+}
+
+export interface OrderRoundRow {
+  id: string
+  name: string
+  status: 'open' | 'closed'
+  opened_at: string
+  closed_at: string | null
+}
+
+export interface OrderItemRow {
+  product_id: string | null
+  name: string
+  unit_price: number | string
+  quantity: number
+}
+
+export interface OrderRow {
+  id: string
+  round_id: string
+  user_id: string
+  status: 'pending' | 'delivered' | 'cancelled'
+  notes: string
+  total: number | string
+  lat: number
+  lng: number
+  address_label: string
+  created_at: string
+  delivered_at: string | null
+  order_items?: OrderItemRow[] | null
+  profiles?: Pick<ProfileRow, 'display_name' | 'avatar_url'> | null
+}
+
 export interface RedeemRow {
   event_id: string
   event_slug: string

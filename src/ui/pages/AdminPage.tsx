@@ -27,6 +27,8 @@ export function AdminPage() {
       <div className="row">
         <h1 style={{ margin: 0 }}>Panel Mister Drop</h1>
         <span className="spacer" />
+        <Link to="/admin/pedidos" className="btn btn--ghost btn--sm">Pedidos</Link>
+        <Link to="/admin/combos" className="btn btn--ghost btn--sm">Combos</Link>
         <Link to="/admin/direcciones" className="btn btn--ghost btn--sm">Direcciones</Link>
         <button className="btn btn--sm" onClick={() => setCreating((value) => !value)}>
           {creating ? 'Cancelar' : '+ Nuevo concurso'}

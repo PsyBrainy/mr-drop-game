@@ -5,6 +5,9 @@ import type { GameSession } from '../../domain/session/GameSession'
 import type { Profile } from '../../domain/user/Profile'
 import type { UserAddress } from '../../domain/user/UserAddress'
 import type { AddressWithProfile } from '../../application/ports/AddressRepository'
+import type { OrderWithProfile } from '../../application/ports/OrderRepository'
+import type { Product } from '../../domain/order/Product'
+import type { Order, OrderItem, OrderRound } from '../../domain/order/Order'
 import type { AccessCodeSummary } from '../../application/ports/AccessCodeRepository'
 import type {
   AccessCodeRow,
@@ -13,6 +16,10 @@ import type {
   GameRow,
   GameSessionRow,
   LeaderboardRow,
+  OrderItemRow,
+  OrderRoundRow,
+  OrderRow,
+  ProductRow,
   ProfileRow,
   UserAddressRow,
 } from './rows'
@@ -101,6 +108,54 @@ export const toUserAddress = (row: UserAddressRow): UserAddress => ({
 
 export const toAddressWithProfile = (row: UserAddressRow): AddressWithProfile => ({
   ...toUserAddress(row),
+  displayName: row.profiles?.display_name ?? 'Dropper',
+  avatarUrl: row.profiles?.avatar_url ?? null,
+})
+
+// numeric llega como string por PostgREST.
+const toNumber = (value: number | string): number => Number(value)
+
+export const toProduct = (row: ProductRow): Product => ({
+  id: row.id,
+  name: row.name,
+  description: row.description,
+  price: toNumber(row.price),
+  isActive: row.is_active,
+  position: row.position,
+})
+
+export const toOrderRound = (row: OrderRoundRow): OrderRound => ({
+  id: row.id,
+  name: row.name,
+  status: row.status,
+  openedAt: new Date(row.opened_at),
+  closedAt: toDate(row.closed_at),
+})
+
+const toOrderItem = (row: OrderItemRow): OrderItem => ({
+  productId: row.product_id,
+  name: row.name,
+  unitPrice: toNumber(row.unit_price),
+  quantity: row.quantity,
+})
+
+export const toOrder = (row: OrderRow): Order => ({
+  id: row.id,
+  roundId: row.round_id,
+  userId: row.user_id,
+  status: row.status,
+  notes: row.notes,
+  total: toNumber(row.total),
+  lat: row.lat,
+  lng: row.lng,
+  addressLabel: row.address_label,
+  items: (row.order_items ?? []).map(toOrderItem),
+  createdAt: new Date(row.created_at),
+  deliveredAt: toDate(row.delivered_at),
+})
+
+export const toOrderWithProfile = (row: OrderRow): OrderWithProfile => ({
+  ...toOrder(row),
   displayName: row.profiles?.display_name ?? 'Dropper',
   avatarUrl: row.profiles?.avatar_url ?? null,
 })

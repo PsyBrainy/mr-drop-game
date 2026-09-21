@@ -7,7 +7,12 @@ import markerIcon2x from 'leaflet/dist/images/marker-icon-2x.png'
 import markerShadow from 'leaflet/dist/images/marker-shadow.png'
 import type { Coordinates } from '../../../domain/user/UserAddress'
 import { wazeNavigationUrl } from '../../../domain/user/UserAddress'
-import type { AddressWithProfile } from '../../../application/ports/AddressRepository'
+
+export interface MapPin extends Coordinates {
+  id: string
+  title: string
+  subtitle?: string
+}
 
 // Leaflet antepone a las URLs del ícono una ruta que detecta desde el CSS; con Vite
 // eso rompe la imagen. Se quita el detector y se pasan las URLs ya resueltas.
@@ -95,20 +100,20 @@ function FitAll({ points }: { points: Coordinates[] }) {
   return null
 }
 
-export function AddressesOverviewMap({ addresses }: { addresses: AddressWithProfile[] }) {
+export function PinsOverviewMap({ pins }: { pins: MapPin[] }) {
   return (
     <MapContainer center={toLatLng(DEFAULT_CENTER)} zoom={11} className="map map--tall" scrollWheelZoom>
       <TileLayer url={OSM_URL} attribution={OSM_ATTRIBUTION} />
-      <FitAll points={addresses} />
-      {addresses.map((address) => (
-        <Marker key={address.userId} position={toLatLng(address)}>
+      <FitAll points={pins} />
+      {pins.map((pin) => (
+        <Marker key={pin.id} position={toLatLng(pin)}>
           <Popup>
             <div className="map__popup">
-              <strong>{address.displayName}</strong>
-              {address.label && <span>{address.label}</span>}
+              <strong>{pin.title}</strong>
+              {pin.subtitle && <span>{pin.subtitle}</span>}
               <a
                 className="btn btn--sm"
-                href={wazeNavigationUrl(address)}
+                href={wazeNavigationUrl(pin)}
                 target="_blank"
                 rel="noopener noreferrer"
               >

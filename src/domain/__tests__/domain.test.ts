@@ -7,6 +7,7 @@ import { generalRanking } from '../leaderboard/GeneralRanking'
 import { sanitizeScore, MAX_SCORE } from '../session/GameSession'
 import { playsLeft, sortByPosition, type EventGame } from '../game/Game'
 import { isValidCoordinates, wazeNavigationUrl } from '../user/UserAddress'
+import { draftTotal, isRoundOpen, itemCount, normalizeDraft, MAX_ITEM_QUANTITY } from '../order/Order'
 
 describe('AccessCode', () => {
   it('normaliza espacios y minúsculas', () => {
@@ -167,5 +168,36 @@ describe('UserAddress', () => {
     expect(isValidCoordinates({ lat: 0, lng: -181 })).toBe(false)
     expect(isValidCoordinates({ lat: Number.NaN, lng: 0 })).toBe(false)
     expect(() => wazeNavigationUrl({ lat: 100, lng: 0 })).toThrow(RangeError)
+  })
+})
+
+describe('Order', () => {
+  const prices = new Map([
+    ['a', 1500],
+    ['b', 2000],
+  ])
+
+  it('suma el total del borrador con los precios del catálogo', () => {
+    expect(draftTotal([{ productId: 'a', quantity: 2 }, { productId: 'b', quantity: 1 }], prices)).toBe(5000)
+  })
+
+  it('ignora productos que ya no están en el catálogo', () => {
+    expect(draftTotal([{ productId: 'zzz', quantity: 3 }], prices)).toBe(0)
+  })
+
+  it('normaliza el borrador: saca ceros y topea cantidades', () => {
+    const lines = normalizeDraft([
+      { productId: 'a', quantity: 0 },
+      { productId: 'b', quantity: 500 },
+      { productId: 'c', quantity: 1.5 },
+    ])
+    expect(lines).toEqual([{ productId: 'b', quantity: MAX_ITEM_QUANTITY }])
+  })
+
+  it('cuenta unidades y reconoce camadas abiertas', () => {
+    expect(itemCount({ items: [{ productId: 'a', name: 'A', unitPrice: 1, quantity: 2 }, { productId: 'b', name: 'B', unitPrice: 1, quantity: 3 }] })).toBe(5)
+    expect(isRoundOpen(null)).toBe(false)
+    expect(isRoundOpen({ id: 'r', name: '', status: 'open', openedAt: new Date(), closedAt: null })).toBe(true)
+    expect(isRoundOpen({ id: 'r', name: '', status: 'closed', openedAt: new Date(), closedAt: new Date() })).toBe(false)
   })
 })

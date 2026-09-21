@@ -10,6 +10,9 @@ import { PlayPage } from './pages/PlayPage'
 import { AccountPage } from './pages/AccountPage'
 import { AdminPage } from './pages/AdminPage'
 import { AddressesAdminPage } from './pages/admin/AddressesAdminPage'
+import { ProductsAdminPage } from './pages/admin/ProductsAdminPage'
+import { OrdersAdminPage } from './pages/admin/OrdersAdminPage'
+import { OrdersPage } from './pages/OrdersPage'
 import { NotFoundPage } from './pages/NotFoundPage'
 import { SandboxPage } from './pages/SandboxPage'
 import { SandboxOffPage } from './pages/SandboxOffPage'
@@ -31,12 +34,15 @@ export function App() {
         <Route element={<RequireAuth />}>
           <Route path="/concurso/:slug/:gameSlug" element={<PlayPage />} />
           <Route path="/cuenta" element={<AccountPage />} />
+          <Route path="/pedidos" element={<OrdersPage />} />
         </Route>
 
         {/* Solo admin */}
         <Route element={<RequireAdmin />}>
           <Route path="/admin" element={<AdminPage />} />
           <Route path="/admin/direcciones" element={<AddressesAdminPage />} />
+          <Route path="/admin/combos" element={<ProductsAdminPage />} />
+          <Route path="/admin/pedidos" element={<OrdersAdminPage />} />
         </Route>
 
         {/* Banco de pruebas de juegos. Ver src/ui/lib/features.ts.

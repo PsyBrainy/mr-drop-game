@@ -93,6 +93,7 @@ p { margin: 0 0 1em; }
 .btn--ghost { background: transparent; border-color: var(--surface-border-strong); color: var(--text); }
 .btn--ghost:hover:not(:disabled) { background: var(--bg-elevated); border-color: var(--accent); }
 .btn--danger { background: transparent; border-color: rgba(255,107,94,0.4); color: var(--danger); }
+.btn--danger:hover:not(:disabled) { background: rgba(255,107,94,0.12); border-color: var(--danger); }
 .btn--block { width: 100%; }
 .btn--sm { padding: 0.4rem 0.7rem; font-size: 0.85rem; }
 
@@ -286,6 +287,22 @@ body.is-immersive { overflow: hidden; }
 .pin-status { display: flex; flex-direction: column; gap: 0.15rem; padding: 0.7rem 0.9rem; border-radius: var(--radius-sm); border: 1px dashed var(--surface-border-strong); font-size: 0.92rem; }
 .pin-status.is-set { border-style: solid; border-color: var(--accent); background: var(--accent-soft); }
 .pin-status .muted { font-size: 0.85rem; }
+
+/* Diálogo de confirmación. */
+.confirm { border: 0; padding: 0; background: transparent; max-width: min(420px, calc(100vw - 2rem)); width: 100%; }
+.confirm::backdrop { background: rgba(0, 0, 0, 0.6); backdrop-filter: blur(4px); }
+.confirm__box { background: var(--bg-elevated); border: 1px solid var(--surface-border-strong); border-radius: var(--radius); padding: 1.4rem; box-shadow: var(--shadow); color: var(--text); }
+.confirm .btn--danger { background: var(--danger); color: #1a0a08; border-color: transparent; }
+.confirm .btn--danger:hover:not(:disabled) { background: #ff8579; }
+
+/* Cantidad de un combo en el pedido. */
+.stepper { display: inline-flex; align-items: center; gap: 0.25rem; flex: none; }
+.stepper__btn { width: 40px; height: 40px; border-radius: var(--radius-sm); border: 1px solid var(--surface-border-strong); background: var(--bg-input); color: var(--text); font: inherit; font-size: 1.3rem; line-height: 1; cursor: pointer; }
+.stepper__btn:hover:not(:disabled) { border-color: var(--accent); }
+.stepper__btn:disabled { opacity: 0.35; cursor: not-allowed; }
+.stepper__value { min-width: 2rem; text-align: center; font-weight: 700; font-variant-numeric: tabular-nums; }
+.card.toggle-row { padding: 0.85rem 1rem; border-bottom: 1px solid var(--surface-border); }
+.toggle-row.is-selected { border-color: var(--accent); background: var(--accent-soft); }
 
 .collapsible__toggle { display: flex; align-items: center; gap: 1rem; width: 100%; padding: 0; background: none; border: 0; color: inherit; font: inherit; text-align: left; cursor: pointer; }
 .collapsible__toggle:focus-visible { outline: 2px solid var(--accent); outline-offset: 6px; border-radius: 4px; }
