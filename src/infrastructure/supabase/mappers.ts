@@ -88,6 +88,7 @@ export const toLeaderboardEntry = (row: LeaderboardRow): LeaderboardEntry => ({
   bestScore: row.best_score,
   firstFinishedAt: toDate(row.first_finished_at),
   plays: row.plays,
+  payload: row.payload ?? undefined,
 })
 
 export const toAccessCode = (row: AccessCodeRow): AccessCodeSummary => ({

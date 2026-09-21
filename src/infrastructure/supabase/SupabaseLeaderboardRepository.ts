@@ -6,7 +6,7 @@ import { unwrap } from './errors'
 import type { LeaderboardRow } from './rows'
 
 const COLUMNS =
-  'event_id, event_game_id, game_slug, user_id, display_name, avatar_url, best_score, first_finished_at, plays'
+  'event_id, event_game_id, game_slug, user_id, display_name, avatar_url, best_score, first_finished_at, plays, payload'
 
 export class SupabaseLeaderboardRepository implements LeaderboardRepository {
   async forEventGame(eventGameId: string, limit = 20): Promise<LeaderboardEntry[]> {

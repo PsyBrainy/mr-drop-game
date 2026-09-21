@@ -6,6 +6,7 @@ export interface LeaderboardEntry {
   readonly bestScore: number
   readonly firstFinishedAt: Date | null
   readonly plays: number
+  readonly payload?: Record<string, unknown>
 }
 
 /**

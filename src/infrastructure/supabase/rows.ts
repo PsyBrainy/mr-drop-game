@@ -60,6 +60,7 @@ export interface LeaderboardRow {
   best_score: number
   first_finished_at: string | null
   plays: number
+  payload: Record<string, unknown> | null
 }
 
 export interface AccessCodeRow {

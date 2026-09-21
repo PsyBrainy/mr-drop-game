@@ -37,7 +37,14 @@ export function Leaderboard({ entries, currentUserId, showGame = false }: Props)
               </span>
             </td>
             {showGame && <td className="muted">{entry.gameSlug}</td>}
-            <td className="board__score">{entry.bestScore.toLocaleString('es-AR')}</td>
+            <td className="board__score">
+              <div>{entry.bestScore.toLocaleString('es-AR')}</div>
+              {entry.payload && (typeof entry.payload.obstaculos === 'number' || typeof entry.payload.cogollos === 'number') && (
+                <div className="muted" style={{ fontSize: '0.75em', marginTop: '2px', fontWeight: 'normal' }}>
+                  {(entry.payload.obstaculos as number) ?? 0} obst. / {(entry.payload.cogollos as number) ?? 0} cog.
+                </div>
+              )}
+            </td>
           </tr>
         ))}
       </tbody>
