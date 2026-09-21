@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import type { ContestEvent, EventStatus } from '../../domain/event/Event'
 import { useRepositories, useUseCases } from '../providers/ContainerProvider'
+import { useConfirm } from '../providers/ConfirmProvider'
 import { useAsync } from '../hooks/useAsync'
 import { useAction } from '../hooks/useAction'
 import { EventStatusBadge } from '../components/EventStatusBadge'
@@ -74,7 +75,15 @@ export function AdminPage() {
 
         <div className="stack">
           {selected ? (
-            <EventAdmin key={selected.id} event={selected} onChanged={() => eventList.reload()} />
+            <EventAdmin
+              key={selected.id}
+              event={selected}
+              onChanged={() => eventList.reload()}
+              onDeleted={() => {
+                setSelectedId(null)
+                eventList.reload()
+              }}
+            />
           ) : (
             <div className="empty-state">Elegí un concurso de la izquierda.</div>
           )}
@@ -84,14 +93,39 @@ export function AdminPage() {
   )
 }
 
-function EventAdmin({ event, onChanged }: { event: ContestEvent; onChanged: () => void }) {
+function EventAdmin({
+  event,
+  onChanged,
+  onDeleted,
+}: {
+  event: ContestEvent
+  onChanged: () => void
+  onDeleted: () => void
+}) {
   const { events } = useRepositories()
+  const confirm = useConfirm()
   const joinLink = `${window.location.origin}/codigo`
 
   const setStatus = useAction(async (status: EventStatus) => {
     await events.update(event.id, { status })
     onChanged()
   })
+
+  const remove = useAction(async () => {
+    await events.delete(event.id)
+    onDeleted()
+  })
+
+  const askDelete = async () => {
+    const ok = await confirm({
+      title: `¿Borrar el concurso "${event.name}"?`,
+      message:
+        'Se borran también sus códigos de acceso, las participaciones y todas las partidas con sus puntajes. Esto no se puede deshacer.',
+      confirmLabel: 'Borrar concurso',
+      danger: true,
+    })
+    if (ok) void remove.run()
+  }
 
   return (
     <>
@@ -111,7 +145,9 @@ function EventAdmin({ event, onChanged }: { event: ContestEvent; onChanged: () =
         )}
         {event.prize && <p className="event-card__prize" style={{ margin: 0 }}>🏆 {event.prize}</p>}
 
-        {setStatus.error && <div className="alert alert--error">{setStatus.error}</div>}
+        {(setStatus.error || remove.error) && (
+          <div className="alert alert--error">{setStatus.error ?? remove.error}</div>
+        )}
 
         <div className="row">
           <span className="muted" style={{ fontSize: '0.85rem' }}>Estado:</span>
@@ -131,6 +167,16 @@ function EventAdmin({ event, onChanged }: { event: ContestEvent; onChanged: () =
           <p className="muted" style={{ margin: 0, fontSize: '0.88rem' }}>
             Link para repartir: <span className="code-pill">{joinLink}/TUCODIGO</span>
           </p>
+        )}
+
+        {/* La sección de juego libre es fija: se crea por migración, no se borra desde acá. */}
+        {!event.isFreePlay && (
+          <div className="row">
+            <span className="spacer" />
+            <button type="button" className="btn btn--danger btn--sm" disabled={remove.pending} onClick={() => void askDelete()}>
+              {remove.pending ? 'Borrando…' : 'Borrar concurso'}
+            </button>
+          </div>
         )}
       </section>
 

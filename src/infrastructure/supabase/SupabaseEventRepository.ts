@@ -80,4 +80,9 @@ export class SupabaseEventRepository implements EventRepository {
       .single<EventRow>()
     return toEvent(unwrap(result))
   }
+
+  async delete(id: string): Promise<void> {
+    const { error } = await getSupabase().from('events').delete().eq('id', id)
+    if (error) throw translateError(error)
+  }
 }

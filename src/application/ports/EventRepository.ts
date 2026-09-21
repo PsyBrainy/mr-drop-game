@@ -21,4 +21,6 @@ export interface EventRepository {
   findBySlug(slug: string): Promise<ContestEvent | null>
   create(draft: EventDraft): Promise<ContestEvent>
   update(id: string, patch: Partial<EventDraft>): Promise<ContestEvent>
+  /** Solo admin. Se lleva códigos, participaciones y partidas en cascada. */
+  delete(id: string): Promise<void>
 }
