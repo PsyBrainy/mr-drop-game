@@ -177,16 +177,16 @@ p { margin: 0 0 1em; }
    * contra la pantalla ni en rem: a pantalla completa en un teléfono el marco
    * puede quedar muy chico, y un HUD de tamaño fijo se comía el borde.
    */
-  container-type: inline-size;
+  container-type: size;
 }
 
 .game-stage__toggle {
   position: absolute; top: 1.5cqw; right: 1.5cqw; z-index: 6;
   display: grid; place-items: center;
-  width: clamp(30px, 4.6cqw, 44px); height: clamp(30px, 4.6cqw, 44px);
+  width: clamp(40px, 6cqw, 56px); height: clamp(40px, 6cqw, 56px);
   border-radius: 10px; border: 1px solid rgba(255, 255, 255, 0.18);
   background: rgba(6, 10, 8, 0.62); color: var(--text);
-  font: inherit; font-size: clamp(0.8rem, 2cqw, 1.15rem); line-height: 1; cursor: pointer;
+  font: inherit; font-size: clamp(1.2rem, 3cqw, 1.6rem); line-height: 1; cursor: pointer;
   backdrop-filter: blur(4px);
   opacity: 0.55; transition: opacity 0.15s ease, background 0.15s ease;
 }
@@ -200,6 +200,7 @@ p { margin: 0 0 1em; }
  */
 .game-stage.is-immersive {
   position: fixed; inset: 0; z-index: 1000;
+  height: 100dvh; width: 100dvw;
   align-items: center;
   background: #05080a;
   box-sizing: border-box;
@@ -240,7 +241,7 @@ body.is-immersive { overflow: hidden; }
    * más que el porcentaje) + 2cqw de aire. Con un porcentaje fijo quedaban
    * pegados en las pantallas chicas.
    */
-  padding: 1.5cqw calc(3.5cqw + clamp(30px, 4.6cqw, 44px)) 1.5cqw 2.5cqw;
+  padding: 1.5cqw calc(3.5cqw + clamp(40px, 6cqw, 56px)) 1.5cqw 2.5cqw;
   pointer-events: none;
   font-variant-numeric: tabular-nums;
   text-shadow: 0 2px 7px rgba(0, 0, 0, 0.85);
@@ -254,6 +255,14 @@ body.is-immersive { overflow: hidden; }
 .game-over__score {
   margin: 0; line-height: 1; font-weight: 800; color: var(--accent);
   font-size: clamp(2rem, 11cqw, 3.8rem); font-variant-numeric: tabular-nums;
+}
+
+@container (max-height: 320px) {
+  .game-overlay { padding: 0.8rem; }
+  .game-overlay .stack > * + * { margin-top: 0.6rem; }
+  .game-over__title { font-size: 1.2rem; }
+  .game-over__score { font-size: 2rem; }
+  .game-overlay .btn { padding: 0.4rem 0.8rem; font-size: 0.85rem; }
 }
 
 /* ---------- ranking ---------- */
@@ -380,7 +389,7 @@ body.is-immersive { overflow: hidden; }
   .card--pad-lg { padding: 1.3rem; }
 
   /* El juego ocupa todo el ancho del teléfono: el marco angosto no se jugaba. */
-  .game-stage { margin-inline: calc(var(--container-inset) * -1); }
+  .game-stage { margin-inline: calc(var(--container-inset) * -1); width: calc(100% + var(--container-inset) * 2); }
   .game-frame { --game-reserve: 9rem; border-radius: 0; border-left: 0; border-right: 0; }
   .play-stage { gap: 0.9rem; }
 

@@ -1,4 +1,4 @@
-import { useCallback, useState } from 'react'
+import { useCallback, useRef, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import type { GameStatus } from '../../games/GameModule'
 import { useAuth } from '../providers/AuthProvider'
@@ -7,7 +7,7 @@ import { useAsync } from '../hooks/useAsync'
 import { useAction } from '../hooks/useAction'
 import { GameCanvas } from '../components/GameCanvas'
 import { GameHud } from '../components/GameHud'
-import { GameStage } from '../components/GameStage'
+import { GameStage, type GameStageRef } from '../components/GameStage'
 import { Leaderboard } from '../components/Leaderboard'
 import { PageSpinner } from '../components/ProtectedRoute'
 import { gameAspectRatio } from '../../games/registry'
@@ -30,6 +30,7 @@ export function PlayPage() {
   const [finalScore, setFinalScore] = useState<number | null>(null)
   const [endMessage, setEndMessage] = useState<string | null>(null)
   const [endPayload, setEndPayload] = useState<Record<string, unknown>>({})
+  const stageRef = useRef<GameStageRef>(null)
 
   const event = useAsync(() => events.findBySlug(slug), [slug, events])
   const contest = event.data
@@ -57,6 +58,7 @@ export function PlayPage() {
     setEndMessage(null)
     setEndPayload({})
     setPhase('playing')
+    void stageRef.current?.enter()
   })
 
   const submit = useAction(async (score: number, payload?: Record<string, unknown>) => {
@@ -78,7 +80,10 @@ export function PlayPage() {
     [submit],
   )
 
-  if (event.loading || entry.loading) return <PageSpinner />
+  // Mostrar spinner de página solo en la primera carga, no en reloads.
+  if ((event.loading && !event.data) || (entry.loading && !entry.data)) {
+    return <PageSpinner />
+  }
 
   if (entry.error || !entry.data || !event.data) {
     return (
@@ -129,7 +134,7 @@ export function PlayPage() {
       <div className="play-stage">
         {/* Todo lo que el jugador necesita va adentro del marco: en pantalla
             completa no se ve nada de la página que está atrás. */}
-        <GameStage aspectRatio={gameAspectRatio(gameSlug)}>
+        <GameStage ref={stageRef} aspectRatio={gameAspectRatio(gameSlug)}>
           {phase === 'playing' && sessionId && (
             <GameCanvas
               gameSlug={eventGame.game.slug}

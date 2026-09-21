@@ -1,6 +1,8 @@
 import {
+  forwardRef,
   useCallback,
   useEffect,
+  useImperativeHandle,
   useLayoutEffect,
   useRef,
   useState,
@@ -26,6 +28,11 @@ type OrientationLock = {
 
 const orientation = () => screen.orientation as unknown as OrientationLock | undefined
 
+export interface GameStageRef {
+  enter: () => Promise<void>
+  exit: () => Promise<void>
+}
+
 /**
  * Marco del juego con modo inmersivo.
  *
@@ -34,7 +41,10 @@ const orientation = () => screen.orientation as unknown as OrientationLock | und
  * permite fullscreen en elementos que no sean <video>, así que si dependiera
  * del API nativa el botón no haría nada en medio parque de celulares.
  */
-export function GameStage({ aspectRatio, children }: Props) {
+export const GameStage = forwardRef<GameStageRef, Props>(function GameStage(
+  { aspectRatio, children },
+  ref,
+) {
   const stageRef = useRef<HTMLDivElement>(null)
   const [immersive, setImmersive] = useState(false)
   const [frameSize, setFrameSize] = useState<Size | null>(null)
@@ -69,6 +79,11 @@ export function GameStage({ aspectRatio, children }: Props) {
       /* iOS no lo soporta: se le avisa al jugador que gire el teléfono */
     }
   }, [])
+
+  useImperativeHandle(ref, () => ({
+    enter,
+    exit,
+  }), [enter, exit])
 
   // El usuario puede salir del fullscreen por fuera del botón (Esc, gesto atrás).
   useEffect(() => {
@@ -172,4 +187,4 @@ export function GameStage({ aspectRatio, children }: Props) {
       )}
     </div>
   )
-}
+})

@@ -1,9 +1,9 @@
-import { useCallback, useState } from 'react'
+import { useCallback, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import type { GameStatus } from '../../games/GameModule'
 import { GameCanvas } from '../components/GameCanvas'
 import { GameHud } from '../components/GameHud'
-import { GameStage } from '../components/GameStage'
+import { GameStage, type GameStageRef } from '../components/GameStage'
 import { gameAspectRatio, implementedSlugs } from '../../games/registry'
 import { shareScore } from '../lib/shareScore'
 
@@ -27,6 +27,7 @@ export function SandboxPage() {
     payload: string
     rawPayload: Record<string, unknown>
   } | null>(null)
+  const stageRef = useRef<GameStageRef>(null)
 
   const play = useCallback(() => {
     setScore(0)
@@ -34,6 +35,7 @@ export function SandboxPage() {
     setResult(null)
     setPlaying(true)
     setRunId((n) => n + 1)
+    void stageRef.current?.enter()
   }, [])
 
   const handleGameOver = useCallback((final: number, payload?: Record<string, unknown>) => {
@@ -92,7 +94,7 @@ export function SandboxPage() {
       </div>
 
       <div className="play-stage">
-        <GameStage aspectRatio={gameAspectRatio(slug)}>
+        <GameStage ref={stageRef} aspectRatio={gameAspectRatio(slug)}>
           {playing && slug && (
             <GameCanvas
               key={`${slug}-${runId}`}
