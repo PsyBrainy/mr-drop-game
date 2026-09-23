@@ -65,9 +65,11 @@ Una pelea no tiene score: tiene match, oponente y resultado. **No se fuerza la p
 
 - `src/games/MatchModule.ts` → `MatchContext` (índice del jugador local, oponente, transporte,
   `onMatchEnd(result)`) y `MatchHandle`.
-- `registry.ts` pasa a entradas discriminadas (`kind: 'score' | 'match'`). Los juegos que ya
-  existen no se tocan.
-- El HUD de React muestra daño acumulado y stocks, no puntaje.
+- `registry.ts` tiene entradas discriminadas (`kind: 'score' | 'match'`) ✓. Con `match`, la
+  página de juego no abre sesión, no gasta intentos, no guarda puntaje y no muestra ranking: el
+  cartel del final es el resultado. Los juegos que ya existen no se tocan.
+- La pelea dibuja su propio HUD en HTML (`fightHud.ts`, `ownHud` en el registry) ✓: vidas,
+  resistencia y el nombre sobre cada personaje, no puntaje.
 - El resultado va a una tabla `matches` nueva (ganador, perdedor, log de inputs, validado sí/no).
   **Prohibido** mapear una pelea a `finish_game_session(score)` para que "entre" en el ranking
   actual.
@@ -107,6 +109,10 @@ src/fight/
     format.ts   ✓ log de inputs serializable + re-simulación y traza
 
 src/games/modules/fightView.ts       ✓ el dibujo, compartido por las dos vistas
+src/games/modules/fightSprites.config.ts ✓ qué dibujo va en cada frame (pura, con tests de timing)
+tools/rasta-sprites/                 ✓ generador del pixel art del rasta (rasta = P1, rasta2 = P2)
+src/games/modules/fightStage.config.ts ✓ el arte del escenario (la terraza) y su parallax
+tools/fight-stage/                   ✓ generador del escenario: cielo, dos capas de ciudad y la azotea
 src/games/modules/fightControls.ts   ✓ el teclado, compartido por las dos vistas
 src/games/modules/fightLocal.ts      ✓ vista local: dos jugadores en un teclado, sin red
 src/games/modules/fightOnline.ts     ✓ vista online: 1v1 contra otra persona por psy-ws
@@ -121,19 +127,21 @@ la variable, el juego lo dice en vez de intentar conectarse a cualquier lado.
 la que está de fondo, así que deja de mandar inputs y el servidor la da por caída. Para probar
 en serio hacen falta dos ventanas visibles, o subir `fight.silence-timeout-seconds`.
 
-**La pelea local es sólo del banco de pruebas.** `fight-local` está marcado `sandboxOnly` en el
-registry: se juega de a dos en un solo teclado, no da puntaje y no hay ranking que le sirva, así
-que un concurso no puede ofrecerla por más que exista la fila en `games`. El juego de verdad es
-1v1 online.
+**La pelea online se ofrece como cualquier juego.** Está en el catálogo (`0010_fight_game.sql`)
+y el admin la prende por evento en "Disponibilidad de juegos". Sin `VITE_FIGHT_WS_URL` el
+registry no la ofrece y el panel lo dice. Se juega pero **no rankea** hasta M4.
 
-**Para probarlo:** `npm run dev` y abrir `/sandbox?juego=fight-local`. Jugador 1 con
+**La pelea local no existe salvo que se pida.** Se juega de a dos en un solo teclado y no hay
+resultado que valga: sólo se registra con `VITE_ENABLE_FIGHT_LOCAL=true` (en el `.env` local), y
+aun así es `sandboxOnly`. Sin la variable no aparece ni en el sandbox.
+
+**Para probarlo:** con `VITE_ENABLE_FIGHT_LOCAL=true`, `npm run dev` y abrir `/sandbox?juego=fight-local`. Jugador 1 con
 `A`/`D`/`W` + `F` rápido, `G` fuerte, `S` esquive; jugador 2 con las flechas + `,` `.` y flecha
-abajo. Las cajas de golpe se dibujan mientras están activas: es la forma de ver el frame data
-jugando. El sandbox monta cualquier juego del registry sin Supabase, sin evento y sin código.
+abajo. Con `/sandbox?juego=fight-local&cajas` se dibujan las cajas de golpe mientras están
+activas: es la forma de ver el frame data jugando. Sin `cajas` no se ven, como en el juego. El sandbox monta cualquier juego del registry sin Supabase, sin evento y sin código.
 
-Dos cosas se ven raras ahí y son esperadas: el HUD dice "0 Puntaje" (el contrato `GameModule`
-es de puntaje y una pelea no tiene), y en una pestaña de fondo el canvas queda negro y el
-tick casi no avanza (Kaplay pausa su loop y el navegador no despacha animation frames).
+Algo se ve raro ahí y es esperado: en una pestaña de fondo el canvas queda negro y el tick
+casi no avanza (Kaplay pausa su loop y el navegador no despacha animation frames).
 
 `src/fight/__tests__/purity.test.ts` hace cumplir mecánicamente las reglas de abajo. No es
 decorativo: si la sim se contamina, el test rompe. Si se agrega una regla acá, se agrega ahí.

@@ -7,7 +7,7 @@ import { useConfirm } from '../providers/ConfirmProvider'
 import { useAsync } from '../hooks/useAsync'
 import { useAction } from '../hooks/useAction'
 import { EventStatusBadge } from '../components/EventStatusBadge'
-import { isGameImplemented } from '../../games/registry'
+import { gameKind, unavailableReason } from '../../games/registry'
 import { AccessCodePanel } from './admin/AccessCodePanel'
 import { EventForm } from './admin/EventForm'
 
@@ -243,13 +243,15 @@ function GameAvailabilityPanel({ eventId }: { eventId: string }) {
           {(catalog.data ?? []).map((game) => {
             const current = (assigned.data ?? []).find((item) => item.game.id === game.id)
             const enabled = current?.isEnabled ?? false
+            const missing = unavailableReason(game.slug)
             return (
               <div key={game.id} className="toggle-row">
                 <div className="toggle-row__info">
                   <div className="toggle-row__name">
                     {game.name}{' '}
-                    {!isGameImplemented(game.slug) && (
-                      <span className="badge badge--soon">sin módulo</span>
+                    {missing && <span className="badge badge--soon">{missing}</span>}
+                    {gameKind(game.slug) === 'match' && (
+                      <span className="badge">1v1 · sin ranking</span>
                     )}
                   </div>
                   <div className="muted" style={{ fontSize: '0.85rem' }}>

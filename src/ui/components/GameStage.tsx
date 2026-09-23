@@ -185,6 +185,15 @@ export const GameStage = forwardRef<GameStageRef, Props>(function GameStage(
         </button>
       </div>
 
+      {/* Con teclado se sale con Esc y el ✕ se esconde (ver global.css): el aviso
+          aparece al entrar y se va solo. En pantallas táctiles no hay Esc, así
+          que ahí el ✕ se queda. */}
+      {immersive && (
+        <p className="game-stage__esc-hint" role="status">
+          <kbd>Esc</kbd> para salir
+        </p>
+      )}
+
       {needsRotate && (
         <p className="game-stage__rotate" role="status">
           Girá el teléfono para jugar en grande

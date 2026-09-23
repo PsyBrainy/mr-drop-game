@@ -6,7 +6,7 @@ import { useAsync } from '../hooks/useAsync'
 import { Avatar } from '../components/Avatar'
 import { Leaderboard } from '../components/Leaderboard'
 import { PageSpinner } from '../components/ProtectedRoute'
-import { isGameImplemented } from '../../games/registry'
+import { gameKind, isGameImplemented } from '../../games/registry'
 
 /**
  * Sección de juego libre: sin código ni límite de intentos. Cada juego muestra
@@ -79,6 +79,8 @@ export function FreePlayPage() {
           <div className="game-grid">
             {games.map(({ eventGame, myBest, ranking }) => {
               const implemented = isGameImplemented(eventGame.game.slug)
+              // Las peleas no tienen puntaje: ni récord ni ranking de puntos.
+              const isMatch = gameKind(eventGame.game.slug) === 'match'
               return (
                 <article key={eventGame.id} className="card game-card">
                   <div className="game-card__cover">
@@ -94,7 +96,8 @@ export function FreePlayPage() {
                   </p>
 
                   <div className="row">
-                    {isAuthenticated && (
+                    {isMatch && <span className="badge badge--live">1v1 online</span>}
+                    {isAuthenticated && !isMatch && (
                       <span className="badge">
                         Tu récord: {myBest === null ? '—' : myBest.toLocaleString('es-AR')}
                       </span>
@@ -111,6 +114,7 @@ export function FreePlayPage() {
                     )}
                   </div>
 
+                  {!isMatch && (
                   <details className="game-card__ranking">
                     <summary className="muted" style={{ cursor: 'pointer', fontSize: '0.88rem' }}>
                       Ranking de {eventGame.game.name}
@@ -119,6 +123,7 @@ export function FreePlayPage() {
                       <Leaderboard entries={ranking} currentUserId={userId} />
                     </div>
                   </details>
+                  )}
                 </article>
               )
             })}

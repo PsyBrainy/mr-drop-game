@@ -8,12 +8,13 @@ import {
   type Camera,
 } from '../../fight/camera'
 import { listenKeyboard } from './fightControls'
-import { COLORS, drawMatch, VIEW } from './fightView'
+import { COLORS, drawMatch, loadFightAssets, tagAnchors, VIEW } from './fightView'
+import { createFightHud, panelOf } from './fightHud'
 import { startFixedClock } from '../../fight/clock'
 import { OSO } from '../../fight/data/characters/oso'
 import { SMALL_STAGE } from '../../fight/data/stage'
 import { NONE, type Input } from '../../fight/sim/input'
-import { initialState, resistanceOf, type MatchState } from '../../fight/sim/state'
+import { initialState, type MatchState } from '../../fight/sim/state'
 import { step, TICKS_PER_SECOND } from '../../fight/sim/tick'
 import { DEFAULT_RULES, type World } from '../../fight/sim/world'
 
@@ -37,6 +38,12 @@ function start(k: KAPLAYCtx, context: GameContext): () => void {
     rules: { ...DEFAULT_RULES, stocks },
   }
 
+  loadFightAssets(k)
+
+  // Las cajas de golpe sólo con `?cajas` en la URL: sirven para ajustar el frame
+  // data contra el dibujo, no para jugar.
+  const hitboxes = new URLSearchParams(window.location.search).has('cajas')
+
   const inputs: [Input, Input] = [NONE, NONE]
   const unlisten = listenKeyboard(inputs)
 
@@ -51,14 +58,14 @@ function start(k: KAPLAYCtx, context: GameContext): () => void {
   let camera = initialCamera(world, VIEW)
   let previousCamera = camera
 
+  // El HUD propio de la pelea: paneles arriba y el nombre sobre cada uno. En el
+  // mismo teclado no hay cuentas, así que son "Jugador 1" y "Jugador 2".
+  const overlay = createFightHud(context.mountPoint, VIEW)
+  overlay.setNames(['Jugador 1', 'Jugador 2'])
+
+  // Escribe el DOM sólo lo que cambió, así que se puede llamar en cada tick.
   const hud = (state: MatchState): void => {
-    context.onStatusChange({
-      'P1 vidas': state.fighters[0].stocks,
-      'P1 resistencia': resistanceOf(state.fighters[0], world.rules),
-      'P2 vidas': state.fighters[1].stocks,
-      'P2 resistencia': resistanceOf(state.fighters[1], world.rules),
-      tick: state.tick,
-    })
+    overlay.update([panelOf(state.fighters[0], world.rules), panelOf(state.fighters[1], world.rules)])
   }
 
   const clock = startFixedClock(() => {
@@ -70,10 +77,7 @@ function start(k: KAPLAYCtx, context: GameContext): () => void {
     previousCamera = camera
     camera = approachCamera(camera, targetCamera(current, world, VIEW))
 
-    // El HUD es React: mandarle los cinco valores 60 veces por segundo haría
-    // re-renderizar la página entera por cada tick. Con uno de cada seis alcanza
-    // para que se lea al día.
-    if (current.tick % 6 === 0) hud(current)
+    hud(current)
 
     if (current.over) {
       finished = true
@@ -92,7 +96,8 @@ function start(k: KAPLAYCtx, context: GameContext): () => void {
       y: previousCamera.y + (camera.y - previousCamera.y) * alpha,
       scale: previousCamera.scale + (camera.scale - previousCamera.scale) * alpha,
     }
-    drawMatch(k, shown, current, previous, alpha, world.rules)
+    drawMatch(k, shown, current, previous, alpha, { hitboxes })
+    overlay.placeTags(tagAnchors(shown, current, previous, alpha))
   })
 
   hud(current)
@@ -100,6 +105,7 @@ function start(k: KAPLAYCtx, context: GameContext): () => void {
   return () => {
     clock.stop()
     unlisten()
+    overlay.destroy()
   }
 }
 

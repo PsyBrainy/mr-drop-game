@@ -1,0 +1,637 @@
+{
+ "idle": {
+  "file": "rasta_idle_6x1_192.png",
+  "frames": 6,
+  "cols": 6,
+  "rows": 1,
+  "frameSize": 192,
+  "contentLeft": 32,
+  "contentTop": 54,
+  "contentWidth": 78,
+  "contentHeight": 130,
+  "feetY": 180,
+  "originX": 68,
+  "perFrame": [
+   [
+    36,
+    58,
+    110,
+    184
+   ],
+   [
+    34,
+    54,
+    110,
+    184
+   ],
+   [
+    32,
+    58,
+    110,
+    184
+   ],
+   [
+    36,
+    62,
+    110,
+    184
+   ],
+   [
+    34,
+    58,
+    110,
+    184
+   ],
+   [
+    32,
+    58,
+    110,
+    184
+   ]
+  ]
+ },
+ "walk": {
+  "file": "rasta_walk_8x1_192.png",
+  "frames": 8,
+  "cols": 8,
+  "rows": 1,
+  "frameSize": 192,
+  "contentLeft": 32,
+  "contentTop": 54,
+  "contentWidth": 80,
+  "contentHeight": 130,
+  "feetY": 180,
+  "originX": 68,
+  "perFrame": [
+   [
+    34,
+    58,
+    112,
+    184
+   ],
+   [
+    32,
+    56,
+    112,
+    184
+   ],
+   [
+    34,
+    58,
+    112,
+    184
+   ],
+   [
+    36,
+    60,
+    112,
+    184
+   ],
+   [
+    34,
+    54,
+    112,
+    184
+   ],
+   [
+    32,
+    58,
+    112,
+    184
+   ],
+   [
+    34,
+    60,
+    112,
+    184
+   ],
+   [
+    36,
+    56,
+    112,
+    184
+   ]
+  ]
+ },
+ "air": {
+  "file": "rasta_air_4x1_192.png",
+  "frames": 4,
+  "cols": 4,
+  "rows": 1,
+  "frameSize": 192,
+  "contentLeft": 30,
+  "contentTop": 44,
+  "contentWidth": 86,
+  "contentHeight": 136,
+  "feetY": 180,
+  "originX": 68,
+  "perFrame": [
+   [
+    48,
+    48,
+    108,
+    176
+   ],
+   [
+    50,
+    46,
+    108,
+    174
+   ],
+   [
+    30,
+    48,
+    116,
+    180
+   ],
+   [
+    34,
+    44,
+    114,
+    180
+   ]
+  ]
+ },
+ "land": {
+  "file": "rasta_land_3x1_192.png",
+  "frames": 3,
+  "cols": 3,
+  "rows": 1,
+  "frameSize": 192,
+  "contentLeft": 28,
+  "contentTop": 58,
+  "contentWidth": 86,
+  "contentHeight": 126,
+  "feetY": 180,
+  "originX": 68,
+  "perFrame": [
+   [
+    28,
+    76,
+    114,
+    184
+   ],
+   [
+    30,
+    62,
+    112,
+    184
+   ],
+   [
+    34,
+    58,
+    110,
+    184
+   ]
+  ]
+ },
+ "light_ground": {
+  "file": "rasta_light_ground_6x1_192.png",
+  "frames": 6,
+  "cols": 6,
+  "rows": 1,
+  "frameSize": 192,
+  "contentLeft": 34,
+  "contentTop": 56,
+  "contentWidth": 130,
+  "contentHeight": 128,
+  "feetY": 180,
+  "originX": 68,
+  "perFrame": [
+   [
+    34,
+    60,
+    106,
+    184
+   ],
+   [
+    38,
+    58,
+    110,
+    184
+   ],
+   [
+    40,
+    62,
+    164,
+    184
+   ],
+   [
+    40,
+    62,
+    152,
+    184
+   ],
+   [
+    36,
+    56,
+    146,
+    184
+   ],
+   [
+    34,
+    56,
+    110,
+    184
+   ]
+  ],
+  "poseByFrame": [
+   0,
+   0,
+   1,
+   1,
+   2,
+   2,
+   2,
+   3,
+   3,
+   3,
+   3,
+   4,
+   4,
+   4,
+   5,
+   5,
+   5
+  ]
+ },
+ "light_air": {
+  "file": "rasta_light_air_6x1_192.png",
+  "frames": 6,
+  "cols": 6,
+  "rows": 1,
+  "frameSize": 192,
+  "contentLeft": 0,
+  "contentTop": 46,
+  "contentWidth": 162,
+  "contentHeight": 134,
+  "feetY": 180,
+  "originX": 68,
+  "perFrame": [
+   [
+    16,
+    50,
+    108,
+    168
+   ],
+   [
+    6,
+    46,
+    116,
+    164
+   ],
+   [
+    0,
+    46,
+    162,
+    158
+   ],
+   [
+    6,
+    48,
+    148,
+    160
+   ],
+   [
+    18,
+    46,
+    104,
+    176
+   ],
+   [
+    30,
+    48,
+    116,
+    180
+   ]
+  ],
+  "poseByFrame": [
+   0,
+   0,
+   0,
+   1,
+   1,
+   2,
+   2,
+   2,
+   2,
+   3,
+   3,
+   3,
+   3,
+   4,
+   4,
+   4,
+   4,
+   5,
+   5,
+   5,
+   5
+  ]
+ },
+ "heavy": {
+  "file": "rasta_heavy_9x1_192.png",
+  "frames": 9,
+  "cols": 9,
+  "rows": 1,
+  "frameSize": 192,
+  "contentLeft": 24,
+  "contentTop": 56,
+  "contentWidth": 168,
+  "contentHeight": 128,
+  "feetY": 180,
+  "originX": 68,
+  "perFrame": [
+   [
+    30,
+    60,
+    104,
+    184
+   ],
+   [
+    26,
+    58,
+    104,
+    184
+   ],
+   [
+    24,
+    60,
+    104,
+    184
+   ],
+   [
+    44,
+    74,
+    190,
+    184
+   ],
+   [
+    44,
+    74,
+    192,
+    184
+   ],
+   [
+    42,
+    74,
+    190,
+    184
+   ],
+   [
+    42,
+    66,
+    176,
+    184
+   ],
+   [
+    40,
+    56,
+    112,
+    184
+   ],
+   [
+    34,
+    56,
+    110,
+    184
+   ]
+  ],
+  "poseByFrame": [
+   0,
+   0,
+   0,
+   0,
+   1,
+   1,
+   1,
+   1,
+   2,
+   2,
+   2,
+   2,
+   3,
+   3,
+   4,
+   4,
+   5,
+   5,
+   5,
+   5,
+   5,
+   5,
+   6,
+   6,
+   6,
+   6,
+   6,
+   6,
+   7,
+   7,
+   7,
+   7,
+   7,
+   8,
+   8,
+   8,
+   8,
+   8
+  ]
+ },
+ "dodge": {
+  "file": "rasta_dodge_6x1_192.png",
+  "frames": 6,
+  "cols": 6,
+  "rows": 1,
+  "frameSize": 192,
+  "contentLeft": 26,
+  "contentTop": 56,
+  "contentWidth": 86,
+  "contentHeight": 128,
+  "feetY": 180,
+  "originX": 68,
+  "perFrame": [
+   [
+    30,
+    74,
+    110,
+    184
+   ],
+   [
+    28,
+    88,
+    112,
+    184
+   ],
+   [
+    26,
+    90,
+    112,
+    184
+   ],
+   [
+    26,
+    92,
+    112,
+    184
+   ],
+   [
+    28,
+    64,
+    112,
+    184
+   ],
+   [
+    32,
+    56,
+    110,
+    184
+   ]
+  ],
+  "poseByFrame": [
+   0,
+   0,
+   0,
+   1,
+   1,
+   1,
+   1,
+   2,
+   2,
+   2,
+   2,
+   2,
+   3,
+   3,
+   3,
+   4,
+   4,
+   4,
+   4,
+   4,
+   4,
+   5,
+   5,
+   5,
+   5,
+   5
+  ]
+ },
+ "wall": {
+  "file": "rasta_wall_4x1_192.png",
+  "frames": 4,
+  "cols": 4,
+  "rows": 1,
+  "frameSize": 192,
+  "contentLeft": 38,
+  "contentTop": 58,
+  "contentWidth": 74,
+  "contentHeight": 124,
+  "feetY": 180,
+  "originX": 68,
+  "perFrame": [
+   [
+    42,
+    60,
+    110,
+    182
+   ],
+   [
+    40,
+    60,
+    110,
+    182
+   ],
+   [
+    40,
+    58,
+    110,
+    182
+   ],
+   [
+    38,
+    62,
+    112,
+    182
+   ]
+  ]
+ },
+ "hurt": {
+  "file": "rasta_hurt_2x1_192.png",
+  "frames": 2,
+  "cols": 2,
+  "rows": 1,
+  "frameSize": 192,
+  "contentLeft": 22,
+  "contentTop": 64,
+  "contentWidth": 78,
+  "contentHeight": 120,
+  "feetY": 180,
+  "originX": 68,
+  "perFrame": [
+   [
+    24,
+    66,
+    100,
+    184
+   ],
+   [
+    22,
+    64,
+    100,
+    184
+   ]
+  ]
+ },
+ "ko": {
+  "file": "rasta_ko_6x1_192.png",
+  "frames": 6,
+  "cols": 6,
+  "rows": 1,
+  "frameSize": 192,
+  "contentLeft": 6,
+  "contentTop": 58,
+  "contentWidth": 124,
+  "contentHeight": 124,
+  "feetY": 180,
+  "originX": 68,
+  "perFrame": [
+   [
+    30,
+    58,
+    108,
+    168
+   ],
+   [
+    20,
+    82,
+    130,
+    160
+   ],
+   [
+    28,
+    72,
+    106,
+    182
+   ],
+   [
+    6,
+    80,
+    116,
+    158
+   ],
+   [
+    30,
+    58,
+    108,
+    168
+   ],
+   [
+    20,
+    82,
+    130,
+    160
+   ]
+  ]
+ }
+}

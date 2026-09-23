@@ -11,7 +11,6 @@ import { startFixedClock } from '../../fight/clock'
 import { OSO } from '../../fight/data/characters/oso'
 import { SMALL_STAGE } from '../../fight/data/stage'
 import { NONE, type Input } from '../../fight/sim/input'
-import { resistanceOf } from '../../fight/sim/state'
 import { TICKS_PER_SECOND } from '../../fight/sim/tick'
 import { DEFAULT_RULES, type World } from '../../fight/sim/world'
 import { NetSession, type SessionPhase } from '../../fight/net/session'
@@ -23,7 +22,9 @@ import {
   fightServerUrl,
 } from '../../infrastructure/ws/WebSocketTransport'
 import { listenKeyboard } from './fightControls'
-import { COLORS, drawMatch, VIEW } from './fightView'
+import { COLORS, drawMatch, loadFightAssets, tagAnchors, VIEW } from './fightView'
+import { createFightHud, panelOf } from './fightHud'
+import { myFightName, rivalFightName } from '../../infrastructure/ws/fightNames'
 
 /**
  * La pelea online: dos personas, dos máquinas, una simulación por cabeza.
@@ -69,6 +70,10 @@ function start(k: KAPLAYCtx, context: GameContext): () => void {
     return () => {}
   }
 
+  loadFightAssets(k)
+  const overlay = createFightHud(context.mountPoint, VIEW)
+  overlay.setNames(['…', '…'])
+
   // El teclado escribe en las dos ranuras, pero online sólo se usa la primera:
   // las teclas son siempre las mismas y a qué peleador mueven lo decide el lugar
   // que dio el servidor.
@@ -87,7 +92,7 @@ function start(k: KAPLAYCtx, context: GameContext): () => void {
     },
     onError: (code, message) => {
       ended = true
-      context.onStatusChange({ Estado: code })
+      overlay.setStatus(code)
       context.onGameOver(0, { message })
     },
   })
@@ -95,21 +100,24 @@ function start(k: KAPLAYCtx, context: GameContext): () => void {
   let camera = initialCamera(world, VIEW)
   let previousCamera = camera
 
+  // Los nombres se piden una sola vez, cuando el servidor dice quién es el rival
+  // y en qué lugar quedó cada uno. Mientras tanto el cartel dice "…".
+  let namesAsked = false
+  const askNames = (me: Slot, opponent: string): void => {
+    namesAsked = true
+    overlay.setLocal(me)
+    void Promise.all([myFightName(), rivalFightName(opponent)]).then(([mine, theirs]) => {
+      overlay.setNames(me === 0 ? [mine, theirs] : [theirs, mine])
+    })
+  }
+
   const hud = (): void => {
     const snapshot = session.snapshot()
     const state = snapshot.state
-    const me = snapshot.slot
-    const rival: Slot = me === 0 ? 1 : 0
-
-    context.onStatusChange({
-      Estado: describe(snapshot.phase, snapshot.stalledFrames),
-      'Tus vidas': state ? state.fighters[me].stocks : DEFAULT_RULES.stocks,
-      'Tu resistencia': state ? resistanceOf(state.fighters[me], world.rules) : world.rules.maxResistance,
-      'Vidas rival': state ? state.fighters[rival].stocks : DEFAULT_RULES.stocks,
-      'Resistencia rival': state
-        ? resistanceOf(state.fighters[rival], world.rules)
-        : world.rules.maxResistance,
-    })
+    overlay.setStatus(snapshot.phase === 'playing' ? null : describe(snapshot.phase, snapshot.stalledFrames))
+    if (!state) return
+    if (!namesAsked) askNames(snapshot.slot, snapshot.opponent)
+    overlay.update([panelOf(state.fighters[0], world.rules), panelOf(state.fighters[1], world.rules)])
   }
 
   const clock = startFixedClock(() => {
@@ -125,7 +133,7 @@ function start(k: KAPLAYCtx, context: GameContext): () => void {
     if (advanced) {
       previousCamera = camera
       camera = approachCamera(camera, targetCamera(state, world, VIEW))
-      if (state.tick % 6 === 0) hud()
+      hud()
     }
   }, TICKS_PER_SECOND)
 
@@ -140,7 +148,9 @@ function start(k: KAPLAYCtx, context: GameContext): () => void {
       y: previousCamera.y + (camera.y - previousCamera.y) * alpha,
       scale: previousCamera.scale + (camera.scale - previousCamera.scale) * alpha,
     }
-    drawMatch(k, shown, state, snapshot.previous ?? state, alpha, world.rules)
+    const previous = snapshot.previous ?? state
+    drawMatch(k, shown, state, previous, alpha)
+    overlay.placeTags(tagAnchors(shown, state, previous, alpha))
   })
 
   hud()
@@ -158,6 +168,7 @@ function start(k: KAPLAYCtx, context: GameContext): () => void {
     clock.stop()
     unlisten()
     session.dispose()
+    overlay.destroy()
   }
 }
 

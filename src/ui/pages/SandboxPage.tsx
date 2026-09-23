@@ -4,7 +4,7 @@ import type { GameStatus } from '../../games/GameModule'
 import { GameCanvas } from '../components/GameCanvas'
 import { GameHud } from '../components/GameHud'
 import { GameStage, type GameStageRef } from '../components/GameStage'
-import { gameAspectRatio, implementedSlugs } from '../../games/registry'
+import { gameAspectRatio, gameHasOwnHud, implementedSlugs } from '../../games/registry'
 import { shareScore } from '../lib/shareScore'
 
 const EMPTY_CONFIG = Object.freeze({})
@@ -111,7 +111,7 @@ export function SandboxPage() {
             />
           )}
 
-          {playing && <GameHud score={score} status={status} />}
+          {playing && !gameHasOwnHud(slug) && <GameHud score={score} status={status} />}
 
           {!playing && !result && (
             <div className="game-overlay">

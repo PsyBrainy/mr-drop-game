@@ -5,7 +5,7 @@ import { useAsync } from '../hooks/useAsync'
 import { EventStatusBadge, formatDate } from '../components/EventStatusBadge'
 import { Leaderboard } from '../components/Leaderboard'
 import { PageSpinner } from '../components/ProtectedRoute'
-import { isGameImplemented } from '../../games/registry'
+import { gameKind, isGameImplemented } from '../../games/registry'
 
 export function EventPage() {
   const { slug = '' } = useParams<{ slug: string }>()
@@ -103,9 +103,14 @@ export function EventPage() {
                     {eventGame.game.description}
                   </p>
                   <div className="row">
-                    <span className="badge">
-                      {eventGame.maxPlays} {eventGame.maxPlays === 1 ? 'intento' : 'intentos'}
-                    </span>
+                    {gameKind(eventGame.game.slug) === 'match' ? (
+                      // Una pelea no gasta intentos: no hay puntaje que limitar.
+                      <span className="badge badge--live">1v1 online</span>
+                    ) : (
+                      <span className="badge">
+                        {eventGame.maxPlays} {eventGame.maxPlays === 1 ? 'intento' : 'intentos'}
+                      </span>
+                    )}
                     <span className="spacer" />
                     {playable ? (
                       <Link to={`/concurso/${event.slug}/${eventGame.game.slug}`} className="btn btn--sm">

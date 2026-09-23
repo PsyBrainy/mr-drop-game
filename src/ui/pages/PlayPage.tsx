@@ -10,7 +10,7 @@ import { GameHud } from '../components/GameHud'
 import { GameStage, type GameStageRef } from '../components/GameStage'
 import { Leaderboard } from '../components/Leaderboard'
 import { PageSpinner } from '../components/ProtectedRoute'
-import { gameAspectRatio } from '../../games/registry'
+import { gameAspectRatio, gameHasOwnHud, gameKind } from '../../games/registry'
 import { shareScore } from '../lib/shareScore'
 
 type Phase = 'ready' | 'playing' | 'finished'
@@ -33,6 +33,10 @@ export function PlayPage() {
   const stageRef = useRef<GameStageRef>(null)
   const [isImmersive, setIsImmersive] = useState(false)
 
+  // Una pelea 1v1 no abre sesión, no gasta intentos ni guarda puntaje: el
+  // resultado lo archiva psy-ws. Ver `GameKind` en el registry.
+  const isMatch = gameKind(gameSlug) === 'match'
+
   const event = useAsync(() => events.findBySlug(slug), [slug, events])
   const contest = event.data
 
@@ -46,13 +50,18 @@ export function PlayPage() {
   const ranking = useAsync(
     () => getLeaderboard.forGame(eventGameId ?? '', userId, 10),
     [eventGameId, userId, phase, getLeaderboard],
-    { enabled: Boolean(eventGameId) },
+    { enabled: Boolean(eventGameId) && !isMatch },
   )
 
   const start = useAction(async () => {
     if (!eventGameId) return
-    const session = await startGameSession.execute(eventGameId)
-    setSessionId(session.id)
+    if (isMatch) {
+      // Sin sesión: la pelea se identifica ante psy-ws con el token del usuario.
+      setSessionId(null)
+    } else {
+      const session = await startGameSession.execute(eventGameId)
+      setSessionId(session.id)
+    }
     setLiveScore(0)
     setStatus(NO_STATUS)
     setFinalScore(null)
@@ -76,9 +85,14 @@ export function PlayPage() {
       const message = payload?.['message']
       setEndMessage(typeof message === 'string' ? message : null)
       setEndPayload(payload ?? {})
+      if (isMatch) {
+        // No hay puntaje que guardar: el cartel es el resultado.
+        setPhase('finished')
+        return
+      }
       void submit.run(score, payload)
     },
-    [submit],
+    [submit, isMatch],
   )
 
   // Mostrar spinner de página solo en la primera carga, no en reloads.
@@ -101,7 +115,7 @@ export function PlayPage() {
   }
 
   const { eventGame, playsLeft, bestScore } = entry.data
-  const canPlay = playsLeft === null || playsLeft > 0
+  const canPlay = isMatch || playsLeft === null || playsLeft > 0
   const backTo = event.data.isFreePlay ? '/jugar' : `/concurso/${slug}`
 
   const share = () =>
@@ -118,7 +132,9 @@ export function PlayPage() {
       <div className="row">
         <Link to={backTo} className="muted">← {event.data.name}</Link>
         <span className="spacer" />
-        {playsLeft === null ? (
+        {isMatch ? (
+          <span className="badge badge--live">1v1 online</span>
+        ) : playsLeft === null ? (
           <span className="badge badge--live">Intentos ilimitados</span>
         ) : (
           <span className="badge">{playsLeft} {playsLeft === 1 ? 'intento' : 'intentos'} restantes</span>
@@ -140,7 +156,7 @@ export function PlayPage() {
           aspectRatio={gameAspectRatio(gameSlug)}
           onImmersiveChange={setIsImmersive}
         >
-          {phase === 'playing' && sessionId && (
+          {phase === 'playing' && (sessionId || isMatch) && (
             <GameCanvas
               gameSlug={eventGame.game.slug}
               config={eventGame.config}
@@ -150,7 +166,7 @@ export function PlayPage() {
             />
           )}
 
-          {phase === 'playing' && (
+          {phase === 'playing' && !gameHasOwnHud(gameSlug) && (
             <GameHud score={liveScore} best={bestScore} status={status} />
           )}
 
@@ -190,17 +206,23 @@ export function PlayPage() {
             <div className="game-overlay">
               <div className="stack">
                 <h2 className="game-over__title">{endMessage ?? '¡Terminó!'}</h2>
-                <p className="game-over__score">{finalScore ?? 0}</p>
-                <p className="muted">
-                  {submit.pending ? 'Guardando tu puntaje…' : 'Tu puntaje ya está en el ranking.'}
-                </p>
+                {isMatch ? (
+                  <p className="muted">Las peleas todavía no suman al ranking.</p>
+                ) : (
+                  <>
+                    <p className="game-over__score">{finalScore ?? 0}</p>
+                    <p className="muted">
+                      {submit.pending ? 'Guardando tu puntaje…' : 'Tu puntaje ya está en el ranking.'}
+                    </p>
+                  </>
+                )}
                 <div className="row" style={{ justifyContent: 'center' }}>
                   {canPlay && (
                     <button className="btn" onClick={() => void start.run()} disabled={start.pending}>
-                      Volver a empezar
+                      {isMatch ? 'Buscar otra pelea' : 'Volver a empezar'}
                     </button>
                   )}
-                  {event.data.isFreePlay && (
+                  {event.data.isFreePlay && !isMatch && (
                     <button className="btn btn--ghost" onClick={share} disabled={submit.pending}>
                       Compartir en WhatsApp
                     </button>
@@ -213,6 +235,7 @@ export function PlayPage() {
         </GameStage>
       </div>
 
+      {!isMatch && (
       <section className="stack">
         <h2>Ranking de {eventGame.game.name}</h2>
         <div className="card">
@@ -223,6 +246,7 @@ export function PlayPage() {
           )}
         </div>
       </section>
+      )}
     </div>
   )
 }
