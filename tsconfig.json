@@ -25,6 +25,7 @@
       "@application/*": ["src/application/*"],
       "@infrastructure/*": ["src/infrastructure/*"],
       "@games/*": ["src/games/*"],
+      "@fight/*": ["src/fight/*"],
       "@ui/*": ["src/ui/*"]
     }
   },

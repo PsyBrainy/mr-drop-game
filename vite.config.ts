@@ -10,6 +10,7 @@ export default defineConfig({
       '@application': fileURLToPath(new URL('./src/application', import.meta.url)),
       '@infrastructure': fileURLToPath(new URL('./src/infrastructure', import.meta.url)),
       '@games': fileURLToPath(new URL('./src/games', import.meta.url)),
+      '@fight': fileURLToPath(new URL('./src/fight', import.meta.url)),
       '@ui': fileURLToPath(new URL('./src/ui', import.meta.url)),
     },
   },
