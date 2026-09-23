@@ -15,6 +15,7 @@
  * en un test como fixture.
  */
 
+import { byteToHex, hexToByte } from '../bytes'
 import { step } from '../sim/tick'
 import { initialState, type MatchState } from '../sim/state'
 import type { Input } from '../sim/input'
@@ -94,14 +95,4 @@ export function replayTrace(replay: Replay, world: World): MatchState[] {
     trace.push(state)
   }
   return trace
-}
-
-function byteToHex(value: number): string {
-  return (value & 0xff).toString(16).padStart(2, '0')
-}
-
-function hexToByte(text: string, at: number): Input {
-  const byte = Number.parseInt(text.slice(at, at + 2), 16)
-  if (!Number.isInteger(byte)) throw new Error(`input ilegible en la posición ${at}`)
-  return byte
 }

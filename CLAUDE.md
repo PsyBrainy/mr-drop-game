@@ -99,8 +99,9 @@ src/fight/
     schema.ts   ✓ validación Zod del frame data, al cargar y nunca en el tick
     characters/oso.ts ✓ el personaje entero: física, esquive y los tres ataques
   net/          protocolo y sesión. Puerto de transporte, sin WebSocket concreto adentro.
-    protocol.ts   los mensajes. Fuente única de verdad del contrato con psy-ws.
-    port.ts       interface Transport
+    protocol.ts ✓ los mensajes. Fuente única de verdad del contrato con psy-ws.
+    protocol.fixtures.json ✓ el mismo archivo commiteado en psy-ws; los dos lo verifican
+    port.ts     ✓ interface Transport
     session.ts    delay-based primero; rollback después
   replay/
     format.ts   ✓ log de inputs serializable + re-simulación y traza
@@ -109,6 +110,11 @@ src/games/modules/fightLocal.ts       ✓ la vista: Kaplay leyendo MatchState, 2
 src/games/modules/fight.ts              la versión online, con el contrato MatchModule
 src/infrastructure/ws/                  el adaptador que implementa Transport
 ```
+
+**La pelea local es sólo del banco de pruebas.** `fight-local` está marcado `sandboxOnly` en el
+registry: se juega de a dos en un solo teclado, no da puntaje y no hay ranking que le sirva, así
+que un concurso no puede ofrecerla por más que exista la fila en `games`. El juego de verdad es
+1v1 online.
 
 **Para probarlo:** `npm run dev` y abrir `/sandbox?juego=fight-local`. Jugador 1 con
 `A`/`D`/`W` + `F` rápido, `G` fuerte, `S` esquive; jugador 2 con las flechas + `,` `.` y flecha
@@ -191,8 +197,10 @@ para validar resultados, y hashear el estado para detectar desyncs.
 - Cada 30 frames los peers intercambian el hash del estado. **Si difiere, el match se aborta y
   se loguea.** Prohibido seguir jugando con un desync: es la diferencia entre un bug que se
   arregla en una tarde y uno que no se puede reproducir nunca.
-- `protocol.ts` es la fuente única del contrato. psy-ws refleja esos mensajes y se verifica con
-  fixtures JSON commiteadas en los dos repos.
+- `protocol.ts` es la fuente única del contrato: acá vive la simulación, así que acá se define
+  el protocolo. psy-ws lo refleja, y `protocol.fixtures.json` está commiteado en los dos repos y
+  los dos lo verifican. **Al cambiar el protocolo se edita el fixture en los dos lados, o no se
+  cambia.** El servidor y su harness están documentados en `psy-ws/CLAUDE.md`.
 - El transporte está detrás de `Transport` (`net/port.ts`). WebSocket hoy; si algún día hace
   falta UDP real (WebTransport / WebRTC DataChannel) se cambia el adaptador y la sim no se entera.
 
@@ -235,7 +243,10 @@ arquitectura, con un personaje:
   pared, y la cámara que encuadra a los dos. Queda afuera el movimiento de recuperación aérea:
   cambia el ajuste de la deriva que ya está verificado por el test de recuperación, y merece su
   propia pasada de balance.
-- **M3** — Red: rooms y relay en psy-ws, delay-based, dos navegadores, hash de desync.
+- **M3** — Red. **El servidor está hecho**: psy-ws tiene salas, emparejamiento, relé de inputs,
+  detección de desync, abandono por desconexión o por silencio, y archivo de la partida en la
+  base por JPA. Falta la otra mitad, que es del lado del cliente: `net/session.ts` (input delay,
+  buffer, hash cada 30 frames) y la vista online con el contrato `MatchModule`.
 - **M4** — Re-simulación headless en Node + tabla `matches` + ranking.
 - **M5** — Rollback, sólo si M3 se siente mal con pings reales. No antes.
 

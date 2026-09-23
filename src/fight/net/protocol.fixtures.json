@@ -1,0 +1,31 @@
+{
+  "comment": "Fixtures del contrato entre el front y psy-ws. Este archivo está commiteado en los dos repos y los dos lo verifican: si alguien renombra un campo de un lado, el test del otro rompe. No se edita a mano en uno solo.",
+  "simVersion": 1,
+  "client": [
+    { "type": "hello", "simVersion": 1 },
+    { "type": "hello", "simVersion": 1, "token": "ey.un.token" },
+    { "type": "queue" },
+    { "type": "leave" },
+    { "type": "inputs", "from": 12, "inputs": "0001112031" },
+    { "type": "checksum", "frame": 60, "hash": 33754449 },
+    { "type": "result", "frame": 842, "winner": 1 },
+    { "type": "result", "frame": 900, "winner": null }
+  ],
+  "server": [
+    { "type": "welcome", "playerId": "anon-7f3a", "simVersion": 1 },
+    { "type": "queued" },
+    {
+      "type": "match",
+      "matchId": "m-9c21",
+      "seed": 12648430,
+      "slot": 0,
+      "inputDelay": 4,
+      "opponent": "anon-22b1"
+    },
+    { "type": "inputs", "from": 12, "inputs": "0001112031" },
+    { "type": "desync", "frame": 330 },
+    { "type": "ended", "reason": "result", "winner": 1 },
+    { "type": "ended", "reason": "forfeit", "winner": 0 },
+    { "type": "error", "code": "SIM_VERSION_MISMATCH", "message": "El juego se actualizó: recargá la página." }
+  ]
+}
