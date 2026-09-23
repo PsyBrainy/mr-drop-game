@@ -1,5 +1,5 @@
 import { useCallback, useRef, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useSearchParams } from 'react-router-dom'
 import type { GameStatus } from '../../games/GameModule'
 import { GameCanvas } from '../components/GameCanvas'
 import { GameHud } from '../components/GameHud'
@@ -16,7 +16,11 @@ const NO_STATUS: GameStatus = {}
  */
 export function SandboxPage() {
   const slugs = implementedSlugs()
-  const [slug, setSlug] = useState(slugs[0] ?? '')
+  // `/sandbox?juego=<slug>` entra directo a un juego. Probar algo puntual es lo
+  // que más se hace acá, y así el link se puede guardar o pasar.
+  const [params, setParams] = useSearchParams()
+  const asked = params.get('juego') ?? ''
+  const [slug, setSlug] = useState(slugs.includes(asked) ? asked : (slugs[0] ?? ''))
   const [runId, setRunId] = useState(0)
   const [playing, setPlaying] = useState(false)
   const [score, setScore] = useState(0)
@@ -78,6 +82,7 @@ export function SandboxPage() {
           value={slug}
           onChange={(e) => {
             setSlug(e.target.value)
+            setParams(e.target.value ? { juego: e.target.value } : {}, { replace: true })
             setPlaying(false)
             setResult(null)
           }}

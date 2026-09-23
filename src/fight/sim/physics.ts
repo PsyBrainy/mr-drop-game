@@ -7,7 +7,7 @@
  * que no pueden decidirlo ellas.
  */
 
-import { fxApproach, fxClamp, FX_ZERO, type Fx } from './fixed'
+import { fxAbs, fxApproach, fxClamp, FX_ZERO, type Fx } from './fixed'
 import type { FighterDraft } from './state'
 import type { FighterTuning, Stage } from './world'
 
@@ -36,8 +36,25 @@ export function accelerate(draft: FighterDraft, tuning: FighterTuning, direction
   draft.vx = fxApproach(draft.vx, target, tuning.airDrift)
 }
 
+/**
+ * Frena el empuje de un golpe. Se aplica sólo a la velocidad que supera lo que
+ * el personaje podría alcanzar por sus propios medios: así el vuelo por un
+ * knockback se va apagando y el movimiento normal por el aire no se entera.
+ *
+ * Es lo que hace que el daño acumulado se sienta: con 0 de daño el golpe te
+ * mueve un poco y frena; con 100, te manda al otro lado de la pantalla.
+ */
+export function decayKnockback(draft: FighterDraft, tuning: FighterTuning): void {
+  if (draft.grounded) return
+  if (fxAbs(draft.vx) <= tuning.airSpeed) return
+  const limit = draft.vx > 0 ? tuning.airSpeed : -tuning.airSpeed
+  draft.vx = fxApproach(draft.vx, limit, tuning.knockbackDecay)
+}
+
 export function applyGravity(draft: FighterDraft, tuning: FighterTuning): void {
   if (draft.grounded) return
+  // Colgado de la pared no cae: resbala a su propio ritmo.
+  if (draft.state === 'cling') return
   draft.vy = fxClamp(draft.vy + tuning.gravity, -tuning.maxFall, tuning.maxFall)
 }
 
@@ -51,8 +68,23 @@ export function applyGravity(draft: FighterDraft, tuning: FighterTuning): void {
  * además sería un desync si un peer lo sufre un frame antes que el otro. Así el
  * `maxFall` se puede subir todo lo que haga falta sin miedo.
  */
-export function moveAndCollide(draft: FighterDraft, tuning: FighterTuning, stage: Stage): void {
+export interface MoveResult {
+  /** Acaba de tocar el piso en este frame. */
+  readonly landed: boolean
+  /**
+   * Contra qué costado se frenó, visto desde el personaje: 1 si la pared quedó a
+   * su derecha, -1 si quedó a su izquierda, 0 si no tocó ninguna.
+   */
+  readonly wall: -1 | 0 | 1
+}
+
+export function moveAndCollide(
+  draft: FighterDraft,
+  tuning: FighterTuning,
+  stage: Stage,
+): MoveResult {
   const previousY = draft.y
+  const previousX = draft.x
 
   draft.x += draft.vx
   draft.y += draft.vy
@@ -60,14 +92,13 @@ export function moveAndCollide(draft: FighterDraft, tuning: FighterTuning, stage
   const overGround = isOverGround(draft.x, tuning, stage)
 
   if (draft.grounded) {
-    // Caminar de más por el borde: no hay pared, hay vacío.
-    if (!overGround) {
-      draft.grounded = false
-      return
+    // Caminar de más por el borde: no hay pared arriba, hay vacío.
+    if (!overGround) draft.grounded = false
+    else {
+      draft.y = stage.ground.top
+      draft.vy = FX_ZERO
     }
-    draft.y = stage.ground.top
-    draft.vy = FX_ZERO
-    return
+    return { landed: false, wall: 0 }
   }
 
   const crossedFloor = previousY <= stage.ground.top && draft.y >= stage.ground.top
@@ -76,7 +107,49 @@ export function moveAndCollide(draft: FighterDraft, tuning: FighterTuning, stage
     draft.vy = FX_ZERO
     draft.grounded = true
     draft.airJumpsLeft = tuning.airJumps
+    draft.clingLeft = tuning.wall.clingFrames
+    return { landed: true, wall: 0 }
   }
+
+  return { landed: false, wall: hitWall(draft, tuning, stage, previousX) }
+}
+
+/**
+ * Los costados de la plataforma, por cruce igual que el piso: importa de qué
+ * lado estaba y de qué lado quedó, no si terminó adentro. Con la caja de
+ * colisión sola, a velocidad de knockback se atravesaría la pared entera en un
+ * frame — y en red eso es un peer que ve el choque y otro que no.
+ */
+function hitWall(
+  draft: FighterDraft,
+  tuning: FighterTuning,
+  stage: Stage,
+  previousX: Fx,
+): -1 | 0 | 1 {
+  const { left, right, top, bottom } = stage.ground
+  // El cuerpo tiene que estar a la altura del canto: más arriba no hay pared
+  // (ahí se aterriza) y más abajo la plataforma ya se terminó.
+  const head = draft.y - tuning.height
+  if (head >= bottom || draft.y <= top) return 0
+
+  if (previousX + tuning.halfWidth <= left && draft.x + tuning.halfWidth > left) {
+    draft.x = left - tuning.halfWidth
+    draft.vx = FX_ZERO
+    return 1
+  }
+
+  if (previousX - tuning.halfWidth >= right && draft.x - tuning.halfWidth < right) {
+    draft.x = right + tuning.halfWidth
+    draft.vx = FX_ZERO
+    return -1
+  }
+
+  return 0
+}
+
+/** Se quedó sin pared: el cuerpo entero pasó por debajo del canto. */
+export function slidOffWall(draft: FighterDraft, tuning: FighterTuning, stage: Stage): boolean {
+  return draft.y - tuning.height >= stage.ground.bottom
 }
 
 /**

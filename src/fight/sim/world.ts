@@ -11,12 +11,19 @@
  * aparte del `MatchState` por eso mismo.
  */
 
+import type { MoveSet } from './attack'
 import type { Fx } from './fixed'
 
 export interface Platform {
   readonly left: Fx
   readonly right: Fx
   readonly top: Fx
+  /**
+   * Hasta dónde baja el costado. La plataforma flota: abajo se puede pasar, y
+   * los costados son paredes a las que agarrarse. Cuanto más profunda, más
+   * perdonavidas es el escenario.
+   */
+  readonly bottom: Fx
 }
 
 export interface Stage {
@@ -61,6 +68,23 @@ export interface FighterTuning {
    */
   readonly jumpBufferFrames: number
   /**
+   * Cuánto se frena el empuje de un golpe, por frame. Sin esto, cualquier
+   * knockback te manda afuera tarde o temprano, porque en el aire no hay nada
+   * que te detenga: el KO dejaría de depender de la fuerza del golpe.
+   *
+   * No afecta al movimiento normal: la deriva empuja bastante más fuerte que
+   * esto, así que volar por un golpe se frena y caminar por el aire no.
+   */
+  readonly knockbackDecay: Fx
+
+  readonly dodge: DodgeTuning
+
+  readonly wall: WallTuning
+
+  /** Los ataques del personaje. Es data pura: el tick no sabe cuáles son. */
+  readonly moves: MoveSet
+
+  /**
    * Frames que dura la pose de aterrizaje. Hoy es sólo visual: un aterrizaje
    * limpio no quita el control, porque castigar todo salto haría impagable el
    * recurso que más se usa. El castigo de verdad llega con los ataques de M2,
@@ -69,11 +93,49 @@ export interface FighterTuning {
   readonly landFrames: number
 }
 
+/**
+ * Agarrarse del costado de la plataforma. Es la herramienta de recuperación que
+ * convierte quedar afuera en algo que se pelea en vez de sufrirse: llegás a la
+ * pared, te colgás, y desde ahí saltás de vuelta.
+ *
+ * El presupuesto de frames se gasta y sólo se recarga tocando el piso, así que
+ * no se puede vivir colgado de la pared ni escalarla para siempre.
+ */
+export interface WallTuning {
+  readonly clingFrames: number
+  /** Cuánto resbala por frame mientras está colgado. */
+  readonly slide: Fx
+  readonly jumpX: Fx
+  readonly jumpY: Fx
+}
+
+/**
+ * El esquive: la única defensa que hay. Son frames de invulnerabilidad a cambio
+ * de quedar quieto y vendido si errás el momento — sin esto, cada intercambio es
+ * un trade y la pelea se decide por quién aprieta más rápido.
+ */
+export interface DodgeTuning {
+  readonly frames: number
+  /** Ventana de invulnerabilidad, en frames desde que arranca. */
+  readonly invulnFrom: number
+  readonly invulnTo: number
+  /** Envión del esquive en el aire. En el piso es un esquive en el lugar. */
+  readonly speed: Fx
+}
+
 /** Cuántas vidas tiene cada uno. Es regla de match, no de personaje. */
 export interface MatchRules {
   readonly stocks: number
   /** Frames de invulnerabilidad al reaparecer. */
   readonly respawnInvuln: number
+  /**
+   * Con cuánta resistencia arranca cada uno. NO es estado ni entra en la física:
+   * el daño acumulado es lo único que existe para la sim, y la resistencia es
+   * ese mismo número leído al revés para poder mostrarlo como barra. Tener las
+   * dos cosas guardadas sería el mismo dato dos veces, y dos datos que dicen lo
+   * mismo terminan diciendo cosas distintas.
+   */
+  readonly maxResistance: number
 }
 
 export interface World {
@@ -83,4 +145,4 @@ export interface World {
   readonly rules: MatchRules
 }
 
-export const DEFAULT_RULES: MatchRules = { stocks: 3, respawnInvuln: 60 }
+export const DEFAULT_RULES: MatchRules = { stocks: 3, respawnInvuln: 60, maxResistance: 100 }

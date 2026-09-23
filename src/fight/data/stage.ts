@@ -19,7 +19,12 @@ import type { Stage } from '../sim/world'
  */
 export const SMALL_STAGE: Stage = {
   name: 'Playa',
-  ground: { left: fx(200), right: fx(760), top: fx(420) },
+  /**
+   * La plataforma flota y tiene 140 px de canto: abajo se pasa, y los costados
+   * son paredes de las que agarrarse para volver. Más finita haría la
+   * recuperación casi imposible; más gruesa la regalaría.
+   */
+  ground: { left: fx(200), right: fx(760), top: fx(420), bottom: fx(560) },
   /**
    * Justo afuera de la pantalla de 960: se muere saliendo de cuadro, como
    * corresponde. La distancia del borde de la plataforma a la zona de muerte

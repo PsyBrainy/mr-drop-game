@@ -3,7 +3,7 @@
  * para quedar fuera del barrido de pureza, que es sólo para la sim de verdad.
  */
 
-import { BASE_FIGHTER } from '../data/fighter'
+import { OSO } from '../data/characters/oso'
 import { SMALL_STAGE } from '../data/stage'
 import { NONE, type Input } from '../sim/input'
 import type { Fighter, MatchState, PlayerIndex } from '../sim/state'
@@ -14,7 +14,7 @@ import { SIM_VERSION } from '../version'
 export function testWorld(): World {
   return {
     stage: SMALL_STAGE,
-    tuning: [BASE_FIGHTER, BASE_FIGHTER],
+    tuning: [OSO, OSO],
     rules: DEFAULT_RULES,
   }
 }

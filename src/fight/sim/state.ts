@@ -9,10 +9,11 @@
  * la vista, y son estado de la sim.
  */
 
+import type { MoveKey } from './attack'
 import { FX_ZERO, type Fx } from './fixed'
 import { NONE, type Input } from './input'
 import { rngFromSeed, type RngState } from './rng'
-import type { World } from './world'
+import type { MatchRules, World } from './world'
 
 export type PlayerIndex = 0 | 1
 
@@ -23,7 +24,16 @@ export type PlayerIndex = 0 | 1
  */
 export const PLAYERS: readonly PlayerIndex[] = [0, 1]
 
-export type FighterStateName = 'idle' | 'walk' | 'air' | 'land' | 'hitstun' | 'dead'
+export type FighterStateName =
+  | 'idle'
+  | 'walk'
+  | 'air'
+  | 'land'
+  | 'attack'
+  | 'dodge'
+  | 'cling'
+  | 'hitstun'
+  | 'dead'
 
 /** Códigos explícitos para el hash: el nombre es para leer, el número es para comparar. */
 export const STATE_CODES: Record<FighterStateName, number> = {
@@ -31,8 +41,11 @@ export const STATE_CODES: Record<FighterStateName, number> = {
   walk: 1,
   air: 2,
   land: 3,
-  hitstun: 4,
-  dead: 5,
+  attack: 4,
+  dodge: 5,
+  cling: 6,
+  hitstun: 7,
+  dead: 8,
 }
 
 export interface Fighter {
@@ -48,9 +61,23 @@ export interface Fighter {
   readonly grounded: boolean
   readonly airJumpsLeft: number
   readonly jumpBuffer: number
+  /** Qué ataque está haciendo. `stateFrames` es su reloj. */
+  readonly attack: MoveKey | null
   /**
-   * Daño acumulado. No es vida que baja: es el multiplicador del knockback, como
-   * en Brawlhalla y en Smash. No mata por sí solo — mata el ring-out.
+   * Sube uno por cada golpe tirado. El rival anota el `hitId` que lo tocó en
+   * `lastHitBy`, y así un mismo golpe no puede pegar dos veces aunque la caja
+   * esté activa varios frames.
+   */
+  readonly hitId: number
+  readonly lastHitBy: number
+  /** Frames sin control por haber aterrizado en medio de un aéreo. */
+  readonly landLag: number
+  /** Frames que le quedan para colgarse de una pared. Se recargan al aterrizar. */
+  readonly clingLeft: number
+  /**
+   * Daño acumulado. No es vida que baja: es el multiplicador del empuje. La
+   * barra de resistencia que ve el jugador es este número al revés
+   * (`resistanceOf`), no otro dato.
    */
   readonly damage: number
   readonly stocks: number
@@ -100,6 +127,12 @@ function spawnFighter(world: World, index: PlayerIndex): Fighter {
     grounded: true,
     airJumpsLeft: tuning.airJumps,
     jumpBuffer: 0,
+    attack: null,
+    hitId: 0,
+    // -1 y no 0: el 0 es un `hitId` válido y marcaría el primer golpe como ya recibido.
+    lastHitBy: -1,
+    landLag: 0,
+    clingLeft: tuning.wall.clingFrames,
     damage: 0,
     stocks: world.rules.stocks,
     hitstun: 0,
@@ -132,6 +165,9 @@ export function respawn(draft: FighterDraft, world: World, index: PlayerIndex): 
   draft.grounded = true
   draft.airJumpsLeft = tuning.airJumps
   draft.jumpBuffer = 0
+  draft.attack = null
+  draft.landLag = 0
+  draft.clingLeft = tuning.wall.clingFrames
   // El daño se reinicia con la vida: si no, la segunda vida duraría dos golpes.
   draft.damage = 0
   draft.hitstun = 0
@@ -146,4 +182,13 @@ export function cloneState(state: MatchState): MatchDraft {
     over: state.over,
     winner: state.winner,
   }
+}
+
+/**
+ * La resistencia que se muestra: el daño leído al revés. Se corta en 0 y el daño
+ * sigue subiendo por debajo, así que con la barra vacía cada golpe nuevo te
+ * manda más lejos que el anterior. Es una lectura, no estado: no entra al hash.
+ */
+export function resistanceOf(fighter: Fighter, rules: MatchRules): number {
+  return Math.max(0, rules.maxResistance - fighter.damage)
 }

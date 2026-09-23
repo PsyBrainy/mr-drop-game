@@ -14,6 +14,7 @@
  * alguien agregue un campo el hash cambiaría en silencio.
  */
 
+import { MOVE_CODES } from './attack'
 import type { Fighter, MatchState } from './state'
 import { STATE_CODES } from './state'
 
@@ -36,6 +37,11 @@ function mixFighter(hash: number, fighter: Fighter): number {
   h = mix(h, fighter.grounded ? 1 : 0)
   h = mix(h, fighter.airJumpsLeft)
   h = mix(h, fighter.jumpBuffer)
+  h = mix(h, fighter.attack === null ? 0 : MOVE_CODES[fighter.attack])
+  h = mix(h, fighter.hitId)
+  h = mix(h, fighter.lastHitBy)
+  h = mix(h, fighter.landLag)
+  h = mix(h, fighter.clingLeft)
   h = mix(h, fighter.damage)
   h = mix(h, fighter.stocks)
   h = mix(h, fighter.hitstun)

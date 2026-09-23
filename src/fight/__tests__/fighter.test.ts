@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
-import { BASE_FIGHTER, jumpAirFrames, jumpApexPx, walkFrames } from '../data/fighter'
+import { jumpAirFrames, jumpApexPx, walkFrames } from '../data/fighter'
+import { OSO } from '../data/characters/oso'
 import { groundWidthPx, SMALL_STAGE } from '../data/stage'
 import { toPixels } from '../sim/fixed'
 import { JUMP, LEFT, NONE, RIGHT } from '../sim/input'
@@ -21,7 +22,7 @@ describe('movimiento', () => {
     const state = play(hold(RIGHT, 60))
     const fighter = state.fighters[0]
 
-    expect(fighter.vx).toBe(BASE_FIGHTER.walkSpeed)
+    expect(fighter.vx).toBe(OSO.walkSpeed)
     expect(fighter.state).toBe('walk')
     expect(fighter.facing).toBe(1)
   })
@@ -89,7 +90,7 @@ describe('salto', () => {
       // Sin saltos de aire: con saltos disponibles el input se gastaría en el
       // acto como salto aéreo, que es lo correcto y no lo que se está probando.
       airJumpsLeft: 0,
-      jumpBuffer: BASE_FIGHTER.jumpBufferFrames,
+      jumpBuffer: OSO.jumpBufferFrames,
     })
 
     let state = falling
@@ -107,8 +108,8 @@ describe('salto', () => {
     // El piso se detecta por cruce, no por solapamiento: si se detectara por
     // solapamiento, a esta velocidad el personaje pasaría de largo.
     const falling = withFighter(initialState(world, 1), 0, {
-      y: SMALL_STAGE.ground.top - BASE_FIGHTER.maxFall,
-      vy: BASE_FIGHTER.maxFall,
+      y: SMALL_STAGE.ground.top - OSO.maxFall,
+      vy: OSO.maxFall,
       grounded: false,
       state: 'air',
     })
@@ -202,7 +203,7 @@ describe('el ajuste deja un juego jugable', () => {
     expect(recovered).toBe(true)
     expect(state.fighters[0].stocks).toBe(3)
     expect(state.fighters[0].x).toBeGreaterThanOrEqual(
-      SMALL_STAGE.ground.left - BASE_FIGHTER.halfWidth,
+      SMALL_STAGE.ground.left - OSO.halfWidth,
     )
   })
 
@@ -216,13 +217,13 @@ describe('el ajuste deja un juego jugable', () => {
   })
 
   it('el primer salto vale más que los de aire', () => {
-    expect(jumpAirFrames(BASE_FIGHTER.airJumpVelocity)).toBeLessThan(
-      jumpAirFrames(BASE_FIGHTER.jumpVelocity),
+    expect(jumpAirFrames(OSO.airJumpVelocity)).toBeLessThan(
+      jumpAirFrames(OSO.jumpVelocity),
     )
   })
 
   it('el salto sube más que el alto del personaje pero no una pantalla entera', () => {
-    const height = toPixels(BASE_FIGHTER.height)
+    const height = toPixels(OSO.height)
 
     expect(jumpApexPx()).toBeGreaterThan(height * 1.5)
     expect(jumpApexPx()).toBeLessThan(height * 3)

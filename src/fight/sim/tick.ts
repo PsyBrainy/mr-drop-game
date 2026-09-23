@@ -10,8 +10,17 @@
  * el log para validar quién ganó.
  */
 
-import { axis, JUMP, pressed, type Input } from './input'
-import { accelerate, applyGravity, isOutOfBounds, moveAndCollide } from './physics'
+import { isOver, type MoveKey } from './attack'
+import { axis, DODGE, HEAVY, JUMP, LIGHT, pressed, type Input } from './input'
+import {
+  accelerate,
+  applyGravity,
+  decayKnockback,
+  isOutOfBounds,
+  moveAndCollide,
+  slidOffWall,
+} from './physics'
+import { applyClash, applyHit, detectExchange } from './resolve'
 import {
   cloneState,
   PLAYERS,
@@ -51,9 +60,15 @@ export function step(state: MatchState, inputs: readonly [Input, Input], world: 
     integrate(draft.fighters[index], world.tuning[index], world)
   }
 
-  // 4. Instanciar hitboxes según el frame data del frame actual  ─┐
-  // 5. Resolver golpes: (0 → 1), (1 → 0), y recién después clash  ├─ M2
-  // 6. Knockback e hitstun escalados por daño acumulado           ─┘
+  // 4 y 5. Las cajas de golpe salen del frame data y del reloj del ataque, así
+  // que no hay nada que instanciar: `detectExchange` las calcula y resuelve los
+  // dos pares en orden fijo, más el choque.
+  const exchange = detectExchange(draft, world)
+
+  // 6. Aplicar. Separado de la detección: mover a alguien en el medio cambiaría
+  // el estado contra el que se resuelve el otro golpe.
+  for (const hit of exchange.hits) applyHit(hit, draft)
+  if (exchange.clash) applyClash(draft, world)
 
   // 7. Límites del mundo
   resolveBounds(draft, world)
@@ -76,6 +91,8 @@ function advanceTimers(draft: FighterDraft): void {
   if (draft.hitstun > 0) draft.hitstun -= 1
   if (draft.invuln > 0) draft.invuln -= 1
   if (draft.jumpBuffer > 0) draft.jumpBuffer -= 1
+  if (draft.landLag > 0) draft.landLag -= 1
+  if (draft.state === 'cling' && draft.clingLeft > 0) draft.clingLeft -= 1
 }
 
 function applyInput(draft: FighterDraft, input: Input, tuning: FighterTuning): void {
@@ -86,6 +103,58 @@ function applyInput(draft: FighterDraft, input: Input, tuning: FighterTuning): v
 
   if (draft.hitstun > 0) return
 
+  // Aterrizaste en medio de un aéreo: el castigo por tirar un golpe que no
+  // llegó a terminar antes de tocar el piso.
+  if (draft.landLag > 0) {
+    accelerate(draft, tuning, 0)
+    return
+  }
+
+  if (draft.state === 'attack') {
+    const move = draft.attack === null ? null : tuning.moves[draft.attack]
+    if (move && !isOver(move, draft.stateFrames)) {
+      // Durante el golpe no se maneja. En el piso frena; en el aire conserva la
+      // inercia con la que llegó, que es lo que hace que un aéreo se "tire".
+      accelerate(draft, tuning, 0)
+      return
+    }
+    draft.attack = null
+    enter(draft, draft.grounded ? 'idle' : 'air')
+  }
+
+  if (draft.state === 'dodge') {
+    // El esquive conserva su envión hasta el final: sin fricción, si no, el
+    // esquive en el aire no llevaría a ningún lado.
+    if (draft.stateFrames < tuning.dodge.frames) return
+    enter(draft, draft.grounded ? 'idle' : 'air')
+  }
+
+  if (draft.state === 'cling') {
+    // Colgado sólo se puede hacer dos cosas: saltar o soltarse. Ni golpear ni
+    // esquivar — si no, la pared sería el mejor lugar del escenario.
+    if (draft.jumpBuffer > 0) {
+      wallJump(draft, tuning)
+      return
+    }
+    // Apretar en dirección contraria a la pared es soltarse. La pared quedó del
+    // lado opuesto al que mira, así que alcanza con mirar hacia dónde empuja.
+    if (axis(input) === draft.facing) {
+      enter(draft, 'air')
+      return
+    }
+    return
+  }
+
+  if (pressed(draft.prevInput, input, LIGHT)) {
+    startAttack(draft, draft.grounded ? 'lightGround' : 'lightAir', axis(input))
+    return
+  }
+  if (pressed(draft.prevInput, input, HEAVY)) {
+    startAttack(draft, 'heavy', axis(input))
+    return
+  }
+  if (pressed(draft.prevInput, input, DODGE) && startDodge(draft, tuning, axis(input))) return
+
   const direction = axis(input)
   accelerate(draft, tuning, direction)
   // Se da vuelta sólo en el piso: en el aire el personaje conserva la pose, que
@@ -93,6 +162,53 @@ function applyInput(draft: FighterDraft, input: Input, tuning: FighterTuning): v
   if (direction !== 0 && draft.grounded) draft.facing = direction
 
   if (draft.jumpBuffer > 0) jump(draft, tuning)
+}
+
+/**
+ * Arranca un golpe. El ataque elegido depende de si está en el piso o en el
+ * aire, que es toda la "máquina de estados" que hace falta con tres ataques.
+ */
+function startAttack(draft: FighterDraft, key: MoveKey, direction: -1 | 0 | 1): void {
+  // Se puede pegar para el otro lado: girar al atacar es lo que evita que
+  // quedar de espaldas sea una sentencia.
+  if (direction !== 0) draft.facing = direction
+  draft.state = 'attack'
+  draft.stateFrames = 0
+  draft.attack = key
+  draft.hitId += 1
+  // Los golpes de piso te plantan. En el aire no: ahí mandan la inercia y la gravedad.
+  if (draft.grounded) draft.vx = 0
+}
+
+/**
+ * Esquive. En el aire cuesta un salto: así no se puede flotar esquivando para
+ * siempre, y volver al escenario pasa a ser una decisión — gasto el salto en
+ * moverme o en cubrirme del golpe que me espera en el borde.
+ */
+function startDodge(draft: FighterDraft, tuning: FighterTuning, direction: -1 | 0 | 1): boolean {
+  if (!draft.grounded) {
+    if (draft.airJumpsLeft <= 0) return false
+    draft.airJumpsLeft -= 1
+  }
+
+  draft.state = 'dodge'
+  draft.stateFrames = 0
+  draft.attack = null
+  draft.vx = tuning.dodge.speed * direction
+  draft.vy = 0
+  return true
+}
+
+/**
+ * Salto de pared. No gasta saltos de aire a propósito: es el recurso que te
+ * devuelve la pelea cuando ya no te quedaba nada. Lo que lo limita es el
+ * presupuesto de frames colgado, que sólo se recarga tocando el piso.
+ */
+function wallJump(draft: FighterDraft, tuning: FighterTuning): void {
+  draft.vx = tuning.wall.jumpX * draft.facing
+  draft.vy = tuning.wall.jumpY
+  draft.jumpBuffer = 0
+  enter(draft, 'air')
 }
 
 function jump(draft: FighterDraft, tuning: FighterTuning): void {
@@ -118,13 +234,58 @@ function jump(draft: FighterDraft, tuning: FighterTuning): void {
 function integrate(draft: FighterDraft, tuning: FighterTuning, world: World): void {
   const wasAirborne = !draft.grounded
 
+  if (draft.state === 'cling') {
+    draft.vx = 0
+    draft.vy = tuning.wall.slide
+  }
+
+  decayKnockback(draft, tuning)
   applyGravity(draft, tuning)
-  moveAndCollide(draft, tuning, world.stage)
+  const moved = moveAndCollide(draft, tuning, world.stage)
 
-  if (wasAirborne && draft.grounded) enter(draft, 'land')
-  else if (!wasAirborne && !draft.grounded) enter(draft, 'air')
+  if (draft.state === 'cling') {
+    // Se sale de la pared por tiempo o porque se terminó el canto. Las dos
+    // salidas dejan al personaje cayendo, que es lo que hace que colgarse sea
+    // una pausa y no un refugio.
+    if (draft.clingLeft <= 0 || slidOffWall(draft, tuning, world.stage)) enter(draft, 'air')
+    if (draft.grounded) enter(draft, 'land')
+    return
+  }
 
+  if (moved.wall !== 0 && canCling(draft)) {
+    enter(draft, 'cling')
+    // Mira para el lado contrario a la pared: es de ahí de donde va a saltar.
+    draft.facing = moved.wall === 1 ? -1 : 1
+    draft.attack = null
+    draft.vy = 0
+    return
+  }
+
+  // En hitstun no hay estados que resolver: el personaje es un proyectil hasta
+  // que se le termine.
   if (draft.hitstun > 0) return
+  if (draft.state === 'hitstun') {
+    enter(draft, draft.grounded ? 'idle' : 'air')
+    return
+  }
+
+  if (wasAirborne && draft.grounded) {
+    if (draft.state === 'attack') {
+      draft.landLag = tuning.landFrames
+      draft.attack = null
+    }
+    enter(draft, 'land')
+    return
+  }
+
+  // Un golpe o un esquive se terminan por su propio reloj, no porque el
+  // personaje se haya caído de la plataforma en el medio.
+  if (draft.state === 'attack' || draft.state === 'dodge') return
+
+  if (!wasAirborne && !draft.grounded) {
+    enter(draft, 'air')
+    return
+  }
 
   if (draft.state === 'land' && draft.stateFrames >= tuning.landFrames) enter(draft, 'idle')
 
@@ -133,6 +294,16 @@ function integrate(draft: FighterDraft, tuning: FighterTuning, world: World): vo
   if (draft.grounded && (draft.state === 'idle' || draft.state === 'walk')) {
     enter(draft, draft.vx !== 0 ? 'walk' : 'idle')
   }
+}
+
+/**
+ * En hitstun no hay agarre: un golpe contra la pared no se convierte en salvada
+ * gratis. Primero hay que recuperar el control, y recién ahí prenderse.
+ */
+function canCling(draft: FighterDraft): boolean {
+  if (draft.hitstun > 0) return false
+  if (draft.clingLeft <= 0) return false
+  return draft.state !== 'attack' && draft.state !== 'dodge'
 }
 
 function resolveBounds(draft: MatchDraft, world: World): void {

@@ -79,22 +79,25 @@ Una pelea no tiene score: tiene match, oponente y resultado. **No se fuerza la p
 ```
 src/fight/
   version.ts    ✓ SIM_VERSION, compartida por el replay y el protocolo
+  clock.ts      ✓ el reloj de 60 ticks fijos, afuera de la sim y afuera de Kaplay
+  camera.ts     ✓ encuadre que sigue a los dos. Vista pura: no entra al estado ni al hash
   sim/          simulación determinista. CERO dependencias, cero DOM, cero Kaplay.
     fixed.ts    ✓ punto fijo (enteros, 1/256 de píxel)
     rng.ts      ✓ xorshift con semilla; la semilla la fija el servidor por match
     input.ts    ✓ bitmask de 1 byte por frame
     world.ts    ✓ el contrato de escenario, personaje y reglas (las instancias van en data/)
     state.ts    ✓ MatchState / Fighter (datos planos, serializables)
-    physics.ts  ✓ integración, fricción piso vs aire, piso por cruce
+    physics.ts  ✓ integración, fricción piso vs aire, piso por cruce, freno del empuje
     tick.ts     ✓ step(state, inputs, world) -> state. El orden de fases vive acá y sólo acá.
     hash.ts     ✓ checksum del estado, para detectar desync
-    collision.ts  AABB, broadphase en orden fijo                      ─┐
-    resolve.ts    hitbox vs hurtbox, clash, prioridades                ├─ M2
+    attack.ts   ✓ el contrato del frame data: fases, cajas, empuje, prioridad
+    collision.ts ✓ AABB y solapamiento
+    resolve.ts  ✓ hitbox vs hurtbox, un golpe por swing, choque por prioridad
   data/         instancias: el motor define la forma, los datos la llenan.
     stage.ts    ✓ geometría del escenario y sus zonas de muerte
-    fighter.ts  ✓ el ajuste del personaje base
-    schema.ts     validación Zod del frame data                        │
-    characters/*.ts  frame data de los ataques                        ─┘
+    fighter.ts  ✓ medidas derivadas para los tests de invariantes
+    schema.ts   ✓ validación Zod del frame data, al cargar y nunca en el tick
+    characters/oso.ts ✓ el personaje entero: física, esquive y los tres ataques
   net/          protocolo y sesión. Puerto de transporte, sin WebSocket concreto adentro.
     protocol.ts   los mensajes. Fuente única de verdad del contrato con psy-ws.
     port.ts       interface Transport
@@ -102,9 +105,19 @@ src/fight/
   replay/
     format.ts   ✓ log de inputs serializable + re-simulación y traza
 
-src/games/modules/fight.ts              la vista: Kaplay leyendo MatchState
+src/games/modules/fightLocal.ts       ✓ la vista: Kaplay leyendo MatchState, 2 jugadores locales
+src/games/modules/fight.ts              la versión online, con el contrato MatchModule
 src/infrastructure/ws/                  el adaptador que implementa Transport
 ```
+
+**Para probarlo:** `npm run dev` y abrir `/sandbox?juego=fight-local`. Jugador 1 con
+`A`/`D`/`W` + `F` rápido, `G` fuerte, `S` esquive; jugador 2 con las flechas + `,` `.` y flecha
+abajo. Las cajas de golpe se dibujan mientras están activas: es la forma de ver el frame data
+jugando. El sandbox monta cualquier juego del registry sin Supabase, sin evento y sin código.
+
+Dos cosas se ven raras ahí y son esperadas: el HUD dice "0 Puntaje" (el contrato `GameModule`
+es de puntaje y una pelea no tiene), y en una pestaña de fondo el canvas queda negro y el
+tick casi no avanza (Kaplay pausa su loop y el navegador no despacha animation frames).
 
 `src/fight/__tests__/purity.test.ts` hace cumplir mecánicamente las reglas de abajo. No es
 decorativo: si la sim se contamina, el test rompe. Si se agrega una regla acá, se agrega ahí.
@@ -146,9 +159,13 @@ para validar resultados, y hashear el estado para detectar desyncs.
 1. Avanzar timers (startup / active / recovery, hitstun, invulnerabilidad)
 2. Aplicar input y transiciones de la máquina de estados (jugador 0, después jugador 1)
 3. Integrar física (gravedad, fricción, clamps)
-4. Instanciar hitboxes según el frame data del frame actual
-5. Resolver golpes en pares de orden fijo: (0 → 1), (1 → 0), y recién después el clash
-6. Aplicar knockback e hitstun (el vector escala con el daño acumulado, como Brawlhalla)
+4. Calcular las cajas de golpe del frame data. No se instancia nada: la caja es un dato
+   derivado del reloj del ataque, y un objeto de verdad habría que crearlo y destruirlo en el
+   frame exacto en los dos peers, que es una fuente de desync a cambio de nada
+5. Detectar golpes en pares de orden fijo: (0 → 1), (1 → 0), y recién después el choque
+6. Aplicar knockback e hitstun (el vector escala con el daño acumulado, como Brawlhalla).
+   Detectar y aplicar van separados: mover a alguien en el medio cambiaría el estado contra el
+   que se resuelve el otro golpe
 7. Límites del mundo: ring-out, KO, stocks
 8. `tick++`
 
@@ -179,7 +196,18 @@ para validar resultados, y hashear el estado para detectar desyncs.
 - El transporte está detrás de `Transport` (`net/port.ts`). WebSocket hoy; si algún día hace
   falta UDP real (WebTransport / WebRTC DataChannel) se cambia el adaptador y la sim no se entera.
 
-### 6. El clock de la sim es propio
+### 6. La vista puede leer el estado, nunca al revés
+
+La cámara, las barras y la interpolación salen del `MatchState` y no vuelven a él. Si algo de
+la vista pudiera influir en la simulación, dos jugadores con ventanas de distinto tamaño
+estarían jugando a cosas distintas — y el desync no aparecería hasta que alguien pusiera el
+juego en pantalla completa.
+
+Por lo mismo, un dato que ya existe no se duplica para mostrarlo: la barra de resistencia es
+`maxResistance - damage` calculado al dibujar, no un campo aparte. Dos campos que dicen lo
+mismo terminan diciendo cosas distintas.
+
+### 7. El clock de la sim es propio
 
 **El loop de la sim no puede vivir en `k.onUpdate`.** Kaplay pausa su loop cuando
 `document.visibilityState` no es `"visible"` (está documentado en `createKaplayGame.ts`): en un
@@ -198,10 +226,15 @@ arquitectura, con un personaje:
 - **M0 ✓** — Harness (este archivo + `purity.test.ts`) y sim que tickea, con el test de replay:
   el mismo log de inputs produce el mismo hash final, y los dos peers coinciden frame a frame.
   Sin esto, nada de lo de abajo es medible.
-- **M1** — Movimiento, salto, plataformas y ring-out: **hecho del lado de la sim**, con tests de
-  comportamiento y de invariantes. Falta la vista en Kaplay y dos jugadores en el mismo teclado.
-- **M2** — Frame data + 3 ataques (light terrestre, light aéreo, uno fuerte), hitstun, knockback
-  escalado por daño. Acá entran las fases 4, 5 y 6 del tick, el esquive y la recuperación aérea.
+- **M1 ✓** — Movimiento, salto, plataformas y ring-out, con tests de comportamiento y de
+  invariantes, y la vista local en `/sandbox?juego=fight-local` para poder sentir el ajuste.
+  Los personajes son rectángulos: los sprites vienen después de que los ataques existan.
+- **M2 ✓** — Frame data validado, tres ataques, hitstun, knockback escalado por daño acumulado,
+  choque por prioridad, esquive con ventana de invulnerabilidad y castigo por aterrizar en medio
+  de un aéreo. Después se sumaron la barra de resistencia, el agarre del borde con salto de
+  pared, y la cámara que encuadra a los dos. Queda afuera el movimiento de recuperación aérea:
+  cambia el ajuste de la deriva que ya está verificado por el test de recuperación, y merece su
+  propia pasada de balance.
 - **M3** — Red: rooms y relay en psy-ws, delay-based, dos navegadores, hash de desync.
 - **M4** — Re-simulación headless en Node + tabla `matches` + ranking.
 - **M5** — Rollback, sólo si M3 se siente mal con pings reales. No antes.
