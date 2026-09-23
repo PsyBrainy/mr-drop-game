@@ -74,27 +74,33 @@ Una pelea no tiene score: tiene match, oponente y resultado. **No se fuerza la p
 
 ## Estructura
 
+`✓` es lo que existe; el resto es el destino.
+
 ```
 src/fight/
+  version.ts    ✓ SIM_VERSION, compartida por el replay y el protocolo
   sim/          simulación determinista. CERO dependencias, cero DOM, cero Kaplay.
-    fixed.ts      punto fijo (enteros, 1/256 de píxel)
-    rng.ts        xorshift con semilla; la semilla la fija el servidor por match
-    input.ts      bitmask de 1 byte por frame + buffer
-    state.ts      MatchState / FighterState (datos planos, serializables)
-    physics.ts    integración, fricción piso vs aire, knockback
-    collision.ts  AABB, broadphase en orden fijo
-    resolve.ts    hitbox vs hurtbox, clash, prioridades
-    tick.ts       step(state, inputs) -> state. El orden de fases vive acá y sólo acá.
-    hash.ts       checksum del estado, para detectar desync
-  data/         frame data como DATOS. Zod al cargar + tests de invariantes.
-    schema.ts
-    characters/*.ts
+    fixed.ts    ✓ punto fijo (enteros, 1/256 de píxel)
+    rng.ts      ✓ xorshift con semilla; la semilla la fija el servidor por match
+    input.ts    ✓ bitmask de 1 byte por frame
+    world.ts    ✓ el contrato de escenario, personaje y reglas (las instancias van en data/)
+    state.ts    ✓ MatchState / Fighter (datos planos, serializables)
+    physics.ts  ✓ integración, fricción piso vs aire, piso por cruce
+    tick.ts     ✓ step(state, inputs, world) -> state. El orden de fases vive acá y sólo acá.
+    hash.ts     ✓ checksum del estado, para detectar desync
+    collision.ts  AABB, broadphase en orden fijo                      ─┐
+    resolve.ts    hitbox vs hurtbox, clash, prioridades                ├─ M2
+  data/         instancias: el motor define la forma, los datos la llenan.
+    stage.ts    ✓ geometría del escenario y sus zonas de muerte
+    fighter.ts  ✓ el ajuste del personaje base
+    schema.ts     validación Zod del frame data                        │
+    characters/*.ts  frame data de los ataques                        ─┘
   net/          protocolo y sesión. Puerto de transporte, sin WebSocket concreto adentro.
     protocol.ts   los mensajes. Fuente única de verdad del contrato con psy-ws.
     port.ts       interface Transport
     session.ts    delay-based primero; rollback después
   replay/
-    format.ts     log de inputs serializable (semilla + personajes + inputs por frame)
+    format.ts   ✓ log de inputs serializable + re-simulación y traza
 
 src/games/modules/fight.ts              la vista: Kaplay leyendo MatchState
 src/infrastructure/ws/                  el adaptador que implementa Transport
@@ -189,11 +195,13 @@ servidor (timeout → forfeit), no el cliente.
 Brawlhalla son 50+ personajes con 2 armas y ~14 ataques cada una. Eso es *data*. Primero la
 arquitectura, con un personaje:
 
-- **M0** — Harness (este archivo + `purity.test.ts`). Sim vacía que tickea + test de replay:
-  el mismo log de inputs produce el mismo hash final. Sin esto, nada de lo de abajo es medible.
-- **M1** — Un personaje: movimiento, salto, plataformas. Dos jugadores en el mismo teclado.
+- **M0 ✓** — Harness (este archivo + `purity.test.ts`) y sim que tickea, con el test de replay:
+  el mismo log de inputs produce el mismo hash final, y los dos peers coinciden frame a frame.
+  Sin esto, nada de lo de abajo es medible.
+- **M1** — Movimiento, salto, plataformas y ring-out: **hecho del lado de la sim**, con tests de
+  comportamiento y de invariantes. Falta la vista en Kaplay y dos jugadores en el mismo teclado.
 - **M2** — Frame data + 3 ataques (light terrestre, light aéreo, uno fuerte), hitstun, knockback
-  escalado por daño, ring-out, stocks.
+  escalado por daño. Acá entran las fases 4, 5 y 6 del tick, el esquive y la recuperación aérea.
 - **M3** — Red: rooms y relay en psy-ws, delay-based, dos navegadores, hash de desync.
 - **M4** — Re-simulación headless en Node + tabla `matches` + ranking.
 - **M5** — Rollback, sólo si M3 se siente mal con pings reales. No antes.

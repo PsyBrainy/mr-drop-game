@@ -13,6 +13,10 @@ interface RegistryEntry {
  */
 const REGISTRY: Record<string, RegistryEntry> = {
   'mrdrop-run': { load: () => import('./modules/mrdropRun'), aspectRatio: 960 / 540 },
+  // Banco de pruebas de la pelea: dos jugadores en el mismo teclado, sin red.
+  // Entra por el sandbox; no tiene fila en `games`, así que no aparece en ningún
+  // concurso. El juego online de verdad llega con el contrato `MatchModule`.
+  'fight-local': { load: () => import('./modules/fightLocal'), aspectRatio: 960 / 540 },
 }
 
 const DEFAULT_ASPECT_RATIO = 960 / 540
