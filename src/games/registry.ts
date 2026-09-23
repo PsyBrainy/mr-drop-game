@@ -28,6 +28,14 @@ const REGISTRY: Record<string, RegistryEntry> = {
     aspectRatio: 960 / 540,
     sandboxOnly: true,
   },
+  // La pelea de verdad: 1v1 contra otra persona por psy-ws. Sigue siendo de
+  // banco de pruebas hasta que el resultado se pueda guardar y rankear — un
+  // concurso que la ofreciera hoy no tendría con qué puntuar.
+  'fight-online': {
+    load: () => import('./modules/fightOnline'),
+    aspectRatio: 960 / 540,
+    sandboxOnly: true,
+  },
 }
 
 const DEFAULT_ASPECT_RATIO = 960 / 540

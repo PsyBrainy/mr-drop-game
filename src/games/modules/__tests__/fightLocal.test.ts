@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import type { KAPLAYCtx } from 'kaplay'
-import { drawMatch } from '../fightLocal'
+import { drawMatch } from '../fightView'
 import { OSO } from '../../../fight/data/characters/oso'
 import { SMALL_STAGE } from '../../../fight/data/stage'
 import { toPixels } from '../../../fight/sim/fixed'

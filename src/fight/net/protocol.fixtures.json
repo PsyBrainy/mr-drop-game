@@ -7,7 +7,7 @@
     { "type": "queue" },
     { "type": "leave" },
     { "type": "inputs", "from": 12, "inputs": "0001112031" },
-    { "type": "checksum", "frame": 60, "hash": 33754449 },
+    { "type": "checksum", "frame": 60, "hash": 4294967295 },
     { "type": "result", "frame": 842, "winner": 1 },
     { "type": "result", "frame": 900, "winner": null }
   ],

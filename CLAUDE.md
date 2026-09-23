@@ -102,14 +102,24 @@ src/fight/
     protocol.ts ✓ los mensajes. Fuente única de verdad del contrato con psy-ws.
     protocol.fixtures.json ✓ el mismo archivo commiteado en psy-ws; los dos lo verifican
     port.ts     ✓ interface Transport
-    session.ts    delay-based primero; rollback después
+    session.ts  ✓ delay-based: retrasa el input propio y se frena si falta el del rival
   replay/
     format.ts   ✓ log de inputs serializable + re-simulación y traza
 
-src/games/modules/fightLocal.ts       ✓ la vista: Kaplay leyendo MatchState, 2 jugadores locales
-src/games/modules/fight.ts              la versión online, con el contrato MatchModule
-src/infrastructure/ws/                  el adaptador que implementa Transport
+src/games/modules/fightView.ts       ✓ el dibujo, compartido por las dos vistas
+src/games/modules/fightControls.ts   ✓ el teclado, compartido por las dos vistas
+src/games/modules/fightLocal.ts      ✓ vista local: dos jugadores en un teclado, sin red
+src/games/modules/fightOnline.ts     ✓ vista online: 1v1 contra otra persona por psy-ws
+src/infrastructure/ws/               ✓ el adaptador WebSocket y el token de Supabase
 ```
+
+**Para jugar online:** levantar psy-ws (`./gradlew bootRun`), poner `VITE_FIGHT_WS_URL` en el
+`.env` (está en `.env.example`), y abrir `/sandbox?juego=fight-online` en dos navegadores. Sin
+la variable, el juego lo dice en vez de intentar conectarse a cualquier lado.
+
+**Ojo con probar online en dos pestañas de la misma ventana:** el navegador le frena el reloj a
+la que está de fondo, así que deja de mandar inputs y el servidor la da por caída. Para probar
+en serio hacen falta dos ventanas visibles, o subir `fight.silence-timeout-seconds`.
 
 **La pelea local es sólo del banco de pruebas.** `fight-local` está marcado `sandboxOnly` en el
 registry: se juega de a dos en un solo teclado, no da puntaje y no hay ranking que le sirva, así
@@ -191,6 +201,9 @@ para validar resultados, y hashear el estado para detectar desyncs.
 ### 5. Red
 
 - **Delay-based primero, rollback después.** Input delay fijo, arrancar en 4 frames (~66 ms).
+  Cuando el input del rival igual no llegó, la simulación **se frena**. Congelarse es feo, pero
+  adivinar el input que falta es rollback — y eso es M5. Un juego que se traba medio segundo es
+  preferible a uno donde cada uno vio una partida distinta.
 - Cada paquete lleva los **últimos 8 frames de input**, redundantes. WebSocket es TCP: un
   paquete demorado no puede congelar la partida.
 - El cliente **no manda estado, manda input.** Nunca "morí" ni "le pegué": sólo botones.
@@ -243,10 +256,12 @@ arquitectura, con un personaje:
   pared, y la cámara que encuadra a los dos. Queda afuera el movimiento de recuperación aérea:
   cambia el ajuste de la deriva que ya está verificado por el test de recuperación, y merece su
   propia pasada de balance.
-- **M3** — Red. **El servidor está hecho**: psy-ws tiene salas, emparejamiento, relé de inputs,
-  detección de desync, abandono por desconexión o por silencio, y archivo de la partida en la
-  base por JPA. Falta la otra mitad, que es del lado del cliente: `net/session.ts` (input delay,
-  buffer, hash cada 30 frames) y la vista online con el contrato `MatchModule`.
+- **M3 ✓** — Red, de punta a punta. psy-ws tiene salas, emparejamiento, relé, detección de
+  desync, abandono por desconexión o por silencio y archivo por JPA; el cliente tiene la sesión
+  delay-based y la vista online. Verificado con dos navegadores contra el servidor de verdad.
+  **Queda afuera el contrato `MatchModule`**: hoy no compraría nada — el sandbox monta
+  `GameModule` y la pelea no tiene puntaje que registrar. Llega con M4, que es cuando el
+  resultado tiene que quedar guardado en algún lado.
 - **M4** — Re-simulación headless en Node + tabla `matches` + ranking.
 - **M5** — Rollback, sólo si M3 se siente mal con pings reales. No antes.
 

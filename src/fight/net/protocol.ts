@@ -44,6 +44,12 @@ export type ClientMessage =
   | { readonly type: 'queue' }
   | { readonly type: 'leave' }
   | { readonly type: 'inputs'; readonly from: number; readonly inputs: string }
+  /**
+   * El hash del estado en ese frame. Es un entero de 32 bits SIN signo (de 0 a
+   * 4.294.967.295): más grande de lo que entra en un entero con signo, que es
+   * con lo que lo lee el servidor. Si cambia el tipo de este campo, hay que
+   * mirar del otro lado.
+   */
   | { readonly type: 'checksum'; readonly frame: number; readonly hash: number }
   /** Lo que el cliente CREE que pasó. El servidor lo cruza con lo del otro. */
   | { readonly type: 'result'; readonly frame: number; readonly winner: Slot | null }
