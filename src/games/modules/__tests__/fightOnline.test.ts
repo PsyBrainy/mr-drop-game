@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
-import { BOT_NAME, botEndingMessage, endingMessage } from '../fightOnline'
+import { BOT_LEVEL_ORDER } from '../../../fight/bot/bot'
+import { BOT_NAME, botDisplayName, botEndingMessage, endingMessage } from '../fightOnline'
 
 /**
  * El final importa tanto como la pelea: no es lo mismo perder que quedarse sin
@@ -43,5 +44,15 @@ describe('la pelea contra el bot', () => {
 
   it('el bot tiene nombre de bot', () => {
     expect(BOT_NAME.toLowerCase()).toContain('bot')
+  })
+})
+
+describe('el nombre del bot', () => {
+  it('dice el nivel, y cada nivel se llama distinto', () => {
+    expect(botDisplayName('easy')).toBe(`${BOT_NAME} · Fácil`)
+    expect(botDisplayName('hard')).toBe(`${BOT_NAME} · Difícil`)
+    const names = BOT_LEVEL_ORDER.map(botDisplayName)
+    expect(new Set(names).size).toBe(names.length)
+    for (const name of names) expect(name.toLowerCase()).toContain('bot')
   })
 })

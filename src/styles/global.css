@@ -793,7 +793,26 @@ body.is-immersive { overflow: hidden; }
 .fight-offer[hidden] { display: none; }
 .fight-offer__text { margin: 0 0 0.6cqw; font-size: clamp(12px, 1.9cqw, 20px); font-weight: 700; }
 .fight-offer__hint { margin: 0 0 1.6cqw; font-size: clamp(10px, 1.4cqw, 15px); color: var(--text-muted); }
+.fight-offer__levels {
+  display: inline-flex; gap: 0.4cqw;
+  margin: 0 0 1.4cqw; padding: 0.35cqw;
+  border-radius: 99px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+}
+.fight-offer__level {
+  font: inherit; font-size: clamp(11px, 1.4cqw, 15px); font-weight: 700;
+  padding: 0.5cqw 1.6cqw; min-height: 32px;
+  border: 0; border-radius: 99px;
+  background: transparent; color: var(--text-muted);
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+.fight-offer__level.is-active[data-level='easy'] { background: #3fbf6f; color: #07110b; }
+.fight-offer__level.is-active[data-level='medium'] { background: #f2c14e; color: #1a1204; }
+.fight-offer__level.is-active[data-level='hard'] { background: #e5484d; color: #fff; }
 .fight-offer__btn {
+  display: block; margin: 0 auto;
   font: inherit; font-size: clamp(12px, 1.7cqw, 18px); font-weight: 800;
   padding: 0.9cqw 2.2cqw;
   border: 0; border-radius: 99px;

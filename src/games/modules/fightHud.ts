@@ -1,5 +1,6 @@
 import { resistanceOf, type Fighter, type PlayerIndex } from '../../fight/sim/state'
 import type { MatchRules } from '../../fight/sim/world'
+import { BOT_LEVEL_LABELS, BOT_LEVEL_ORDER, type BotLevel } from '../../fight/bot/bot'
 
 /**
  * El HUD de la pelea, en HTML encima del canvas (la regla del atlas de fuente de
@@ -73,9 +74,10 @@ export interface FightHud {
   setBot(index: PlayerIndex | null): void
   /**
    * Muestra el cartel de "no hay rivales" con el botón para pelear contra la
-   * máquina. `null` lo saca. Es lo único del HUD que se puede tocar.
+   * máquina y la elección de dificultad (arranca en Fácil). `null` lo saca. Es
+   * lo único del HUD que se puede tocar.
    */
-  offerBot(onAccept: (() => void) | null): void
+  offerBot(onAccept: ((level: BotLevel) => void) | null): void
   update(panels: readonly [PlayerPanel, PlayerPanel]): void
   setStatus(text: string | null): void
   placeTags(anchors: readonly [TagAnchor, TagAnchor]): void
@@ -146,13 +148,39 @@ export function createFightHud(mount: HTMLElement, view: { width: number; height
   offerText.textContent = 'No encontramos a nadie para pelear todavía.'
   const offerHint = el('p', 'fight-offer__hint', offer)
   offerHint.textContent = 'Seguimos buscando. Mientras tanto, podés pelear contra la máquina.'
+  // La dificultad: tres botones tipo pestaña, Fácil marcado de entrada.
+  const levels = el('div', 'fight-offer__levels', offer)
+  levels.setAttribute('role', 'radiogroup')
+  levels.setAttribute('aria-label', 'Dificultad')
+  let chosen: BotLevel = 'easy'
+  const levelButtons = BOT_LEVEL_ORDER.map((level) => {
+    const button = el('button', 'fight-offer__level', levels)
+    button.setAttribute('type', 'button')
+    button.setAttribute('role', 'radio')
+    button.dataset.level = level
+    button.textContent = BOT_LEVEL_LABELS[level]
+    button.addEventListener('click', (event) => {
+      event.preventDefault()
+      chosen = level
+      paintLevels()
+    })
+    return button
+  })
+  const paintLevels = (): void => {
+    for (const button of levelButtons) {
+      const active = button.dataset.level === chosen
+      button.classList.toggle('is-active', active)
+      button.setAttribute('aria-checked', String(active))
+    }
+  }
+  paintLevels()
   const offerButton = el('button', 'fight-offer__btn', offer)
   offerButton.setAttribute('type', 'button')
   offerButton.textContent = 'Pelear contra la máquina'
-  let onOffer: (() => void) | null = null
+  let onOffer: ((level: BotLevel) => void) | null = null
   const acceptOffer = (event: Event): void => {
     event.preventDefault()
-    onOffer?.()
+    onOffer?.(chosen)
   }
   offerButton.addEventListener('click', acceptOffer)
   let names: readonly [string, string] = ['Jugador 1', 'Jugador 2']
@@ -221,6 +249,10 @@ export function createFightHud(mount: HTMLElement, view: { width: number; height
     },
     offerBot(accept) {
       onOffer = accept
+      if (accept && offer.hidden) {
+        chosen = 'easy'
+        paintLevels()
+      }
       offer.hidden = accept === null
     },
     update(data) {

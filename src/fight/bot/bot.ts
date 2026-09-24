@@ -20,8 +20,19 @@ import { DODGE, DOWN, HEAVY, JUMP, LEFT, LIGHT, NONE, RIGHT, type Input } from '
 import { rngFromSeed, rngNext, type RngState } from '../sim/rng'
 import { resistanceOf, type Fighter, type MatchState, type PlayerIndex } from '../sim/state'
 import type { World } from '../sim/world'
+import {
+  chooseRecovery,
+  fightCandidates,
+  isOffStage,
+  planInput,
+  planRest,
+  recoveryInput,
+  scoreFight,
+  type Plan,
+  type RecoveryPolicy,
+} from './lookahead'
 
-export type BotLevel = 'easy' | 'normal' | 'hard'
+export type BotLevel = 'easy' | 'medium' | 'hard'
 
 export interface BotProfile {
   /** Frames entre una decisión y la siguiente. Es el tiempo de reacción. */
@@ -32,12 +43,36 @@ export interface BotProfile {
   readonly dodge: number
   /** Probabilidad de hacer algo que no tiene sentido. */
   readonly mistakes: number
+  /**
+   * Pelea mirando para adelante: prueba cada opción con la sim y elige la
+   * mejor, en vez de seguir reglas. Es lo que hace al difícil.
+   */
+  readonly lookahead: boolean
 }
 
+/**
+ * El fácil es el bot con el que se jugó desde el principio: se le gana con
+ * práctica. El medio reacciona el doble de rápido y casi no se equivoca. El
+ * difícil ya no sigue reglas: se imagina cada opción con la sim y elige la que
+ * más le conviene, cada pocos frames. Los tres juegan con la misma física y los
+ * mismos golpes — lo que cambia es cómo deciden, no hay trampa.
+ *
+ * Los tres vuelven al escenario igual de bien: caerse solo no es "fácil", es
+ * un bot roto.
+ */
 export const BOT_LEVELS: Record<BotLevel, BotProfile> = {
-  easy: { reaction: 20, aggression: 0.45, dodge: 0.05, mistakes: 0.3 },
-  normal: { reaction: 12, aggression: 0.7, dodge: 0.18, mistakes: 0.12 },
-  hard: { reaction: 7, aggression: 0.9, dodge: 0.35, mistakes: 0.04 },
+  easy: { reaction: 12, aggression: 0.7, dodge: 0.18, mistakes: 0.12, lookahead: false },
+  medium: { reaction: 6, aggression: 0.92, dodge: 0.4, mistakes: 0.03, lookahead: false },
+  hard: { reaction: 3, aggression: 1, dodge: 1, mistakes: 0.02, lookahead: true },
+}
+
+export const BOT_LEVEL_ORDER: readonly BotLevel[] = ['easy', 'medium', 'hard']
+
+/** Cómo se llama cada nivel en pantalla. */
+export const BOT_LEVEL_LABELS: Record<BotLevel, string> = {
+  easy: 'Fácil',
+  medium: 'Medio',
+  hard: 'Difícil',
 }
 
 export interface Bot {
@@ -51,9 +86,15 @@ export interface Bot {
   readonly sinceJump: number
   /** Lo que apretó el frame anterior, para soltar antes de volver a apretar. */
   readonly previous: Input
+  /** Cómo está volviendo al escenario, y cuándo lo vuelve a pensar. */
+  readonly recovery: RecoveryPolicy | null
+  readonly recoveryAge: number
+  /** El plan del difícil y por qué frame va. */
+  readonly plan: Plan | null
+  readonly planFrame: number
 }
 
-export function createBot(seed: number, level: BotLevel = 'normal'): Bot {
+export function createBot(seed: number, level: BotLevel = 'easy'): Bot {
   return {
     profile: BOT_LEVELS[level],
     rng: rngFromSeed(seed),
@@ -61,11 +102,15 @@ export function createBot(seed: number, level: BotLevel = 'normal'): Bot {
     move: NONE,
     sinceJump: 99,
     previous: NONE,
+    recovery: null,
+    recoveryAge: 0,
+    plan: null,
+    planFrame: 0,
   }
 }
 
-/** Cuánto hay que esperar entre saltos de aire volviendo al escenario. */
-const RECOVERY_JUMP_GAP = 18
+/** Cada cuántos frames se vuelve a pensar cómo volver: la situación cambia al saltar. */
+const RECOVERY_REPLAN = 8
 /** Distancia (px) a la que un golpe rápido llega: el alcance de la caja menos un margen. */
 const STRIKE_RANGE = 40
 const STRIKE_HEIGHT = 45
@@ -116,32 +161,33 @@ export function botStep(
     }
   }
 
-  if (self.state === 'dead' || state.over) return out({}, NONE)
+  if (self.state === 'dead' || state.over) return out({ recovery: null, plan: null }, NONE)
 
   const stage = world.stage
   const left = toPixels(stage.ground.left)
   const right = toPixels(stage.ground.right)
-  const top = toPixels(stage.ground.top)
   const x = toPixels(self.x)
-  const y = toPixels(self.y)
 
-  // --- 1. Colgado de la pared: salto de pared, siempre. --------------------
-  if (self.state === 'cling') return out({ move: NONE }, JUMP)
-
-  // --- 2. Afuera del escenario: volver es lo único que importa. -------------
-  // Se revisa en cada frame, sin tiempo de reacción: un bot que se cae solo no
-  // es un rival, es un chiste.
-  const offStage = !self.grounded && (x < left || x > right || y > top + 2)
-  if (offStage && self.hitstun === 0) {
-    const home = x < left ? RIGHT : x > right ? LEFT : towards(x, (left + right) / 2)
-    const falling = self.vy >= 0
-    const canJump = self.airJumpsLeft > 0 && bot.sinceJump >= RECOVERY_JUMP_GAP
-    return out({ move: home, cooldown: 0 }, home | (falling && canJump ? JUMP : NONE))
+  // --- 1. Afuera del escenario (o colgado): volver es lo único que importa. --
+  // Se revisa en cada frame, sin tiempo de reacción, y se prueban con la sim
+  // varias formas de volver: un bot que se cae solo no es un rival, es un chiste.
+  if ((isOffStage(self, world) || self.state === 'cling') && self.hitstun === 0) {
+    let recovery = bot.recovery
+    let age = bot.recoveryAge + 1
+    if (!recovery || age >= RECOVERY_REPLAN) {
+      recovery = chooseRecovery(state, me, world, bot.sinceJump)
+      age = 0
+    }
+    const input = recoveryInput(recovery, self, bot.sinceJump, world)
+    return out({ recovery, recoveryAge: age, cooldown: 0, move: NONE, plan: null }, input)
   }
+  const back = { recovery: null, recoveryAge: 0 }
 
-  // --- 3. En el escenario: pensar cada tanto. --------------------------------
+  if (bot.profile.lookahead) return lookaheadStep(bot, state, me, world, out, back)
+
+  // --- 2. En el escenario: pensar cada tanto. --------------------------------
   if (bot.cooldown > 0) {
-    return out({ cooldown: bot.cooldown - 1 }, safeMove(bot.move, self, x, left, right))
+    return out({ ...back, cooldown: bot.cooldown - 1 }, safeMove(bot.move, self, x, left, right))
   }
 
   let rng = bot.rng
@@ -152,6 +198,7 @@ export function botStep(
   }
 
   const { profile } = bot
+  const y = toPixels(self.y)
   const cooldown = profile.reaction + Math.floor(next() * (profile.reaction / 2 + 1))
   const rx = toPixels(rival.x)
   const ry = toPixels(rival.y)
@@ -159,21 +206,23 @@ export function botStep(
   const dist = Math.abs(dx)
   const dy = ry - y // negativo: el rival está más arriba
   const toward = towards(x, rx)
-  const away = toward === RIGHT ? LEFT : RIGHT
+  const home = towards(x, (left + right) / 2)
 
   if (rival.state === 'dead') {
-    return out({ rng, cooldown, move: NONE }, NONE)
+    return out({ ...back, rng, cooldown, move: NONE }, NONE)
   }
 
   // A veces hace cualquier cosa: sin errores, el bot se siente una pared.
   if (next() < profile.mistakes) {
     const move = next() < 0.5 ? NONE : next() < 0.5 ? LEFT : RIGHT
-    return out({ rng, cooldown, move }, safeMove(move, self, x, left, right))
+    return out({ ...back, rng, cooldown, move }, safeMove(move, self, x, left, right))
   }
 
-  // Esquivar un golpe que viene de cerca.
+  // Esquivar un golpe que viene de cerca. En el piso, en el lugar: el esquive
+  // con dirección resbala más de 200 px, y hacia afuera es tirarse del borde.
+  // En el aire, hacia el centro, por lo mismo.
   if (rival.state === 'attack' && dist < 60 && next() < profile.dodge) {
-    return out({ rng, cooldown, move: NONE }, DODGE | away)
+    return out({ ...back, rng, cooldown, move: NONE }, self.grounded ? DODGE : DODGE | home)
   }
 
   // A tiro: pegar. El fuerte cuando al rival le queda poca resistencia, que es
@@ -182,22 +231,79 @@ export function botStep(
     const weak = resistanceOf(rival, world.rules) < world.rules.maxResistance * 0.4
     const heavyChance = weak ? 0.5 : 0.15
     const button = self.grounded && next() < heavyChance ? HEAVY : LIGHT
-    return out({ rng, cooldown, move: NONE }, toward | button)
+    return out({ ...back, rng, cooldown, move: NONE }, toward | button)
   }
 
   // Parado en una flotante y el rival abajo: bajarse a buscarlo.
   if (self.grounded && self.platform >= 0 && dy > 50 && next() < 0.7) {
-    return out({ rng, cooldown, move: NONE }, DOWN)
+    return out({ ...back, rng, cooldown, move: NONE }, DOWN)
   }
 
   // El rival saltó y está arriba cerca: ir a buscarlo al aire.
   if (self.grounded && dy < -50 && dist < 90 && next() < 0.5) {
-    return out({ rng, cooldown, move: toward }, toward | JUMP)
+    return out({ ...back, rng, cooldown, move: toward }, toward | JUMP)
   }
 
   // Si no, acercarse. Pegado, quedarse: caminar a través del rival no suma.
   const move = dist < 24 ? NONE : toward
-  return out({ rng, cooldown, move }, safeMove(move, self, x, left, right))
+  return out({ ...back, rng, cooldown, move }, safeMove(move, self, x, left, right))
+}
+
+type Out = (patch: Partial<Bot>, input: Input) => { bot: Bot; input: Input }
+
+/**
+ * El difícil: cada `reaction` frames prueba todas sus opciones con la sim y se
+ * queda con la mejor; entre decisión y decisión sigue el plan elegido. Se
+ * equivoca muy de vez en cuando, para que se le pueda ganar.
+ */
+function lookaheadStep(
+  bot: Bot,
+  state: MatchState,
+  me: PlayerIndex,
+  world: World,
+  out: Out,
+  back: Partial<Bot>,
+): { bot: Bot; input: Input } {
+  const self = state.fighters[me]
+  const rival = state.fighters[me === 0 ? 1 : 0]
+
+  if (bot.plan && bot.cooldown > 0) {
+    const input = planInput(bot.plan, bot.planFrame)
+    return out({ ...back, cooldown: bot.cooldown - 1, planFrame: bot.planFrame + 1 }, input)
+  }
+
+  let rng = bot.rng
+  const next = (): number => {
+    const r = roll(rng)
+    rng = r.rng
+    return r.value
+  }
+
+  const current = bot.plan ? planRest(bot.plan, bot.planFrame) : null
+  const candidates = fightCandidates(self, rival, world, current)
+  let chosen: Plan
+  if (rival.state === 'dead') {
+    const x = toPixels(self.x)
+    const center = (toPixels(world.stage.ground.left) + toPixels(world.stage.ground.right)) / 2
+    chosen = { steps: [], hold: Math.abs(x - center) < 40 ? NONE : towards(x, center) }
+  } else if (next() < bot.profile.mistakes) {
+    chosen = candidates[Math.floor(next() * candidates.length)]!
+  } else {
+    chosen = candidates[0]!
+    let best = -Infinity
+    for (const plan of candidates) {
+      // Un poquito de ruido para desempatar: dos opciones iguales no siempre
+      // se eligen igual, y así no es previsible.
+      const score = scoreFight(state, me, world, plan) + next() * 0.5
+      if (score > best) {
+        best = score
+        chosen = plan
+      }
+    }
+  }
+
+  const cooldown = bot.profile.reaction - 1 + Math.floor(next() * 2)
+  return out({ ...back, rng, cooldown, plan: chosen, planFrame: 1 }, planInput(chosen, 0))
 }
 
 /** No camina por el borde hacia afuera: frena antes de caerse. */

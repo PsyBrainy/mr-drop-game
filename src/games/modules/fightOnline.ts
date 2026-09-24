@@ -13,7 +13,7 @@ import { SMALL_STAGE } from '../../fight/data/stage'
 import { NONE, type Input } from '../../fight/sim/input'
 import { step, TICKS_PER_SECOND } from '../../fight/sim/tick'
 import { initialState, type MatchState } from '../../fight/sim/state'
-import { botStep, createBot, type Bot } from '../../fight/bot/bot'
+import { BOT_LEVEL_LABELS, botStep, createBot, type Bot, type BotLevel } from '../../fight/bot/bot'
 import { DEFAULT_RULES, type World } from '../../fight/sim/world'
 import { NetSession, type SessionPhase } from '../../fight/net/session'
 import type { Slot } from '../../fight/net/protocol'
@@ -59,6 +59,11 @@ export const BOT_OFFER_SECONDS = 10
 
 /** El nombre del rival de la máquina. El HUD le agrega la marca BOT al lado. */
 export const BOT_NAME = 'Rasta Bot'
+
+/** El nombre que se ve arriba del bot: con el nivel, para que se sepa contra qué se juega. */
+export function botDisplayName(level: BotLevel): string {
+  return `${BOT_NAME} · ${BOT_LEVEL_LABELS[level]}`
+}
 
 /** Qué decir al terminar contra el bot: que quede claro que no fue contra una persona. */
 export function botEndingMessage(winner: 0 | 1 | null): string {
@@ -153,7 +158,7 @@ function start(k: KAPLAYCtx, context: GameContext): () => void {
     overlay.update([panelOf(state.fighters[0], world.rules), panelOf(state.fighters[1], world.rules)])
   }
 
-  const startBotMatch = (): void => {
+  const startBotMatch = (level: BotLevel): void => {
     if (mode === 'bot') return
     mode = 'bot'
     offering = false
@@ -163,15 +168,16 @@ function start(k: KAPLAYCtx, context: GameContext): () => void {
 
     const seed = (Math.random() * 0x7fffffff) | 0
     const state = initialState(world, seed)
-    vsBot = { state, previous: state, bot: createBot(seed, 'normal') }
+    vsBot = { state, previous: state, bot: createBot(seed, level) }
     camera = initialCamera(world, VIEW)
     previousCamera = camera
 
     // El jugador siempre es el 0 contra el bot, y el bot se marca como tal.
     overlay.setLocal(0)
     overlay.setBot(1)
-    overlay.setNames(['…', BOT_NAME])
-    void myFightName().then((mine) => overlay.setNames([mine, BOT_NAME]))
+    const botName = botDisplayName(level)
+    overlay.setNames(['…', botName])
+    void myFightName().then((mine) => overlay.setNames([mine, botName]))
     overlay.update([panelOf(state.fighters[0], world.rules), panelOf(state.fighters[1], world.rules)])
   }
 
