@@ -10,7 +10,7 @@ import {
 import { listenKeyboard } from './fightControls'
 import { COLORS, drawMatch, loadFightAssets, tagAnchors, VIEW } from './fightView'
 import { createFightHud, panelOf } from './fightHud'
-import { createTouchControls } from './fightTouch'
+import { createFightDevices } from './fightDevices'
 import { startFixedClock } from '../../fight/clock'
 import { OSO } from '../../fight/data/characters/oso'
 import { SMALL_STAGE } from '../../fight/data/stage'
@@ -62,8 +62,9 @@ function start(k: KAPLAYCtx, context: GameContext): () => void {
   // El HUD propio de la pelea: paneles arriba y el nombre sobre cada uno. En el
   // mismo teclado no hay cuentas, así que son "Jugador 1" y "Jugador 2".
   const overlay = createFightHud(context.mountPoint, VIEW)
-  // En pantallas táctiles, los controles en pantalla manejan al jugador 1.
-  const touch = createTouchControls(context.mountPoint)
+  // Dedos y el primer mando manejan al jugador 1; un segundo mando, al 2.
+  const devices = createFightDevices(context.mountPoint)
+  devices.help.hideIn(8000)
   overlay.setNames(['Jugador 1', 'Jugador 2'])
 
   // Escribe el DOM sólo lo que cambió, así que se puede llamar en cada tick.
@@ -75,7 +76,7 @@ function start(k: KAPLAYCtx, context: GameContext): () => void {
     if (finished) return
 
     previous = current
-    current = step(current, [inputs[0] | touch.mask(), inputs[1]], world)
+    current = step(current, [inputs[0] | devices.primary(), inputs[1] | devices.secondPad()], world)
 
     previousCamera = camera
     camera = approachCamera(camera, targetCamera(current, world, VIEW))
@@ -109,7 +110,7 @@ function start(k: KAPLAYCtx, context: GameContext): () => void {
     clock.stop()
     unlisten()
     overlay.destroy()
-    touch.destroy()
+    devices.destroy()
   }
 }
 
@@ -117,8 +118,9 @@ export default createKaplayGame({
   slug: 'fight-local',
   name: 'Pelea (local, 2 jugadores)',
   howToPlay:
-    'Jugador 1: A y D para moverse, W salto, F golpe rápido, G golpe fuerte, H esquive, S bajarse de una plataforma. ' +
-    'Jugador 2: flechas, arriba salto, abajo bajarse, coma golpe rápido, punto golpe fuerte, barra (/) esquive. ' +
+    'Jugador 1: flechas para moverse, arriba salto, abajo bajarse de una plataforma, Z golpe rápido, X golpe fuerte, C esquive. ' +
+    'Jugador 2: A y D para moverse, W salto, S bajarse, F golpe rápido, G golpe fuerte, H esquive. ' +
+    'También se puede jugar con mando (el primero es el jugador 1, el segundo el 2). ' +
     'Nadie tiene vida: el daño que acumulás hace que te manden más lejos, y se pierde una vida al salir de la pantalla. ' +
     'El fuerte mata pero tarda en salir; los rápidos acumulan. El esquive cubre unos frames y en el aire gasta un salto. ' +
     'Si llegás al costado de la plataforma te podés colgar y saltar desde ahí, pero se resbala y el agarre se gasta.',

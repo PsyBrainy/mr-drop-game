@@ -78,6 +78,8 @@ export const ACTION_BUTTONS: readonly TouchButtonSpec[] = [
 export interface TouchControls {
   /** El input que marcan los dedos en este momento. */
   mask(): Input
+  /** Los esconde (con un mando conectado no hacen falta y tapan la pelea). */
+  setHidden(hidden: boolean): void
   destroy(): void
 }
 
@@ -216,6 +218,10 @@ export function createTouchControls(mount: HTMLElement): TouchControls {
 
   return {
     mask,
+    setHidden(hidden) {
+      root.classList.toggle('is-hidden', hidden)
+      if (hidden) clear()
+    },
     destroy() {
       cleanups.forEach((off) => off())
       root.remove()

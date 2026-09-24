@@ -863,3 +863,86 @@ body.is-immersive { overflow: hidden; }
   .play-bot { margin-top: 0.6rem; padding-top: 0.6rem; gap: 0.4rem; }
   .bot-levels__btn { padding: 0.3rem 0.8rem; font-size: 0.8rem; min-height: 30px; }
 }
+
+/* Con un mando conectado, los controles en pantalla sobran (fightDevices.ts). */
+.fight-touch.is-hidden { display: none; }
+
+/*
+ * El cartel de controles (fightHelp.ts). Abierto al entrar, abajo al medio,
+ * entre el stick y los botones; cerrado queda sólo el botón "? Controles".
+ */
+.fight-help {
+  position: absolute; inset: 0; z-index: 6;
+  pointer-events: none;
+  font-family: var(--font);
+  color: var(--text);
+}
+.fight-help__toggle {
+  position: absolute; left: 50%; bottom: 1.4cqw; transform: translateX(-50%);
+  pointer-events: auto;
+  font: inherit; font-size: clamp(10px, 1.2cqw, 13px); font-weight: 700;
+  padding: 0.5cqw 1.2cqw;
+  border-radius: 99px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: rgba(10, 8, 24, 0.55);
+  color: rgba(255, 255, 255, 0.8);
+  cursor: pointer;
+  backdrop-filter: blur(4px);
+  transition: opacity 0.15s linear;
+}
+.fight-help.is-open .fight-help__toggle { opacity: 0; pointer-events: none; }
+.fight-help__card {
+  position: absolute; left: 50%; bottom: 1.6cqw;
+  width: min(92%, 40cqw);
+  padding: 1.3cqw 1.8cqw 1cqw;
+  border-radius: 1.4cqw;
+  background: rgba(10, 8, 24, 0.84);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  box-shadow: 0 1cqw 3cqw rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(6px);
+  pointer-events: auto;
+  cursor: pointer;
+  opacity: 0; visibility: hidden;
+  transform: translate(-50%, 1cqw);
+  transition: opacity 0.2s ease, transform 0.2s ease, visibility 0s linear 0.2s;
+}
+.fight-help.is-open .fight-help__card {
+  opacity: 1; visibility: visible;
+  transform: translate(-50%, 0);
+  transition: opacity 0.2s ease, transform 0.2s ease, visibility 0s;
+}
+.fight-help__title {
+  font-size: clamp(11px, 1.5cqw, 16px); font-weight: 800;
+  margin-bottom: 0.8cqw; text-align: center;
+}
+.fight-help__list {
+  list-style: none; margin: 0; padding: 0;
+  display: grid; gap: 0.5cqw;
+}
+.fight-help__row {
+  display: grid; grid-template-columns: 14cqw 1fr; align-items: center; gap: 1cqw;
+  font-size: clamp(10px, 1.25cqw, 14px);
+}
+.fight-help__keys { display: flex; flex-wrap: wrap; gap: 0.4cqw; justify-content: flex-end; }
+.fight-help__key {
+  font: inherit; font-weight: 800; font-size: 0.95em;
+  min-width: 2.4cqw; padding: 0.15cqw 0.6cqw;
+  text-align: center;
+  border-radius: 0.5cqw;
+  background: rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  border-bottom-width: 2px;
+}
+.fight-help__action { color: rgba(255, 255, 255, 0.85); }
+.fight-help__tip {
+  margin: 0.9cqw 0 0; text-align: center;
+  font-size: clamp(9px, 1.1cqw, 13px); color: var(--text-muted);
+}
+.fight-help__close {
+  margin: 0.4cqw 0 0; text-align: center;
+  font-size: clamp(9px, 1cqw, 12px); color: rgba(255, 255, 255, 0.4);
+}
+@container (max-height: 360px) {
+  .fight-help__card { width: min(94%, 46cqw); padding: 1cqw 1.4cqw 0.8cqw; }
+  .fight-help__tip { display: none; }
+}

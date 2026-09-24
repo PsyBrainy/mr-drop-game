@@ -26,7 +26,7 @@ import {
 import { listenKeyboard } from './fightControls'
 import { COLORS, drawMatch, loadFightAssets, tagAnchors, VIEW } from './fightView'
 import { createFightHud, panelOf } from './fightHud'
-import { createTouchControls } from './fightTouch'
+import { createFightDevices } from './fightDevices'
 import { myFightName, rivalFightName } from '../../infrastructure/ws/fightNames'
 
 /**
@@ -109,8 +109,16 @@ function start(k: KAPLAYCtx, context: GameContext): () => void {
 
   loadFightAssets(k)
   const overlay = createFightHud(context.mountPoint, VIEW)
-  // Teclado y dedos son el mismo byte para la sim: se juntan con un OR.
-  const touch = createTouchControls(context.mountPoint)
+  // Teclado, dedos y mando son el mismo byte para la sim: se juntan con un OR.
+  const devices = createFightDevices(context.mountPoint)
+  // El cartel de controles se cierra solo un rato después de que arranca la
+  // pelea: mientras se busca rival hay tiempo de leerlo.
+  let helpClosing = false
+  const matchStarted = (): void => {
+    if (helpClosing) return
+    helpClosing = true
+    devices.help.hideIn(6000)
+  }
   overlay.setNames(['…', '…'])
 
   // El teclado escribe en las dos ranuras, pero online sólo se usa la primera:
@@ -168,12 +176,14 @@ function start(k: KAPLAYCtx, context: GameContext): () => void {
     overlay.setStatus(snapshot.phase === 'playing' ? null : describe(snapshot.phase, snapshot.stalledFrames))
     if (!state) return
     if (!namesAsked) askNames(snapshot.slot, snapshot.opponent)
+    if (snapshot.phase === 'playing') matchStarted()
     overlay.update([panelOf(state.fighters[0], world.rules), panelOf(state.fighters[1], world.rules)])
   }
 
   const startBotMatch = (level: BotLevel): void => {
     if (mode === 'bot') return
     mode = 'bot'
+    matchStarted()
     offering = false
     overlay.offerBot(null)
     overlay.setStatus(null)
@@ -197,7 +207,7 @@ function start(k: KAPLAYCtx, context: GameContext): () => void {
   const tickBot = (): void => {
     if (!vsBot || ended) return
     const decided = botStep(vsBot.bot, vsBot.state, 1, world)
-    const next = step(vsBot.state, [pressed[0] | touch.mask(), decided.input], world)
+    const next = step(vsBot.state, [pressed[0] | devices.primary(), decided.input], world)
     vsBot = { ...vsBot, state: next, previous: vsBot.state, bot: decided.bot }
 
     previousCamera = camera
@@ -227,6 +237,8 @@ function start(k: KAPLAYCtx, context: GameContext): () => void {
       queuedTicks += 1
       if (!offering && queuedTicks >= BOT_OFFER_SECONDS * TICKS_PER_SECOND) {
         offering = true
+        // El cartel de la máquina va al medio: el de controles le deja lugar.
+        devices.help.hide()
         overlay.offerBot(startBotMatch)
       }
     } else if (offering) {
@@ -234,7 +246,7 @@ function start(k: KAPLAYCtx, context: GameContext): () => void {
       overlay.offerBot(null)
     }
 
-    const advanced = session.tick(pressed[0] | touch.mask())
+    const advanced = session.tick(pressed[0] | devices.primary())
     const state = session.snapshot().state
     if (!state) return
 
@@ -296,7 +308,7 @@ function start(k: KAPLAYCtx, context: GameContext): () => void {
     unlisten()
     session?.dispose()
     overlay.destroy()
-    touch.destroy()
+    devices.destroy()
   }
 }
 
@@ -328,7 +340,8 @@ export default createKaplayGame({
   slug: 'fight-online',
   name: 'Pelea (online, 1v1)',
   howToPlay:
-    'A y D para moverte, W saltar, F golpe rápido, G golpe fuerte, H esquive, S bajarse de una plataforma. ' +
+    'Flechas para moverte, arriba saltar, abajo bajarse de una plataforma, Z golpe rápido, X golpe fuerte, C esquive. ' +
+    'También con mando (A salto, X rápido, Y fuerte, LB/RB esquive) o con los controles en pantalla del celular. ' +
     'Nadie tiene vida: el daño que acumulás hace que te manden más lejos, y se pierde una vida al salir de la pantalla. ' +
     'Si llegás al costado de la plataforma te podés colgar y saltar desde ahí. ' +
     'Cuando aparezca "esperando al rival" la partida se frena hasta que llegue su jugada: nadie adivina nada.',

@@ -8,19 +8,25 @@ import { DODGE, DOWN, HEAVY, JUMP, LEFT, LIGHT, NONE, RIGHT, type Input } from '
  */
 
 /**
- * Abajo (S / flecha abajo) es bajarse de las plataformas flotantes, así que el
- * esquive se corrió al lado de los golpes: F G H y , . / quedan en fila, una
- * tecla por acción.
+ * El jugador 1 (y el único online) juega con las flechas: arriba salta y abajo
+ * se baja de las plataformas flotantes. Los botones van en fila a la izquierda
+ * de abajo, Z X C, que la otra mano encuentra sin mirar.
+ *
+ * El jugador 2 sólo existe en la pelea local (dos en el mismo teclado): WASD
+ * para moverse y F G H para los botones, del otro lado del teclado.
  */
-const P1 = {
+export const P1_KEYS = {
+  LEFT: 'ArrowLeft', RIGHT: 'ArrowRight', JUMP: 'ArrowUp', DOWN: 'ArrowDown',
+  LIGHT: 'KeyZ', HEAVY: 'KeyX', DODGE: 'KeyC',
+} as const
+
+export const P2_KEYS = {
   LEFT: 'KeyA', RIGHT: 'KeyD', JUMP: 'KeyW', DOWN: 'KeyS',
   LIGHT: 'KeyF', HEAVY: 'KeyG', DODGE: 'KeyH',
 } as const
 
-const P2 = {
-  LEFT: 'ArrowLeft', RIGHT: 'ArrowRight', JUMP: 'ArrowUp', DOWN: 'ArrowDown',
-  LIGHT: 'Comma', HEAVY: 'Period', DODGE: 'Slash',
-} as const
+const P1 = P1_KEYS
+const P2 = P2_KEYS
 
 /**
  * El teclado se lee con listeners propios y no con `k.onKeyDown`: el input tiene
