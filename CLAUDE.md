@@ -384,6 +384,27 @@ códigos de error), commiteado también en la app. `OrderFlow.ts` es el espejo e
 `courierFlow.test.ts` cruza contrato ↔ dominio ↔ migraciones (lee el bloque
 `-- contrato:inicio/fin` de 0013 y los `add value` del enum): cambiar uno solo rompe el test.
 
+## El panel en vivo (`/admin/reparto`)
+
+```
+domain/delivery/LiveDelivery.ts        estado + reduceLive() (pura) + agrupado y "sin señal"
+application/ports/DeliveryChannel.ts   el puerto del canal (comandos, mensajes, estado)
+application/usecases/DeliveryConsole   estado de la pantalla y comandos (assign), para useSyncExternalStore
+infrastructure/delivery/               DeliverySocket (WebSocket con reconexión), protocol.ts (zod)
+                                       y la copia de delivery-protocol.fixtures.json
+ui/pages/admin/DeliveryLivePage.tsx    mapa, repartidores, pedidos por estado, selector de repartidor
+```
+
+- **No usa Supabase para esto**: todo por `/ws/delivery` (URL: `VITE_DELIVERY_WS_URL`, o derivada
+  de `VITE_FIGHT_WS_URL`). El token es el mismo JWT de la sesión.
+- La lista cambia por el aviso, no por el `ack`, igual que en la app.
+- "En camino" no se reasigna desde acá (la base lo rechaza): sacárselo a alguien que ya salió es
+  una corrección, y va por la página de Pedidos.
+- El mapa encuadra una sola vez: cada posición nueva no puede mover el mapa bajo el mouse.
+- El nombre del repartidor en el mapa se pinta con `textContent`, nunca como HTML.
+- `liveDelivery.test.ts` (reducer), `deliveryConsole.test.ts` (comandos con un canal de mentira) y
+  `infrastructure/delivery/__tests__/protocol.test.ts` (contrato del cable).
+
 ## Ubicación
 
 - **Solo en turno.** `courier_presence` tiene un check: fuera de turno no hay lat/lng.
@@ -400,9 +421,8 @@ códigos de error), commiteado también en la app. `OrderFlow.ts` es el espejo e
   `supabase/tests/delivery.test.sql`, compatibilidad del panel con los estados nuevos. En
   psy-ws, el módulo `delivery/` con `/ws/delivery`, la escucha de NOTIFY y el tablero de
   posiciones; el cable está en `delivery-protocol.fixtures.json`.
-- **M1** — App sin GPS contra `/ws/delivery`: login, bolsa y mis pedidos, detalle, Waze, cambios
-  de estado. En la web: el panel se conecta a `/ws/delivery` (asignar, ver quién lleva cada
-  pedido) con su copia del fixture del protocolo.
-- **M2** — Seguimiento: foreground service de ubicación en la app, mapa en vivo en el panel
-  (psy-ws ya reparte las posiciones).
+- **M1 ✓** — App (`mrdropcourierapp/`): login, turno, bolsa y mis pedidos, detalle, Waze, estados.
+  Panel: `/admin/reparto` asigna y muestra quién lleva cada pedido, en vivo.
+- **M2 ✓** — La app comparte la ubicación en turno (foreground service); el panel la muestra en
+  el mapa de `/admin/reparto`.
 - **M3** — "En camino" para el cliente, push al asignar, cola offline de cambios de estado.

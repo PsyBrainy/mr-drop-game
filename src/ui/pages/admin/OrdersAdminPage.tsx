@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState, type FormEvent } from 'react'
-import { Leaf, Truck, ArrowLeft } from 'lucide-react'
+import { Leaf, Truck, ArrowLeft, MapPin } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import type { OrderWithProfile } from '../../../application/ports/OrderRepository'
 import { isRoundOpen, ORDER_STATUS_LABEL, type OrderRound, type OrderStatus } from '../../../domain/order/Order'
@@ -36,6 +36,10 @@ export function OrdersAdminPage() {
       <div className="row admin-header">
         <h1 style={{ margin: 0 }}>Pedidos</h1>
         <span className="spacer" />
+        <Link to="/admin/reparto" className="btn btn--ghost btn--sm">
+          <MapPin className="admin-tab-icon" size={18} />
+          <span className="admin-tab-text">Reparto en vivo</span>
+        </Link>
         <Link to="/admin/combos" className="btn btn--ghost btn--sm">
           <Leaf className="admin-tab-icon" size={18} />
           <span className="admin-tab-text">Combos</span>

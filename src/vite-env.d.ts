@@ -11,6 +11,8 @@ interface ImportMetaEnv {
   readonly VITE_ENABLE_FIGHT_LOCAL?: string
   /** URL de psy-ws. Sin ella la pelea online no se ofrece. */
   readonly VITE_FIGHT_WS_URL?: string
+  /** `/ws/delivery` de psy-ws. Sin ella se deriva de VITE_FIGHT_WS_URL. */
+  readonly VITE_DELIVERY_WS_URL?: string
   /** Id de Google Analytics 4 (G-…). Sin él no se carga Analytics. */
   readonly VITE_GA_MEASUREMENT_ID?: string
   /** 'true' manda los eventos en modo debug (se ven en DebugView). */

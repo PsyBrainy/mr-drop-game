@@ -4,6 +4,7 @@ import { lazy, Suspense, type ComponentProps } from 'react'
 const Picker = lazy(() => import('./LeafletMaps').then((m) => ({ default: m.AddressPickerMap })))
 const Overview = lazy(() => import('./LeafletMaps').then((m) => ({ default: m.PinsOverviewMap })))
 const ZoneEditor = lazy(() => import('./LeafletMaps').then((m) => ({ default: m.ZoneEditorMap })))
+const LiveDelivery = lazy(() => import('./LeafletMaps').then((m) => ({ default: m.LiveDeliveryMap })))
 
 const fallback = <div className="skeleton map" aria-busy="true" />
 
@@ -27,6 +28,14 @@ export function LazyZoneEditorMap(props: ComponentProps<typeof ZoneEditor>) {
   return (
     <Suspense fallback={<div className="skeleton map map--tall" aria-busy="true" />}>
       <ZoneEditor {...props} />
+    </Suspense>
+  )
+}
+
+export function LazyLiveDeliveryMap(props: ComponentProps<typeof LiveDelivery>) {
+  return (
+    <Suspense fallback={<div className="skeleton map map--live" aria-busy="true" />}>
+      <LiveDelivery {...props} />
     </Suspense>
   )
 }

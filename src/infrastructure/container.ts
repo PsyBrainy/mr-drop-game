@@ -18,6 +18,9 @@ import { NominatimGeocoder } from './nominatim/NominatimGeocoder'
 import { SupabaseProductRepository } from './supabase/SupabaseProductRepository'
 import { SupabaseOrderRepository } from './supabase/SupabaseOrderRepository'
 import { SupabaseDeliveryRepository } from './supabase/SupabaseDeliveryRepository'
+import { DeliveryConsole } from '../application/usecases/DeliveryConsole'
+import { createDeliveryChannel, deliveryServerConfigured, deliveryServerUrl } from './delivery/DeliverySocket'
+import { currentFightToken } from './ws/WebSocketTransport'
 
 /**
  * Único punto donde se cablea infraestructura con casos de uso.
@@ -42,6 +45,15 @@ export function createContainer() {
   return {
     auth,
     geocoder,
+    /**
+     * Reparto en vivo (psy-ws). Una consola por pantalla: se crea al entrar y
+     * se apaga al salir. El token es el mismo JWT de Supabase que usa la pelea.
+     */
+    live: {
+      deliveryConfigured: deliveryServerConfigured,
+      createDeliveryConsole: () =>
+        new DeliveryConsole(() => createDeliveryChannel(deliveryServerUrl, currentFightToken)),
+    },
     repositories: {
       events,
       games,

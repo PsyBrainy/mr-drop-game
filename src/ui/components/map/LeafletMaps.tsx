@@ -1,11 +1,13 @@
-import { useEffect } from 'react'
+import { useEffect, useRef } from 'react'
 import L from 'leaflet'
-import { MapContainer, Marker, Polygon, Popup, TileLayer, Tooltip, useMap, useMapEvents } from 'react-leaflet'
+import { CircleMarker, MapContainer, Marker, Polygon, Popup, TileLayer, Tooltip, useMap, useMapEvents } from 'react-leaflet'
 import 'leaflet/dist/leaflet.css'
 import markerIcon from 'leaflet/dist/images/marker-icon.png'
 import markerIcon2x from 'leaflet/dist/images/marker-icon-2x.png'
 import markerShadow from 'leaflet/dist/images/marker-shadow.png'
 import type { Coordinates } from '../../../domain/user/UserAddress'
+import { isStale, type Courier, type LiveOrder } from '../../../domain/delivery/LiveDelivery'
+import { ORDER_STATUS_LABEL, type OrderStatus } from '../../../domain/order/Order'
 import { wazeNavigationUrl } from '../../../domain/user/UserAddress'
 
 export interface MapPin extends Coordinates {
@@ -175,6 +177,109 @@ export function ZoneEditorMap({ zone, onChange }: ZoneEditorMapProps) {
           }}
         />
       ))}
+    </MapContainer>
+  )
+}
+
+/* ---------- reparto en vivo ---------- */
+
+/** Encuadra una sola vez, cuando aparecen los primeros puntos: si no, cada posición nueva movería el mapa bajo el mouse del admin. */
+function FitOnce({ points }: { points: Coordinates[] }) {
+  const map = useMap()
+  const done = useRef(false)
+  useEffect(() => {
+    if (done.current || points.length === 0) return
+    done.current = true
+    map.fitBounds(L.latLngBounds(points.map(toLatLng)), { padding: [40, 40], maxZoom: 15 })
+  }, [map, points])
+  return null
+}
+
+const ORDER_COLORS: Record<OrderStatus, string> = {
+  pending: '#f0b429',
+  assigned: '#5aa9ff',
+  on_the_way: '#3ddc84',
+  failed: '#ff6b5e',
+  delivered: '#8a8f98',
+  cancelled: '#8a8f98',
+}
+
+/**
+ * El ícono del repartidor se arma con nodos del DOM y `textContent`, no con un
+ * string de HTML: el nombre lo escribe cada usuario en su perfil.
+ */
+function courierIcon(name: string, stale: boolean): L.DivIcon {
+  const element = document.createElement('div')
+  element.className = `map__courier${stale ? ' is-stale' : ''}`
+  element.textContent = initials(name)
+  return L.divIcon({ html: element, className: '', iconSize: [30, 30], iconAnchor: [15, 15] })
+}
+
+function initials(name: string): string {
+  const words = name.trim().split(/\s+/).filter(Boolean)
+  return (words.slice(0, 2).map((w) => w[0]!.toUpperCase()).join('') || '?').slice(0, 2)
+}
+
+const ago = (date: Date, now: Date): string => {
+  const seconds = Math.max(0, Math.round((now.getTime() - date.getTime()) / 1000))
+  if (seconds < 60) return `hace ${seconds} s`
+  const minutes = Math.round(seconds / 60)
+  return minutes < 60 ? `hace ${minutes} min` : `hace ${Math.round(minutes / 60)} h`
+}
+
+interface LiveDeliveryMapProps {
+  couriers: readonly Courier[]
+  orders: readonly LiveOrder[]
+  now: Date
+}
+
+export function LiveDeliveryMap({ couriers, orders, now }: LiveDeliveryMapProps) {
+  const placed = couriers.filter((courier) => courier.onShift && courier.position)
+  const names = new Map(couriers.map((courier) => [courier.id, courier.displayName]))
+  const points: Coordinates[] = [...orders, ...placed.map((courier) => courier.position!)]
+
+  return (
+    <MapContainer center={toLatLng(DEFAULT_CENTER)} zoom={12} className="map map--live" scrollWheelZoom>
+      <TileLayer url={OSM_URL} attribution={OSM_ATTRIBUTION} />
+      <FitOnce points={points} />
+      {orders.map((order) => (
+        <CircleMarker
+          key={order.id}
+          center={toLatLng(order)}
+          radius={8}
+          pathOptions={{ color: '#05140b', weight: 2, fillColor: ORDER_COLORS[order.status], fillOpacity: 0.95 }}
+        >
+          <Popup>
+            <div className="map__popup">
+              <strong>{order.customerName || 'Cliente'}</strong>
+              <span>{order.addressLabel || 'Sin referencia'}</span>
+              <span>
+                {ORDER_STATUS_LABEL[order.status]}
+                {order.courierId ? ` · ${names.get(order.courierId) ?? 'repartidor'}` : ''}
+              </span>
+            </div>
+          </Popup>
+        </CircleMarker>
+      ))}
+      {placed.map((courier) => {
+        const position = courier.position!
+        const stale = isStale(position, now)
+        return (
+          <Marker key={courier.id} position={toLatLng(position)} icon={courierIcon(courier.displayName, stale)} zIndexOffset={1000}>
+            <Tooltip direction="top" offset={[0, -14]}>{courier.displayName}</Tooltip>
+            <Popup>
+              <div className="map__popup">
+                <strong>{courier.displayName}</strong>
+                <span>
+                  {stale ? 'Sin señal · ' : ''}
+                  {ago(position.recordedAt, now)}
+                </span>
+                {position.speedMps !== null && <span>{Math.round(position.speedMps * 3.6)} km/h</span>}
+              </div>
+            </Popup>
+          </Marker>
+        )
+      })}
     </MapContainer>
   )
 }

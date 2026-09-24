@@ -1,0 +1,50 @@
+{
+  "$comment": "Contrato del cable de /ws/delivery. Fuente: psy-ws (DeliveryProtocol.kt). Copias: la app Android de repartidores y el panel web de MrDrop. Un ejemplo de cada mensaje; DeliveryProtocolTest verifica que el servidor entiende todo 'client' y produce todo 'server'. Al cambiar un mensaje se edita en todos lados, o no se cambia.",
+  "version": 1,
+  "client": [
+    { "type": "hello", "token": "<jwt de supabase>" },
+    { "type": "snapshot", "requestId": "r1" },
+    { "type": "start_shift", "requestId": "r2" },
+    { "type": "end_shift", "requestId": "r3" },
+    { "type": "claim", "requestId": "r4", "orderId": "5d9f6f2e-8f7c-4c61-9a4f-0e7f2a1b3c4d" },
+    { "type": "set_status", "requestId": "r5", "orderId": "5d9f6f2e-8f7c-4c61-9a4f-0e7f2a1b3c4d", "status": "on_the_way" },
+    { "type": "assign", "requestId": "r6", "orderId": "5d9f6f2e-8f7c-4c61-9a4f-0e7f2a1b3c4d", "courierId": "0b7a3c1e-2d4f-4e5a-8b6c-7d8e9f0a1b2c" },
+    { "type": "assign", "requestId": "r7", "orderId": "5d9f6f2e-8f7c-4c61-9a4f-0e7f2a1b3c4d", "courierId": null },
+    { "type": "position", "lat": -34.9214, "lng": -57.9545, "accuracyM": 8.5, "headingDeg": 90, "speedMps": 4.2, "recordedAt": "2026-09-24T20:00:00Z" },
+    { "type": "position", "lat": -34.9214, "lng": -57.9545 }
+  ],
+  "server": [
+    { "type": "welcome", "userId": "0b7a3c1e-2d4f-4e5a-8b6c-7d8e9f0a1b2c", "role": "courier", "onShift": false },
+    { "type": "ack", "requestId": "r2" },
+    { "type": "error", "requestId": "r4", "code": "ORDER_TAKEN", "message": "Ese pedido ya lo tomó otro repartidor." },
+    {
+      "type": "snapshot", "requestId": "r1", "onShift": true,
+      "orders": [
+        {
+          "id": "5d9f6f2e-8f7c-4c61-9a4f-0e7f2a1b3c4d", "roundId": "9c8b7a6d-5e4f-4a3b-9c2d-1e0f9a8b7c6d",
+          "status": "assigned", "courierId": "0b7a3c1e-2d4f-4e5a-8b6c-7d8e9f0a1b2c",
+          "customerName": "Dropper", "addressLabel": "Calle 7 y 50", "lat": -34.9214, "lng": -57.9545,
+          "notes": "timbre 2B", "total": "12500.00", "deliveryFee": "1500.00",
+          "statusChangedAt": "2026-09-24T19:55:00Z",
+          "items": [ { "name": "Combo", "quantity": 2 } ]
+        }
+      ],
+      "couriers": []
+    },
+    {
+      "type": "order", "orderId": "5d9f6f2e-8f7c-4c61-9a4f-0e7f2a1b3c4d", "roundId": "9c8b7a6d-5e4f-4a3b-9c2d-1e0f9a8b7c6d",
+      "status": "assigned", "fromStatus": "pending",
+      "courierId": "0b7a3c1e-2d4f-4e5a-8b6c-7d8e9f0a1b2c", "previousCourierId": null
+    },
+    { "type": "pool_changed" },
+    { "type": "round", "roundId": "9c8b7a6d-5e4f-4a3b-9c2d-1e0f9a8b7c6d", "status": "closed" },
+    {
+      "type": "position", "courierId": "0b7a3c1e-2d4f-4e5a-8b6c-7d8e9f0a1b2c",
+      "lat": -34.9214, "lng": -57.9545, "accuracyM": 8.5, "headingDeg": 90.0, "speedMps": 4.2,
+      "recordedAt": "2026-09-24T20:00:00Z"
+    },
+    { "type": "shift", "courierId": "0b7a3c1e-2d4f-4e5a-8b6c-7d8e9f0a1b2c", "onShift": true },
+    { "type": "resync" }
+  ],
+  "errors": ["AUTH_REQUIRED", "FORBIDDEN", "BAD_MESSAGE", "UNEXPECTED", "COURIER_REQUIRED", "NOT_ON_SHIFT", "ORDER_NOT_FOUND", "ROUND_STILL_OPEN", "ORDER_TAKEN", "TRANSITION_INVALID", "NOT_A_COURIER", "POSITION_INVALID"]
+}

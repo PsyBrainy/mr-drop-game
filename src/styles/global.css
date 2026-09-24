@@ -285,6 +285,18 @@ body.is-immersive { overflow: hidden; }
 /* Mapa (Leaflet). isolation evita que sus controles (z-index 1000) tapen el header sticky. */
 .map { height: 320px; width: 100%; border-radius: var(--radius-sm); border: 1px solid var(--surface-border); position: relative; z-index: 0; isolation: isolate; background: var(--bg-input); }
 .map--tall { height: 420px; }
+.map--live { height: min(60vh, 520px); }
+/* Reparto en vivo: repartidores en el mapa y estados de pedido. */
+.leaflet-container .map__courier { width: 30px; height: 30px; border-radius: 50%; display: grid; place-items: center; background: var(--accent); color: #05140b; font-weight: 800; font-size: 0.72rem; border: 2px solid #05140b; box-shadow: 0 0 0 3px rgba(61, 220, 132, 0.35), var(--shadow); }
+.leaflet-container .map__courier.is-stale { background: #8a8f98; box-shadow: 0 0 0 3px rgba(138, 143, 152, 0.35); }
+.live-grid { display: grid; gap: 1rem; grid-template-columns: minmax(0, 2fr) minmax(260px, 1fr); align-items: start; }
+@media (max-width: 860px) { .live-grid { grid-template-columns: 1fr; } }
+.status-dot { width: 0.6rem; height: 0.6rem; border-radius: 50%; display: inline-block; flex-shrink: 0; }
+.status-dot--pending { background: #f0b429; }
+.status-dot--assigned { background: #5aa9ff; }
+.status-dot--on_the_way { background: #3ddc84; }
+.status-dot--failed { background: #ff6b5e; }
+.status-dot--off { background: #8a8f98; }
 .leaflet-container { font-family: var(--font); }
 /* leaflet.css llega en el chunk del mapa, después de este archivo: hace falta más especificidad. */
 .leaflet-container .leaflet-popup-content-wrapper, .leaflet-container .leaflet-popup-tip { background: var(--bg-elevated); color: var(--text); box-shadow: var(--shadow); }
