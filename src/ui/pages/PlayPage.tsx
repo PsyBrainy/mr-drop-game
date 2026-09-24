@@ -13,6 +13,7 @@ import { PageSpinner } from '../components/ProtectedRoute'
 import { gameAspectRatio, gameHasOwnHud, gameKind } from '../../games/registry'
 import { shareScore } from '../lib/shareScore'
 import { BotLevelPicker } from '../components/BotLevelPicker'
+import { FightRanking } from '../components/FightRanking'
 import { botLevelOf, type BotLevel } from '../../fight/bot/levels'
 
 type Phase = 'ready' | 'playing' | 'finished'
@@ -61,10 +62,13 @@ export function PlayPage() {
 
   const baseConfig = entry.data?.eventGame.config
   // Memorizada: si cambiara en cada render, el juego se volvería a montar.
-  const config = useMemo(
-    () => (vsBot ? { ...(baseConfig ?? {}), vsBot } : (baseConfig ?? {})),
-    [baseConfig, vsBot],
-  )
+  // La pelea además necesita saber desde qué concurso se entra: el servidor
+  // empareja sólo con gente del mismo, y el resultado va a su ranking.
+  const config = useMemo(() => {
+    const base = baseConfig ?? {}
+    if (!isMatch) return base
+    return vsBot ? { ...base, vsBot } : { ...base, eventGameId }
+  }, [baseConfig, vsBot, isMatch, eventGameId])
 
   const start = useAction(async (opponent: BotLevel | null = null) => {
     if (!eventGameId) return
@@ -240,7 +244,9 @@ export function PlayPage() {
                 <h2 className="game-over__title">{endMessage ?? '¡Terminó!'}</h2>
                 {isMatch ? (
                   <p className="muted">
-                    {lastBot ? 'Contra la máquina no suma al ranking.' : 'Las peleas todavía no suman al ranking.'}
+                    {lastBot
+                      ? 'Contra la máquina no suma al ranking.'
+                      : 'El resultado aparece en el ranking en un minuto, cuando se confirma.'}
                   </p>
                 ) : (
                   <>
@@ -282,6 +288,15 @@ export function PlayPage() {
           )}
         </GameStage>
       </div>
+
+      {isMatch && (
+        <section className="stack">
+          <h2>Ranking de {eventGame.game.name}</h2>
+          <div className="card">
+            <FightRanking eventGameId={eventGame.id} currentUserId={userId} refreshKey={phase} />
+          </div>
+        </section>
+      )}
 
       {!isMatch && (
       <section className="stack">

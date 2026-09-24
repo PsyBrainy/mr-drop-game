@@ -63,6 +63,14 @@ export interface LeaderboardRow {
   payload: Record<string, unknown> | null
 }
 
+export interface FightLeaderboardRow {
+  user_id: string
+  display_name: string
+  avatar_url: string | null
+  wins: number
+  losses: number
+}
+
 export interface AccessCodeRow {
   id: string
   code: string

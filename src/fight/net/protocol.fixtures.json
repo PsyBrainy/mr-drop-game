@@ -5,6 +5,7 @@
     { "type": "hello", "simVersion": 3 },
     { "type": "hello", "simVersion": 3, "token": "ey.un.token" },
     { "type": "queue" },
+    { "type": "queue", "eventGameId": "0b7d3c1e-5a2f-4e8b-9c61-2f4d8a7e1b90" },
     { "type": "leave" },
     { "type": "inputs", "from": 12, "inputs": "0001112031" },
     { "type": "checksum", "frame": 60, "hash": 4294967295 },
@@ -26,6 +27,7 @@
     { "type": "desync", "frame": 330 },
     { "type": "ended", "reason": "result", "winner": 1 },
     { "type": "ended", "reason": "forfeit", "winner": 0 },
-    { "type": "error", "code": "SIM_VERSION_MISMATCH", "message": "El juego se actualizó: recargá la página." }
+    { "type": "error", "code": "SIM_VERSION_MISMATCH", "message": "El juego se actualizó: recargá la página." },
+    { "type": "error", "code": "NOT_ALLOWED", "message": "La pelea de este concurso no está disponible." }
   ]
 }

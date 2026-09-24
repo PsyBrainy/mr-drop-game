@@ -66,11 +66,12 @@ Una pelea no tiene score: tiene match, oponente y resultado. **No se fuerza la p
 - `src/games/MatchModule.ts` → `MatchContext` (índice del jugador local, oponente, transporte,
   `onMatchEnd(result)`) y `MatchHandle`.
 - `registry.ts` tiene entradas discriminadas (`kind: 'score' | 'match'`) ✓. Con `match`, la
-  página de juego no abre sesión, no gasta intentos, no guarda puntaje y no muestra ranking: el
-  cartel del final es el resultado. Los juegos que ya existen no se tocan.
+  página de juego no abre sesión, no gasta intentos ni guarda puntaje; muestra el ranking de
+  peleas (`FightRanking.tsx`: ganadas / perdidas) en vez del de puntaje. Los juegos que ya
+  existen no se tocan.
 - La pelea dibuja su propio HUD en HTML (`fightHud.ts`, `ownHud` en el registry) ✓: vidas,
   resistencia y el nombre sobre cada personaje, no puntaje.
-- El resultado va a una tabla `matches` nueva (ganador, perdedor, log de inputs, validado sí/no).
+- El resultado va a `fight_matches` (lo escribe psy-ws; el veredicto, el validador) ✓.
   **Prohibido** mapear una pelea a `finish_game_session(score)` para que "entre" en el ranking
   actual.
 
@@ -273,7 +274,13 @@ arquitectura, con un personaje:
   **Queda afuera el contrato `MatchModule`**: hoy no compraría nada — el sandbox monta
   `GameModule` y la pelea no tiene puntaje que registrar. Llega con M4, que es cuando el
   resultado tiene que quedar guardado en algún lado.
-- **M4** — Re-simulación headless en Node + tabla `matches` + ranking.
+- **M4 ✓** — Re-simulación y ranking. `src/fight/replay/validate.ts` re-juega una fila de
+  `fight_matches` y da el veredicto; `validator/` es el proceso (Node, Docker, al lado de psy-ws)
+  que lo corre sobre las pendientes y escribe `verdict` y `validated_winner`. El ranking es
+  "ganadas / perdidas" por juego de concurso (vista `fight_leaderboard`, migración 0011): sólo
+  cuentan partidas con los dos jugadores verificados, jugadas desde un concurso y confirmadas por
+  el validador. Abandonar es perder, salvo que la sim diga que ya había terminado. Contra el bot
+  no cuenta (es local y no pasa por el servidor).
 - **M5** — Rollback, sólo si M3 se siente mal con pings reales. No antes.
 
 ## Cómo trabajar acá

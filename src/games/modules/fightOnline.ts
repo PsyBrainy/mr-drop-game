@@ -8,13 +8,12 @@ import {
   type Camera,
 } from '../../fight/camera'
 import { startFixedClock } from '../../fight/clock'
-import { OSO } from '../../fight/data/characters/oso'
-import { SMALL_STAGE } from '../../fight/data/stage'
+import { ONLINE_WORLD } from '../../fight/data/world'
 import { NONE, type Input } from '../../fight/sim/input'
 import { step, TICKS_PER_SECOND } from '../../fight/sim/tick'
 import { initialState, type MatchState } from '../../fight/sim/state'
 import { BOT_LEVEL_LABELS, botLevelOf, botStep, createBot, type Bot, type BotLevel } from '../../fight/bot/bot'
-import { DEFAULT_RULES, type World } from '../../fight/sim/world'
+import type { World } from '../../fight/sim/world'
 import { NetSession, type SessionPhase } from '../../fight/net/session'
 import type { Slot } from '../../fight/net/protocol'
 import {
@@ -74,6 +73,16 @@ export function botLevelFromConfig(config: Readonly<Record<string, unknown>>): B
   return botLevelOf(config['vsBot'])
 }
 
+/**
+ * Desde qué juego de concurso se entra (`event_games.id`). La app lo pone en la
+ * config; con él, el servidor empareja sólo con gente de ese concurso y la
+ * partida cuenta para su ranking. Sin él (el sandbox), no cuenta.
+ */
+export function eventGameIdFrom(config: Readonly<Record<string, unknown>>): string | undefined {
+  const value = config['eventGameId']
+  return typeof value === 'string' && value.length > 0 ? value : undefined
+}
+
 /** Qué decir al terminar contra el bot: que quede claro que no fue contra una persona. */
 export function botEndingMessage(winner: 0 | 1 | null): string {
   if (winner === null) return 'Empate contra la máquina'
@@ -90,11 +99,8 @@ function describe(phase: SessionPhase, stalledFrames: number): string {
 }
 
 function start(k: KAPLAYCtx, context: GameContext): () => void {
-  const world: World = {
-    stage: SMALL_STAGE,
-    tuning: [OSO, OSO],
-    rules: DEFAULT_RULES,
-  }
+  // El mismo mundo con el que el validador vuelve a jugar la partida.
+  const world: World = ONLINE_WORLD
 
   // Contra la máquina desde el principio: no hace falta el servidor, ni se
   // abre la conexión.
@@ -298,7 +304,7 @@ function start(k: KAPLAYCtx, context: GameContext): () => void {
   let disposed = false
   if (session) {
     void currentFightToken().then((token) => {
-      if (!disposed && mode === 'online') session.start(token)
+      if (!disposed && mode === 'online') session.start(token, eventGameIdFrom(context.config))
     })
   }
 

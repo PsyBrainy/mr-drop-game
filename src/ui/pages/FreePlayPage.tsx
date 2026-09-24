@@ -7,6 +7,7 @@ import { Avatar } from '../components/Avatar'
 import { Leaderboard } from '../components/Leaderboard'
 import { PageSpinner } from '../components/ProtectedRoute'
 import { gameKind, isGameImplemented } from '../../games/registry'
+import { FightRanking } from '../components/FightRanking'
 
 /**
  * Sección de juego libre: sin código ni límite de intentos. Cada juego muestra
@@ -114,16 +115,18 @@ export function FreePlayPage() {
                     )}
                   </div>
 
-                  {!isMatch && (
                   <details className="game-card__ranking">
                     <summary className="muted" style={{ cursor: 'pointer', fontSize: '0.88rem' }}>
                       Ranking de {eventGame.game.name}
                     </summary>
                     <div style={{ marginTop: '0.6rem' }}>
-                      <Leaderboard entries={ranking} currentUserId={userId} />
+                      {isMatch ? (
+                        <FightRanking eventGameId={eventGame.id} currentUserId={userId} limit={5} />
+                      ) : (
+                        <Leaderboard entries={ranking} currentUserId={userId} />
+                      )}
                     </div>
                   </details>
-                  )}
                 </article>
               )
             })}

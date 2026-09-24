@@ -41,7 +41,13 @@ export interface InputWindow {
 export type ClientMessage =
   /** Primer mensaje. El token es de Supabase; sin él, el servidor decide si acepta invitados. */
   | { readonly type: 'hello'; readonly simVersion: number; readonly token?: string }
-  | { readonly type: 'queue' }
+  /**
+   * Ponerse en cola. `eventGameId` es el juego del concurso (una fila de
+   * `event_games`) desde el que se entra: sólo se empareja con gente del mismo
+   * concurso, y la partida cuenta para el ranking de ese concurso. Sin él (el
+   * sandbox), se juega igual pero no cuenta para ningún ranking.
+   */
+  | { readonly type: 'queue'; readonly eventGameId?: string }
   | { readonly type: 'leave' }
   | { readonly type: 'inputs'; readonly from: number; readonly inputs: string }
   /**
@@ -81,11 +87,17 @@ export type ProtocolErrorCode =
   | 'BAD_MESSAGE'
   | 'NOT_IN_MATCH'
   | 'ALREADY_QUEUED'
+  /** No puede entrar a la pelea de ese concurso: está apagada, cerrado, o no participa. */
+  | 'NOT_ALLOWED'
 
 export function hello(token?: string): ClientMessage {
   return token === undefined
     ? { type: 'hello', simVersion: SIM_VERSION }
     : { type: 'hello', simVersion: SIM_VERSION, token }
+}
+
+export function queueMessage(eventGameId?: string): ClientMessage {
+  return eventGameId === undefined ? { type: 'queue' } : { type: 'queue', eventGameId }
 }
 
 export function inputsMessage(window: InputWindow): ClientMessage {

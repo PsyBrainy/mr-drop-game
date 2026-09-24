@@ -1,6 +1,7 @@
 import type { ContestEvent } from '../../domain/event/Event'
 import type { EventGame, Game } from '../../domain/game/Game'
 import type { LeaderboardEntry } from '../../domain/leaderboard/LeaderboardEntry'
+import type { FightRecord } from '../../domain/fight/FightRecord'
 import type { GameSession } from '../../domain/session/GameSession'
 import type { Profile } from '../../domain/user/Profile'
 import type { UserAddress } from '../../domain/user/UserAddress'
@@ -17,6 +18,7 @@ import type {
   GameRow,
   GameSessionRow,
   LeaderboardRow,
+  FightLeaderboardRow,
   DeliverySettingsRow,
   OrderItemRow,
   OrderRoundRow,
@@ -89,6 +91,14 @@ export const toLeaderboardEntry = (row: LeaderboardRow): LeaderboardEntry => ({
   firstFinishedAt: toDate(row.first_finished_at),
   plays: row.plays,
   payload: row.payload ?? undefined,
+})
+
+export const toFightRecord = (row: FightLeaderboardRow): FightRecord => ({
+  userId: row.user_id,
+  displayName: row.display_name,
+  avatarUrl: row.avatar_url,
+  wins: row.wins,
+  losses: row.losses,
 })
 
 export const toAccessCode = (row: AccessCodeRow): AccessCodeSummary => ({

@@ -29,6 +29,7 @@ import {
   DEFAULT_INPUT_DELAY,
   hello,
   inputsMessage,
+  queueMessage,
   readInputs,
   windowFor,
   type EndReason,
@@ -80,6 +81,7 @@ export class NetSession {
   private frame = 0
   private stalledFrames = 0
   private reported = false
+  private eventGameId: string | undefined = undefined
 
   private state: MatchState | null = null
   private previous: MatchState | null = null
@@ -91,8 +93,12 @@ export class NetSession {
     private readonly listeners: SessionListeners = {},
   ) {}
 
-  /** Se conecta, saluda y se pone en cola. */
-  start(token?: string): void {
+  /**
+   * Se conecta, saluda y se pone en cola. Con `eventGameId`, en la cola de ese
+   * concurso: la partida cuenta para su ranking.
+   */
+  start(token?: string, eventGameId?: string): void {
+    this.eventGameId = eventGameId
     this.detach.push(this.transport.onMessage((message) => this.receive(message)))
     this.detach.push(
       this.transport.onClose(() => {
@@ -174,7 +180,7 @@ export class NetSession {
         // partida arranca acá nomás. Hacerlo después pisaría `playing` con
         // `queued` y la sesión se quedaría esperando una partida ya empezada.
         this.setPhase('queued')
-        this.transport.send({ type: 'queue' })
+        this.transport.send(queueMessage(this.eventGameId))
         return
 
       case 'queued':

@@ -3,6 +3,7 @@ import { LoadEventBoard } from '../application/usecases/LoadEventBoard'
 import { LoadFreePlayBoard } from '../application/usecases/LoadFreePlayBoard'
 import { FinishGameSession, PrepareGameEntry, StartGameSession } from '../application/usecases/PlayGame'
 import { GetLeaderboard } from '../application/usecases/GetLeaderboard'
+import { GetFightBoard } from '../application/usecases/GetFightBoard'
 import { ManageEventGames } from '../application/usecases/ManageEventGames'
 import { SupabaseAuthAdapter } from './supabase/SupabaseAuthAdapter'
 import { SupabaseEventRepository } from './supabase/SupabaseEventRepository'
@@ -10,6 +11,7 @@ import { SupabaseGameRepository } from './supabase/SupabaseGameRepository'
 import { SupabaseParticipationRepository } from './supabase/SupabaseParticipationRepository'
 import { SupabaseSessionRepository } from './supabase/SupabaseSessionRepository'
 import { SupabaseLeaderboardRepository } from './supabase/SupabaseLeaderboardRepository'
+import { SupabaseFightBoardRepository } from './supabase/SupabaseFightBoardRepository'
 import { SupabaseAccessCodeRepository } from './supabase/SupabaseAccessCodeRepository'
 import { SupabaseAddressRepository } from './supabase/SupabaseAddressRepository'
 import { NominatimGeocoder } from './nominatim/NominatimGeocoder'
@@ -29,6 +31,7 @@ export function createContainer() {
   const participations = new SupabaseParticipationRepository()
   const sessions = new SupabaseSessionRepository()
   const leaderboards = new SupabaseLeaderboardRepository()
+  const fightBoards = new SupabaseFightBoardRepository()
   const accessCodes = new SupabaseAccessCodeRepository()
   const addresses = new SupabaseAddressRepository()
   const geocoder = new NominatimGeocoder()
@@ -59,6 +62,7 @@ export function createContainer() {
       startGameSession: new StartGameSession(sessions),
       finishGameSession: new FinishGameSession(sessions),
       getLeaderboard: new GetLeaderboard(leaderboards),
+      getFightBoard: new GetFightBoard(fightBoards),
       manageEventGames: new ManageEventGames(games),
     },
   }

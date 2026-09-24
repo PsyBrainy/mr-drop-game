@@ -274,6 +274,11 @@ body.is-immersive { overflow: hidden; }
 .board__pos { width: 3rem; font-weight: 700; color: var(--text-muted); font-variant-numeric: tabular-nums; }
 .board__score { text-align: right; font-weight: 700; color: var(--accent); font-variant-numeric: tabular-nums; }
 .board__player { display: flex; align-items: center; gap: 0.6rem; }
+/* Ranking de peleas: ganadas y perdidas (FightRanking.tsx). */
+.board th.board__num, .board td.board__num { text-align: right; width: 5.5rem; font-variant-numeric: tabular-nums; }
+.board__num--win { font-weight: 800; color: var(--accent); }
+.board__num--loss { font-weight: 600; color: var(--text-muted); }
+.board tr.board__gap td { text-align: center; color: var(--text-muted); padding: 0.2rem; border-bottom: 0; }
 .avatar { width: 28px; height: 28px; border-radius: 50%; background: var(--accent-soft); color: var(--accent); display: grid; place-items: center; font-size: 0.7rem; font-weight: 700; flex-shrink: 0; object-fit: cover; }
 
 /* ---------- admin ---------- */

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { BOT_LEVEL_ORDER } from '../../../fight/bot/bot'
-import { BOT_NAME, botDisplayName, botEndingMessage, botLevelFromConfig, endingMessage } from '../fightOnline'
+import { BOT_NAME, botDisplayName, botEndingMessage, botLevelFromConfig, endingMessage, eventGameIdFrom } from '../fightOnline'
 
 /**
  * El final importa tanto como la pelea: no es lo mismo perder que quedarse sin
@@ -67,5 +67,17 @@ describe('pedir la pelea directo contra la máquina', () => {
     expect(botLevelFromConfig({})).toBeNull()
     expect(botLevelFromConfig({ vsBot: 'imposible' })).toBeNull()
     expect(botLevelFromConfig({ vsBot: true })).toBeNull()
+  })
+})
+
+describe('desde qué concurso se pelea', () => {
+  it('lee el juego del concurso de la config', () => {
+    expect(eventGameIdFrom({ eventGameId: 'eg-1' })).toBe('eg-1')
+  })
+
+  it('sin concurso (el sandbox) no hay', () => {
+    expect(eventGameIdFrom({})).toBeUndefined()
+    expect(eventGameIdFrom({ eventGameId: '' })).toBeUndefined()
+    expect(eventGameIdFrom({ eventGameId: 7 })).toBeUndefined()
   })
 })

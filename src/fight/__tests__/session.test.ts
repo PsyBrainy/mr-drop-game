@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { NetSession, type SessionPhase } from '../net/session'
-import { CHECKSUM_EVERY, type EndReason, type Slot } from '../net/protocol'
+import { CHECKSUM_EVERY, type ClientMessage, type EndReason, type ServerMessage, type Slot } from '../net/protocol'
+import type { Transport } from '../net/port'
 import { formatHash, hashState } from '../sim/hash'
 import { HEAVY, JUMP, LEFT, LIGHT, NONE, RIGHT, type Input } from '../sim/input'
 import { FakeRelay, decodeInputsOf } from './relay'
@@ -271,5 +272,37 @@ describe('cuando algo sale mal', () => {
 
     expect(uno.session.snapshot().phase).toBe('ended')
     expect(uno.ends[0]?.reason).toBe('abandoned')
+  })
+})
+
+describe('la cola', () => {
+  /** Un transporte de mentira que anota lo que se manda y deja contestar a mano. */
+  function stub(): { sent: ClientMessage[]; transport: Transport; reply: (message: ServerMessage) => void } {
+    const sent: ClientMessage[] = []
+    let deliver: (message: ServerMessage) => void = () => {}
+    const transport: Transport = {
+      send: (message) => void sent.push(message),
+      onMessage: (listener) => {
+        deliver = listener
+        return () => {}
+      },
+      onClose: () => () => {},
+      close: () => {},
+    }
+    return { sent, transport, reply: (message) => deliver(message) }
+  }
+
+  it('desde un concurso, pide la cola de ese concurso', () => {
+    const { sent, transport, reply } = stub()
+    new NetSession(transport, world).start('token', 'eg-123')
+    reply({ type: 'welcome', playerId: 'uno', simVersion: 3 })
+    expect(sent.at(-1)).toEqual({ type: 'queue', eventGameId: 'eg-123' })
+  })
+
+  it('sin concurso (el sandbox), la cola de siempre: juega, pero no cuenta', () => {
+    const { sent, transport, reply } = stub()
+    new NetSession(transport, world).start()
+    reply({ type: 'welcome', playerId: 'uno', simVersion: 3 })
+    expect(sent.at(-1)).toEqual({ type: 'queue' })
   })
 })
