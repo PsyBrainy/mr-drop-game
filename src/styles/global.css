@@ -668,9 +668,9 @@ body.is-immersive { overflow: hidden; }
 
 /* --- stick (izquierda) ------------------------------------------------------ */
 /*
- * La zona que escucha es la mitad izquierda de abajo, invisible. El stick
- * descansa en su lugar y, al apoyar el pulgar, salta a donde está el dedo.
- * `left`/`top` son el CENTRO del stick (por eso el translate -50%).
+ * La zona que escucha es la mitad izquierda de abajo, invisible. El stick no se
+ * ve hasta que se apoya el pulgar: aparece justo ahí y se va al soltar, así no
+ * tapa la pelea. `left`/`top` son el CENTRO del stick (por eso el translate -50%).
  */
 .fight-touch__zone {
   position: absolute; left: 0; bottom: 0;
@@ -679,86 +679,95 @@ body.is-immersive { overflow: hidden; }
   touch-action: none;
 }
 .fight-touch__stick {
-  position: absolute; left: 16cqw; top: calc(100% - 15cqw);
-  width: 20cqw; height: 20cqw;
-  transform: translate(-50%, -50%);
+  position: absolute; left: 14cqw; top: calc(100% - 12cqw);
+  width: 15cqw; height: 15cqw;
+  transform: translate(-50%, -50%) scale(0.85);
   border-radius: 50%;
-  background: radial-gradient(circle, rgba(255, 255, 255, 0.06) 0 55%, rgba(255, 255, 255, 0.12) 56% 100%);
-  border: 2px solid rgba(255, 255, 255, 0.28);
-  box-shadow: 0 0.6cqw 2cqw rgba(0, 0, 0, 0.35), inset 0 0 1.5cqw rgba(0, 0, 0, 0.35);
-  backdrop-filter: blur(3px);
-  opacity: 0.7;
-  transition: opacity 0.12s linear;
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.05) 0 55%, rgba(255, 255, 255, 0.1) 56% 100%);
+  border: 2px solid rgba(255, 255, 255, 0.25);
+  box-shadow: 0 0.5cqw 1.6cqw rgba(0, 0, 0, 0.3), inset 0 0 1.2cqw rgba(0, 0, 0, 0.3);
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.1s linear, transform 0.1s ease-out, visibility 0s linear 0.1s;
 }
-.fight-touch__stick.is-active { opacity: 1; }
-/* Marcas: los costados caminan, arriba salta. */
+.fight-touch__stick.is-active {
+  opacity: 0.85;
+  visibility: visible;
+  transform: translate(-50%, -50%) scale(1);
+  transition: opacity 0.08s linear, transform 0.08s ease-out, visibility 0s;
+}
+/* Marcas: los costados caminan, abajo baja de la flotante. */
 .fight-touch__stick::before,
 .fight-touch__stick::after {
   position: absolute; top: 50%; transform: translateY(-50%);
-  font-size: 2.6cqw; line-height: 1; color: rgba(255, 255, 255, 0.45);
+  font-size: 1.8cqw; line-height: 1; color: rgba(255, 255, 255, 0.4);
   transition: color 0.06s linear, text-shadow 0.06s linear;
 }
-.fight-touch__stick::before { content: '◀'; left: 1.4cqw; }
-.fight-touch__stick::after { content: '▶'; right: 1.4cqw; }
+.fight-touch__stick::before { content: '◀'; left: 1cqw; }
+.fight-touch__stick::after { content: '▶'; right: 1cqw; }
 .fight-touch__stick.is-left::before,
 .fight-touch__stick.is-right::after { color: #fff; text-shadow: 0 0 1cqw rgba(90, 200, 240, 0.9); }
-.fight-touch__up {
-  position: absolute; left: 50%; top: 1.2cqw; transform: translateX(-50%);
-  font-size: 2.6cqw; line-height: 1; color: rgba(255, 255, 255, 0.45);
-  transition: color 0.06s linear, text-shadow 0.06s linear;
+.fight-touch__drop {
+  position: absolute; left: 50%; bottom: 0.8cqw; transform: translateX(-50%);
+  font-size: 1.6cqw; line-height: 1; color: rgba(255, 255, 255, 0.3);
 }
-.fight-touch__stick.is-up .fight-touch__up { color: #fff; text-shadow: 0 0 1cqw rgba(60, 200, 100, 0.95); }
+.fight-touch__stick.is-drop .fight-touch__drop { color: #fff; text-shadow: 0 0 1cqw rgba(90, 200, 240, 0.9); }
 
 .fight-touch__knob {
   position: absolute; left: 50%; top: 50%;
-  width: 9.5cqw; height: 9.5cqw;
+  width: 6.5cqw; height: 6.5cqw;
   transform: translate(-50%, -50%);
   border-radius: 50%;
   background: radial-gradient(circle at 35% 30%, rgba(255, 255, 255, 0.95), rgba(200, 215, 235, 0.85) 45%, rgba(120, 140, 170, 0.9));
   border: 2px solid rgba(255, 255, 255, 0.9);
-  box-shadow: 0 0.5cqw 1.4cqw rgba(0, 0, 0, 0.5);
+  box-shadow: 0 0.4cqw 1.2cqw rgba(0, 0, 0, 0.5);
 }
 .fight-touch__stick.is-left .fight-touch__knob,
 .fight-touch__stick.is-right .fight-touch__knob,
-.fight-touch__stick.is-up .fight-touch__knob { box-shadow: 0 0 1.6cqw rgba(90, 200, 240, 0.8), 0 0.5cqw 1.4cqw rgba(0, 0, 0, 0.5); }
+.fight-touch__stick.is-drop .fight-touch__knob { box-shadow: 0 0 1.4cqw rgba(90, 200, 240, 0.8), 0 0.4cqw 1.2cqw rgba(0, 0, 0, 0.5); }
 
-/* --- botones de acción (derecha): tres, en triángulo ------------------------ */
+/* --- botones (derecha): cuatro chicos, en rombo ----------------------------- */
+/*
+ * Como un control de consola: saltar abajo, donde descansa el pulgar; el golpe
+ * rápido a la izquierda, el fuerte arriba, el esquive a la derecha. Bien pegados
+ * a la esquina y semitransparentes: la pelea se tiene que ver a través.
+ * `--size` es el diámetro de cada botón y `--reach` cuánto se separan del centro.
+ */
 .fight-touch__actions {
-  position: absolute; right: 3cqw; bottom: 4cqh;
-  width: 30cqw; height: 24cqw;
+  --size: 8.2cqw;
+  --reach: 6.4cqw;
+  position: absolute; right: 2cqw; bottom: 2cqw;
+  width: calc(var(--reach) * 2 + var(--size));
+  height: calc(var(--reach) * 2 + var(--size));
 }
 .fight-touch__btn {
   --btn: 255 255 255;
-  position: absolute;
-  width: 12.5cqw; height: 12.5cqw;
+  position: absolute; left: 50%; top: 50%;
+  width: var(--size); height: var(--size);
+  margin: calc(var(--size) / -2) 0 0 calc(var(--size) / -2);
   display: grid; place-items: center;
   border-radius: 50%;
-  background: rgb(var(--btn) / 0.28);
-  border: 2px solid rgb(var(--btn) / 0.75);
+  background: rgb(var(--btn) / 0.2);
+  border: 2px solid rgb(var(--btn) / 0.7);
   color: #fff;
-  font-size: 2cqw; font-weight: 800; letter-spacing: 0.02em;
+  font-size: 1.45cqw; font-weight: 800; letter-spacing: 0.02em;
   text-shadow: 0 1px 3px rgba(0, 0, 0, 0.8);
-  box-shadow: 0 0.6cqw 1.6cqw rgba(0, 0, 0, 0.35);
-  backdrop-filter: blur(3px);
-  transition: transform 0.06s ease-out, background 0.06s linear;
+  box-shadow: 0 0.4cqw 1.2cqw rgba(0, 0, 0, 0.3);
+  opacity: 0.85;
+  transform: translate(var(--x, 0), var(--y, 0));
+  transition: transform 0.06s ease-out, background 0.06s linear, opacity 0.06s linear;
 }
 .fight-touch__btn.is-down {
-  transform: scale(0.92);
-  background: rgb(var(--btn) / 0.6);
-  box-shadow: 0 0 2cqw rgb(var(--btn) / 0.7);
+  opacity: 1;
+  transform: translate(var(--x, 0), var(--y, 0)) scale(0.9);
+  background: rgb(var(--btn) / 0.55);
+  box-shadow: 0 0 1.6cqw rgb(var(--btn) / 0.7);
 }
-/*
- * Los dos golpes arriba, lado a lado, donde cae el pulgar; el esquive abajo al
- * medio, más chico, que se usa menos. Colores rasta: rápido amarillo, fuerte rojo.
- */
-.fight-touch__btn.is-light { --btn: 245 200 50;  top: 0; left: 0; }
-.fight-touch__btn.is-heavy { --btn: 230 70 60;   top: 0; right: 0; }
-.fight-touch__btn.is-dodge {
-  --btn: 150 160 200;
-  bottom: 0; left: 50%; transform: translateX(-50%);
-  width: 10.5cqw; height: 10.5cqw; font-size: 1.8cqw;
-}
-.fight-touch__btn.is-dodge.is-down { transform: translateX(-50%) scale(0.92); }
+/* Colores rasta: saltar verde, rápido amarillo, fuerte rojo; el esquive gris. */
+.fight-touch__btn.is-jump  { --btn: 60 200 110;  --y: var(--reach); }
+.fight-touch__btn.is-light { --btn: 245 200 50;  --x: calc(var(--reach) * -1); }
+.fight-touch__btn.is-heavy { --btn: 230 70 60;   --y: calc(var(--reach) * -1); }
+.fight-touch__btn.is-dodge { --btn: 150 160 200; --x: var(--reach); }
 
 /*
  * La pelea contra el bot (fightHud.ts: setBot / offerBot). El bot se marca en

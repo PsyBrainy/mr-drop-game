@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { DODGE, DOWN, HEAVY, JUMP, LEFT, LIGHT, NONE, RIGHT } from '../../../fight/sim/input'
-import { ACTION_BUTTONS, readStick, STICK_DEADZONE, STICK_JUMP } from '../fightTouch'
+import { ACTION_BUTTONS, readStick, STICK_DEADZONE, STICK_DOWN } from '../fightTouch'
 
 /**
  * Los controles táctiles son DOM y no se montan en Vitest; se prueba lo que
@@ -21,29 +21,17 @@ describe('el stick', () => {
     expect(readStick(-R * STICK_DEADZONE * 0.9, 0, R).input).toBe(NONE)
   })
 
-  it('para arriba salta', () => {
-    expect(readStick(0, -90, R).input).toBe(JUMP)
+  it('para arriba no salta: saltar es un botón', () => {
+    expect(readStick(0, -90, R).input).toBe(NONE)
+    expect(readStick(70, -70, R).input).toBe(RIGHT)
+    expect(readStick(-70, -70, R).input).toBe(LEFT)
   })
 
-  it('arriba en diagonal es saltar hacia ese lado', () => {
-    expect(readStick(70, -70, R).input).toBe(JUMP | RIGHT)
-    expect(readStick(-70, -70, R).input).toBe(JUMP | LEFT)
-  })
-
-  it('caminar con el pulgar un poco torcido hacia arriba no salta', () => {
-    // Un empuje por debajo del umbral de salto, aunque ya camine.
-    const walking = readStick(90, -R * STICK_JUMP * 0.8, R)
-    expect(walking.input).toBe(RIGHT)
-    expect(STICK_JUMP).toBeGreaterThan(STICK_DEADZONE)
-  })
-
-  it('para abajo es bajarse de una flotante', () => {
+  it('para abajo, empujando fuerte, baja de la flotante', () => {
     expect(readStick(0, 100, R).input).toBe(DOWN)
-    expect(readStick(-70, 70, R).input).toBe(LEFT | DOWN)
-  })
-
-  it('caminar con el pulgar un poco torcido hacia abajo no te baja', () => {
-    expect(readStick(90, R * STICK_JUMP * 0.8, R).input).toBe(RIGHT)
+    expect(readStick(0, R * STICK_DOWN * 0.8, R).input).toBe(NONE)
+    expect(readStick(-60, 60, R).input).toBe(LEFT | DOWN)
+    expect(STICK_DOWN).toBeGreaterThan(STICK_DEADZONE)
   })
 
   it('la palanca no se sale del aro aunque el dedo sí', () => {
@@ -51,7 +39,7 @@ describe('el stick', () => {
     expect(Math.hypot(far.knobX, far.knobY)).toBeCloseTo(R)
     // Y conserva la dirección del dedo.
     expect(far.knobX / far.knobY).toBeCloseTo(300 / -400)
-    expect(far.input).toBe(JUMP | RIGHT)
+    expect(far.input).toBe(RIGHT)
   })
 
   it('adentro del aro sigue al dedo tal cual', () => {
@@ -60,15 +48,15 @@ describe('el stick', () => {
 })
 
 describe('los botones', () => {
-  it('son los golpes y el esquive; saltar es del stick', () => {
+  it('son saltar, los dos golpes y el esquive', () => {
     const bits = ACTION_BUTTONS.map((button) => button.bit)
-    expect(bits).toHaveLength(3)
-    expect(new Set(bits)).toEqual(new Set([LIGHT, HEAVY, DODGE]))
+    expect(bits).toHaveLength(4)
+    expect(new Set(bits)).toEqual(new Set([JUMP, LIGHT, HEAVY, DODGE]))
   })
 
-  it('ningún botón marca movimiento ni salto', () => {
+  it('ningún botón camina: eso es del stick', () => {
     for (const button of ACTION_BUTTONS) {
-      expect(button.bit & (LEFT | RIGHT | JUMP)).toBe(0)
+      expect(button.bit & (LEFT | RIGHT | DOWN)).toBe(0)
     }
   })
 })
