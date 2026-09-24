@@ -1,4 +1,4 @@
-import { useCallback, useRef, useState } from 'react'
+import { useCallback, useMemo, useRef, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import type { GameStatus } from '../../games/GameModule'
 import { useAuth } from '../providers/AuthProvider'
@@ -12,6 +12,8 @@ import { Leaderboard } from '../components/Leaderboard'
 import { PageSpinner } from '../components/ProtectedRoute'
 import { gameAspectRatio, gameHasOwnHud, gameKind } from '../../games/registry'
 import { shareScore } from '../lib/shareScore'
+import { BotLevelPicker } from '../components/BotLevelPicker'
+import { botLevelOf, type BotLevel } from '../../fight/bot/levels'
 
 type Phase = 'ready' | 'playing' | 'finished'
 
@@ -32,6 +34,10 @@ export function PlayPage() {
   const [endPayload, setEndPayload] = useState<Record<string, unknown>>({})
   const stageRef = useRef<GameStageRef>(null)
   const [isImmersive, setIsImmersive] = useState(false)
+  // Pelea: contra quién va la próxima. `null` es buscar una persona; un nivel
+  // es directo contra la máquina, sin pasar por la cola.
+  const [vsBot, setVsBot] = useState<BotLevel | null>(null)
+  const [botLevel, setBotLevel] = useState<BotLevel>('easy')
 
   // Una pelea 1v1 no abre sesión, no gasta intentos ni guarda puntaje: el
   // resultado lo archiva psy-ws. Ver `GameKind` en el registry.
@@ -53,8 +59,17 @@ export function PlayPage() {
     { enabled: Boolean(eventGameId) && !isMatch },
   )
 
-  const start = useAction(async () => {
+  const baseConfig = entry.data?.eventGame.config
+  // Memorizada: si cambiara en cada render, el juego se volvería a montar.
+  const config = useMemo(
+    () => (vsBot ? { ...(baseConfig ?? {}), vsBot } : (baseConfig ?? {})),
+    [baseConfig, vsBot],
+  )
+
+  const start = useAction(async (opponent: BotLevel | null = null) => {
     if (!eventGameId) return
+    setVsBot(isMatch ? opponent : null)
+    if (opponent) setBotLevel(opponent)
     if (isMatch) {
       // Sin sesión: la pelea se identifica ante psy-ws con el token del usuario.
       setSessionId(null)
@@ -118,6 +133,10 @@ export function PlayPage() {
   const canPlay = isMatch || playsLeft === null || playsLeft > 0
   const backTo = event.data.isFreePlay ? '/jugar' : `/concurso/${slug}`
 
+  // Si la última fue contra la máquina (elegida antes o aceptada en la cola), a
+  // qué nivel: para ofrecer la revancha.
+  const lastBot = isMatch ? botLevelOf(endPayload['vsBot']) : null
+
   const share = () =>
     void shareScore({
       score: finalScore ?? 0,
@@ -159,7 +178,7 @@ export function PlayPage() {
           {phase === 'playing' && (sessionId || isMatch) && (
             <GameCanvas
               gameSlug={eventGame.game.slug}
-              config={eventGame.config}
+              config={config}
               onScoreChange={setLiveScore}
               onStatusChange={setStatus}
               onGameOver={handleGameOver}
@@ -192,11 +211,24 @@ export function PlayPage() {
                 <h2 style={{ marginBottom: 0 }}>¿Listo?</h2>
                 <p className="muted">{eventGame.game.description}</p>
                 {canPlay ? (
-                  <button className="btn" onClick={() => void start.run()} disabled={start.pending}>
-                    {start.pending ? 'Preparando…' : 'Comenzar'}
+                  <button className="btn" onClick={() => void start.run(null)} disabled={start.pending}>
+                    {start.pending ? 'Preparando…' : isMatch ? 'Buscar rival' : 'Comenzar'}
                   </button>
                 ) : (
                   <p className="alert alert--warn">Ya usaste todos tus intentos en este juego.</p>
+                )}
+                {isMatch && (
+                  <div className="play-bot">
+                    <p className="play-bot__label muted">o jugá contra la máquina</p>
+                    <BotLevelPicker value={botLevel} onChange={setBotLevel} />
+                    <button
+                      className="btn btn--ghost"
+                      onClick={() => void start.run(botLevel)}
+                      disabled={start.pending}
+                    >
+                      Jugar contra la máquina
+                    </button>
+                  </div>
                 )}
               </div>
             </div>
@@ -207,7 +239,9 @@ export function PlayPage() {
               <div className="stack">
                 <h2 className="game-over__title">{endMessage ?? '¡Terminó!'}</h2>
                 {isMatch ? (
-                  <p className="muted">Las peleas todavía no suman al ranking.</p>
+                  <p className="muted">
+                    {lastBot ? 'Contra la máquina no suma al ranking.' : 'Las peleas todavía no suman al ranking.'}
+                  </p>
                 ) : (
                   <>
                     <p className="game-over__score">{finalScore ?? 0}</p>
@@ -217,9 +251,23 @@ export function PlayPage() {
                   </>
                 )}
                 <div className="row" style={{ justifyContent: 'center' }}>
+                  {canPlay && lastBot && (
+                    <button className="btn" onClick={() => void start.run(lastBot)} disabled={start.pending}>
+                      Revancha
+                    </button>
+                  )}
                   {canPlay && (
-                    <button className="btn" onClick={() => void start.run()} disabled={start.pending}>
-                      {isMatch ? 'Buscar otra pelea' : 'Volver a empezar'}
+                    <button
+                      className={lastBot ? 'btn btn--ghost' : 'btn'}
+                      onClick={() => void start.run(null)}
+                      disabled={start.pending}
+                    >
+                      {isMatch ? (lastBot ? 'Buscar rival' : 'Buscar otra pelea') : 'Volver a empezar'}
+                    </button>
+                  )}
+                  {canPlay && isMatch && !lastBot && (
+                    <button className="btn btn--ghost" onClick={() => void start.run(botLevel)} disabled={start.pending}>
+                      Contra la máquina
                     </button>
                   )}
                   {event.data.isFreePlay && !isMatch && (

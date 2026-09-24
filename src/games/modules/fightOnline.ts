@@ -13,7 +13,7 @@ import { SMALL_STAGE } from '../../fight/data/stage'
 import { NONE, type Input } from '../../fight/sim/input'
 import { step, TICKS_PER_SECOND } from '../../fight/sim/tick'
 import { initialState, type MatchState } from '../../fight/sim/state'
-import { BOT_LEVEL_LABELS, botStep, createBot, type Bot, type BotLevel } from '../../fight/bot/bot'
+import { BOT_LEVEL_LABELS, botLevelOf, botStep, createBot, type Bot, type BotLevel } from '../../fight/bot/bot'
 import { DEFAULT_RULES, type World } from '../../fight/sim/world'
 import { NetSession, type SessionPhase } from '../../fight/net/session'
 import type { Slot } from '../../fight/net/protocol'
@@ -65,6 +65,15 @@ export function botDisplayName(level: BotLevel): string {
   return `${BOT_NAME} · ${BOT_LEVEL_LABELS[level]}`
 }
 
+/**
+ * La pelea se puede pedir directo contra la máquina, sin pasar por la cola:
+ * la app lo pide con `vsBot` en la config (`'easy' | 'medium' | 'hard'`).
+ * Cualquier otra cosa es la pelea online de siempre.
+ */
+export function botLevelFromConfig(config: Readonly<Record<string, unknown>>): BotLevel | null {
+  return botLevelOf(config['vsBot'])
+}
+
 /** Qué decir al terminar contra el bot: que quede claro que no fue contra una persona. */
 export function botEndingMessage(winner: 0 | 1 | null): string {
   if (winner === null) return 'Empate contra la máquina'
@@ -87,7 +96,11 @@ function start(k: KAPLAYCtx, context: GameContext): () => void {
     rules: DEFAULT_RULES,
   }
 
-  if (!fightServerConfigured) {
+  // Contra la máquina desde el principio: no hace falta el servidor, ni se
+  // abre la conexión.
+  const directBot = botLevelFromConfig(context.config)
+
+  if (!directBot && !fightServerConfigured) {
     // Mejor decirlo que intentar conectarse a cualquier lado y quedar colgado.
     context.onStatusChange({ Estado: 'Falta configurar VITE_FIGHT_WS_URL' })
     context.onGameOver(0, { message: 'No hay servidor de peleas configurado' })
@@ -106,7 +119,6 @@ function start(k: KAPLAYCtx, context: GameContext): () => void {
   const pressed: [Input, Input] = [NONE, NONE]
   const unlisten = listenKeyboard(pressed)
 
-  const transport = createWebSocketTransport(fightServerUrl)
   let ended = false
 
   // Online contra una persona, o local contra el bot cuando no apareció nadie.
@@ -115,9 +127,9 @@ function start(k: KAPLAYCtx, context: GameContext): () => void {
   let mode: 'online' | 'bot' = 'online'
   let queuedTicks = 0
   let offering = false
-  let vsBot: { state: MatchState; previous: MatchState; bot: Bot } | null = null
+  let vsBot: { state: MatchState; previous: MatchState; bot: Bot; level: BotLevel } | null = null
 
-  const session = new NetSession(transport, world, {
+  const session: NetSession | null = directBot ? null : new NetSession(createWebSocketTransport(fightServerUrl), world, {
     onPhase: () => {
       if (mode === 'online') hud()
     },
@@ -125,7 +137,7 @@ function start(k: KAPLAYCtx, context: GameContext): () => void {
       if (mode === 'bot') return
       ended = true
       hud()
-      context.onGameOver(0, { message: endingMessage(reason, winner, session.snapshot().slot) })
+      context.onGameOver(0, { message: endingMessage(reason, winner, session?.snapshot().slot ?? 0) })
     },
     onError: (code, message) => {
       if (mode === 'bot') return
@@ -150,6 +162,7 @@ function start(k: KAPLAYCtx, context: GameContext): () => void {
   }
 
   const hud = (): void => {
+    if (!session) return
     const snapshot = session.snapshot()
     const state = snapshot.state
     overlay.setStatus(snapshot.phase === 'playing' ? null : describe(snapshot.phase, snapshot.stalledFrames))
@@ -164,11 +177,11 @@ function start(k: KAPLAYCtx, context: GameContext): () => void {
     offering = false
     overlay.offerBot(null)
     overlay.setStatus(null)
-    session.dispose()
+    session?.dispose()
 
     const seed = (Math.random() * 0x7fffffff) | 0
     const state = initialState(world, seed)
-    vsBot = { state, previous: state, bot: createBot(seed, level) }
+    vsBot = { state, previous: state, bot: createBot(seed, level), level }
     camera = initialCamera(world, VIEW)
     previousCamera = camera
 
@@ -185,7 +198,7 @@ function start(k: KAPLAYCtx, context: GameContext): () => void {
     if (!vsBot || ended) return
     const decided = botStep(vsBot.bot, vsBot.state, 1, world)
     const next = step(vsBot.state, [pressed[0] | touch.mask(), decided.input], world)
-    vsBot = { state: next, previous: vsBot.state, bot: decided.bot }
+    vsBot = { ...vsBot, state: next, previous: vsBot.state, bot: decided.bot }
 
     previousCamera = camera
     camera = approachCamera(camera, targetCamera(next, world, VIEW))
@@ -193,7 +206,9 @@ function start(k: KAPLAYCtx, context: GameContext): () => void {
 
     if (next.over) {
       ended = true
-      context.onGameOver(0, { message: botEndingMessage(next.winner) })
+      // `vsBot` en el final le dice a la app que fue contra la máquina, y a qué
+      // nivel: así puede ofrecer la revancha.
+      context.onGameOver(0, { message: botEndingMessage(next.winner), vsBot: vsBot.level })
     }
   }
 
@@ -203,6 +218,7 @@ function start(k: KAPLAYCtx, context: GameContext): () => void {
       tickBot()
       return
     }
+    if (!session) return
 
     // En la cola: pasado un rato sin rival, se ofrece el bot. Si aparece
     // alguien, el cartel se va solo.
@@ -244,6 +260,7 @@ function start(k: KAPLAYCtx, context: GameContext): () => void {
       overlay.placeTags(tagAnchors(shown, vsBot.state, vsBot.previous, alpha))
       return
     }
+    if (!session) return
 
     const snapshot = session.snapshot()
     const state = snapshot.state
@@ -260,21 +277,24 @@ function start(k: KAPLAYCtx, context: GameContext): () => void {
     overlay.placeTags(tagAnchors(shown, state, previous, alpha))
   })
 
-  hud()
+  if (directBot) startBotMatch(directBot)
+  else hud()
 
   // El token se pide antes de saludar. Si el jugador no tiene sesión se saluda
   // sin token y el servidor decide: con invitados habilitados entra igual, y si
   // no, contesta AUTH_REQUIRED y el HUD lo muestra.
   let disposed = false
-  void currentFightToken().then((token) => {
-    if (!disposed && mode === 'online') session.start(token)
-  })
+  if (session) {
+    void currentFightToken().then((token) => {
+      if (!disposed && mode === 'online') session.start(token)
+    })
+  }
 
   return () => {
     disposed = true
     clock.stop()
     unlisten()
-    session.dispose()
+    session?.dispose()
     overlay.destroy()
     touch.destroy()
   }

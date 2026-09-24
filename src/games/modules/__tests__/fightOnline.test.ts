@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { BOT_LEVEL_ORDER } from '../../../fight/bot/bot'
-import { BOT_NAME, botDisplayName, botEndingMessage, endingMessage } from '../fightOnline'
+import { BOT_NAME, botDisplayName, botEndingMessage, botLevelFromConfig, endingMessage } from '../fightOnline'
 
 /**
  * El final importa tanto como la pelea: no es lo mismo perder que quedarse sin
@@ -54,5 +54,18 @@ describe('el nombre del bot', () => {
     const names = BOT_LEVEL_ORDER.map(botDisplayName)
     expect(new Set(names).size).toBe(names.length)
     for (const name of names) expect(name.toLowerCase()).toContain('bot')
+  })
+})
+
+describe('pedir la pelea directo contra la máquina', () => {
+  it('lee el nivel de la config', () => {
+    expect(botLevelFromConfig({ vsBot: 'hard' })).toBe('hard')
+    expect(botLevelFromConfig({ vsBot: 'easy', otra: 1 })).toBe('easy')
+  })
+
+  it('sin nivel, o con cualquier otra cosa, es la pelea online', () => {
+    expect(botLevelFromConfig({})).toBeNull()
+    expect(botLevelFromConfig({ vsBot: 'imposible' })).toBeNull()
+    expect(botLevelFromConfig({ vsBot: true })).toBeNull()
   })
 })

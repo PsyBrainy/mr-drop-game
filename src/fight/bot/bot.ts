@@ -32,7 +32,9 @@ import {
   type RecoveryPolicy,
 } from './lookahead'
 
-export type BotLevel = 'easy' | 'medium' | 'hard'
+import { BOT_LEVEL_LABELS, BOT_LEVEL_ORDER, botLevelOf, type BotLevel } from './levels'
+
+export { BOT_LEVEL_LABELS, BOT_LEVEL_ORDER, botLevelOf, type BotLevel }
 
 export interface BotProfile {
   /** Frames entre una decisión y la siguiente. Es el tiempo de reacción. */
@@ -66,14 +68,6 @@ export const BOT_LEVELS: Record<BotLevel, BotProfile> = {
   hard: { reaction: 3, aggression: 1, dodge: 1, mistakes: 0.02, lookahead: true },
 }
 
-export const BOT_LEVEL_ORDER: readonly BotLevel[] = ['easy', 'medium', 'hard']
-
-/** Cómo se llama cada nivel en pantalla. */
-export const BOT_LEVEL_LABELS: Record<BotLevel, string> = {
-  easy: 'Fácil',
-  medium: 'Medio',
-  hard: 'Difícil',
-}
 
 export interface Bot {
   readonly profile: BotProfile
