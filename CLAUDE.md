@@ -290,3 +290,22 @@ arquitectura, con un personaje:
 - Todo cambio de balance o de física entra con su test de invariante. Un número sin test no entra.
 - Si algo obliga a violar una regla de arriba: se discute y se cambia la regla en este archivo.
   No se hace la excepción en silencio.
+
+# Analytics (Google Analytics 4)
+
+`src/infrastructure/analytics/` — gtag.js armado a mano. El id sale de `VITE_GA_MEASUREMENT_ID`
+(sin la variable no se carga nada) y `VITE_GA_DEBUG=true` manda todo a DebugView.
+
+- **Páginas:** `ui/analytics/AnalyticsTracker.tsx` manda `page_view` en cada cambio de ruta (es
+  una SPA; la página vista automática de GA está apagada para no contar dos veces). El título
+  sale de `pageName.ts`.
+- **Automático:** `autoTrack.ts` manda `ui_click` (todo botón y link), `form_submit` y `exception`
+  (errores de JS). `data-analytics="nombre"` renombra, `data-analytics="off"` apaga.
+- **Del negocio:** login/sign_up/logout, join_group (canje de código), game_start / game_end /
+  post_score, fight_* (cola, rival encontrado, bot, final, controles, mando), comercio
+  (view_item_list, add_to_cart, remove_from_cart, purchase, order_update, order_cancel).
+- **Prohibido mandar datos personales** (lo prohíbe Google): nada de mails, nombres, direcciones.
+  El usuario va por `user_id` = id de Supabase. Los links se describen por su ruta, no por su
+  texto (el de "Mi cuenta" es el nombre de la persona). Los códigos de acceso y tokens se tapan
+  de las URLs (`safePath`).
+

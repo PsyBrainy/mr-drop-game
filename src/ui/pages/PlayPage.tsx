@@ -12,6 +12,7 @@ import { Leaderboard } from '../components/Leaderboard'
 import { PageSpinner } from '../components/ProtectedRoute'
 import { gameAspectRatio, gameHasOwnHud, gameKind } from '../../games/registry'
 import { shareScore } from '../lib/shareScore'
+import { analytics } from '../../infrastructure/analytics'
 import { BotLevelPicker } from '../components/BotLevelPicker'
 import { FightRanking } from '../components/FightRanking'
 import { botLevelOf, type BotLevel } from '../../fight/bot/levels'
@@ -88,6 +89,13 @@ export function PlayPage() {
     setEndPayload({})
     setPhase('playing')
     void stageRef.current?.enter()
+    analytics.track('game_start', {
+      game_slug: gameSlug,
+      event_slug: slug,
+      free_play: contest?.isFreePlay,
+      mode: isMatch ? (opponent ? 'bot' : 'online') : 'score',
+      bot_level: opponent ?? undefined,
+    })
   })
 
   const submit = useAction(async (score: number, payload?: Record<string, unknown>) => {
@@ -95,6 +103,14 @@ export function PlayPage() {
     const session = await finishGameSession.execute(sessionId, score, payload)
     setFinalScore(session.score)
     setPhase('finished')
+    // `post_score` es el evento de GA para puntajes: con esto salen el
+    // puntaje promedio, el máximo y cuántas partidas por juego.
+    analytics.track('post_score', {
+      score: session.score,
+      game_slug: gameSlug,
+      event_slug: slug,
+      ...numericFields(payload),
+    })
     entry.reload()
     ranking.reload()
   })
@@ -104,6 +120,12 @@ export function PlayPage() {
       const message = payload?.['message']
       setEndMessage(typeof message === 'string' ? message : null)
       setEndPayload(payload ?? {})
+      analytics.track('game_end', {
+        game_slug: gameSlug,
+        event_slug: slug,
+        score: isMatch ? undefined : score,
+        result: typeof message === 'string' ? message : undefined,
+      })
       if (isMatch) {
         // No hay puntaje que guardar: el cartel es el resultado.
         setPhase('finished')
@@ -111,7 +133,7 @@ export function PlayPage() {
       }
       void submit.run(score, payload)
     },
-    [submit, isMatch],
+    [submit, isMatch, gameSlug, slug],
   )
 
   // Mostrar spinner de página solo en la primera carga, no en reloads.
@@ -141,7 +163,8 @@ export function PlayPage() {
   // qué nivel: para ofrecer la revancha.
   const lastBot = isMatch ? botLevelOf(endPayload['vsBot']) : null
 
-  const share = () =>
+  const share = () => {
+    analytics.track('share', { method: 'whatsapp', content_type: 'score', item_id: gameSlug, score: finalScore ?? 0 })
     void shareScore({
       score: finalScore ?? 0,
       message: endMessage ?? '¡Terminó!',
@@ -149,6 +172,7 @@ export function PlayPage() {
       modeLabel: eventGame.game.name,
       shareUrl: `${window.location.origin}${backTo}`,
     })
+  }
 
   return (
     <div className="container stack">
@@ -177,7 +201,10 @@ export function PlayPage() {
         <GameStage 
           ref={stageRef} 
           aspectRatio={gameAspectRatio(gameSlug)}
-          onImmersiveChange={setIsImmersive}
+          onImmersiveChange={(immersive) => {
+            setIsImmersive(immersive)
+            analytics.track(immersive ? 'fullscreen_enter' : 'fullscreen_exit', { game_slug: gameSlug })
+          }}
         >
           {phase === 'playing' && (sessionId || isMatch) && (
             <GameCanvas
@@ -312,4 +339,13 @@ export function PlayPage() {
       )}
     </div>
   )
+}
+
+/** Los números del final (obstáculos, cogollos…) para mandarlos junto al puntaje. */
+function numericFields(payload: Record<string, unknown> | undefined): Record<string, number> {
+  const out: Record<string, number> = {}
+  for (const [key, value] of Object.entries(payload ?? {})) {
+    if (typeof value === 'number' && Number.isFinite(value)) out[key] = value
+  }
+  return out
 }

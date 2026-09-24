@@ -11,6 +11,7 @@ import { listenKeyboard } from './fightControls'
 import { COLORS, drawMatch, loadFightAssets, tagAnchors, VIEW } from './fightView'
 import { createFightHud, panelOf } from './fightHud'
 import { createFightDevices } from './fightDevices'
+import { createFightSoundPlayer } from './fightSounds'
 import { startFixedClock } from '../../fight/clock'
 import { OSO } from '../../fight/data/characters/oso'
 import { SMALL_STAGE } from '../../fight/data/stage'
@@ -64,6 +65,7 @@ function start(k: KAPLAYCtx, context: GameContext): () => void {
   const overlay = createFightHud(context.mountPoint, VIEW)
   // Dedos y el primer mando manejan al jugador 1; un segundo mando, al 2.
   const devices = createFightDevices(context.mountPoint)
+  const sounds = createFightSoundPlayer()
   devices.help.hideIn(8000)
   overlay.setNames(['Jugador 1', 'Jugador 2'])
 
@@ -77,6 +79,7 @@ function start(k: KAPLAYCtx, context: GameContext): () => void {
 
     previous = current
     current = step(current, [inputs[0] | devices.primary(), inputs[1] | devices.secondPad()], world)
+    sounds.update(previous, current)
 
     previousCamera = camera
     camera = approachCamera(camera, targetCamera(current, world, VIEW))

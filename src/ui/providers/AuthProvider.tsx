@@ -3,6 +3,7 @@ import type { Credentials, SignUpData } from '../../application/ports/AuthPort'
 import { isAdmin, type Profile } from '../../domain/user/Profile'
 import { isSupabaseConfigured } from '../../infrastructure/supabase/client'
 import { useContainer } from './ContainerProvider'
+import { analytics } from '../../infrastructure/analytics'
 
 interface AuthState {
   userId: string | null
@@ -64,11 +65,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     isAuthenticated: userId !== null,
     isAdmin: isAdmin(profile),
     signIn: async (credentials) => {
-      await auth.signIn(credentials)
+      try {
+        await auth.signIn(credentials)
+      } catch (error) {
+        analytics.track('login_failed', { method: 'email' })
+        throw error
+      }
+      analytics.track('login', { method: 'email' })
       await refresh()
     },
-    signUp: (data) => auth.signUp(data),
+    signUp: async (data) => {
+      const result = await auth.signUp(data)
+      analytics.track('sign_up', { method: 'email', needs_confirmation: result.needsEmailConfirmation })
+      return result
+    },
     signOut: async () => {
+      analytics.track('logout', {})
       await auth.signOut()
       setUserId(null)
       setProfile(null)

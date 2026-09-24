@@ -26,6 +26,8 @@ import { listenKeyboard } from './fightControls'
 import { COLORS, drawMatch, loadFightAssets, tagAnchors, VIEW } from './fightView'
 import { createFightHud, panelOf } from './fightHud'
 import { createFightDevices } from './fightDevices'
+import { createFightSoundPlayer } from './fightSounds'
+import { analytics } from '../../infrastructure/analytics'
 import { myFightName, rivalFightName } from '../../infrastructure/ws/fightNames'
 
 /**
@@ -83,6 +85,16 @@ export function eventGameIdFrom(config: Readonly<Record<string, unknown>>): stri
   return typeof value === 'string' && value.length > 0 ? value : undefined
 }
 
+/**
+ * El resultado para Analytics, visto desde este jugador: ganó, perdió, empate,
+ * o cómo se cortó. Es lo que después se cuenta en GA ("fight_end" por result).
+ */
+export function fightResult(reason: string, winner: Slot | null, me: Slot): string {
+  if (reason === 'result') return winner === null ? 'draw' : winner === me ? 'win' : 'lose'
+  if (reason === 'forfeit') return winner === me ? 'win_rival_left' : 'lose_left'
+  return reason
+}
+
 /** Qué decir al terminar contra el bot: que quede claro que no fue contra una persona. */
 export function botEndingMessage(winner: 0 | 1 | null): string {
   if (winner === null) return 'Empate contra la máquina'
@@ -117,6 +129,8 @@ function start(k: KAPLAYCtx, context: GameContext): () => void {
   const overlay = createFightHud(context.mountPoint, VIEW)
   // Teclado, dedos y mando son el mismo byte para la sim: se juntan con un OR.
   const devices = createFightDevices(context.mountPoint)
+  // Los sonidos de la comunidad: cada personaje con los suyos.
+  const sounds = createFightSoundPlayer()
   // El cartel de controles se cierra solo un rato después de que arranca la
   // pelea: mientras se busca rival hay tiempo de leerlo.
   let helpClosing = false
@@ -151,11 +165,22 @@ function start(k: KAPLAYCtx, context: GameContext): () => void {
       if (mode === 'bot') return
       ended = true
       hud()
+      const snapshot = session?.snapshot()
+      const me = snapshot?.slot ?? 0
+      analytics.track('fight_end', {
+        vs: 'human',
+        result: fightResult(reason, winner, me),
+        reason,
+        ranked: eventGameIdFrom(context.config) !== undefined,
+        lives_left: snapshot?.state?.fighters[me].stocks,
+        seconds: snapshot?.state ? Math.round(snapshot.state.tick / TICKS_PER_SECOND) : undefined,
+      })
       context.onGameOver(0, { message: endingMessage(reason, winner, session?.snapshot().slot ?? 0) })
     },
     onError: (code, message) => {
       if (mode === 'bot') return
       ended = true
+      analytics.track('fight_error', { code })
       overlay.setStatus(code)
       context.onGameOver(0, { message })
     },
@@ -169,6 +194,13 @@ function start(k: KAPLAYCtx, context: GameContext): () => void {
   let namesAsked = false
   const askNames = (me: Slot, opponent: string): void => {
     namesAsked = true
+    // Encontró rival: cuánto tardó es de lo más útil para saber si hace falta
+    // más gente jugando (o más bots).
+    analytics.track('fight_match_found', {
+      wait_seconds: Math.round(queuedTicks / TICKS_PER_SECOND),
+      slot: me,
+      ranked: eventGameIdFrom(context.config) !== undefined,
+    })
     overlay.setLocal(me)
     void Promise.all([myFightName(), rivalFightName(opponent)]).then(([mine, theirs]) => {
       overlay.setNames(me === 0 ? [mine, theirs] : [theirs, mine])
@@ -189,6 +221,12 @@ function start(k: KAPLAYCtx, context: GameContext): () => void {
   const startBotMatch = (level: BotLevel): void => {
     if (mode === 'bot') return
     mode = 'bot'
+    analytics.track('fight_bot_start', {
+      level,
+      // Directo desde el menú, o aceptando el cartel después de esperar rival.
+      source: directBot ? 'menu' : 'queue',
+      wait_seconds: directBot ? undefined : Math.round(queuedTicks / TICKS_PER_SECOND),
+    })
     matchStarted()
     offering = false
     overlay.offerBot(null)
@@ -214,6 +252,7 @@ function start(k: KAPLAYCtx, context: GameContext): () => void {
     if (!vsBot || ended) return
     const decided = botStep(vsBot.bot, vsBot.state, 1, world)
     const next = step(vsBot.state, [pressed[0] | devices.primary(), decided.input], world)
+    sounds.update(vsBot.state, next)
     vsBot = { ...vsBot, state: next, previous: vsBot.state, bot: decided.bot }
 
     previousCamera = camera
@@ -222,6 +261,13 @@ function start(k: KAPLAYCtx, context: GameContext): () => void {
 
     if (next.over) {
       ended = true
+      analytics.track('fight_end', {
+        vs: 'bot',
+        level: vsBot.level,
+        result: fightResult('result', next.winner, 0),
+        lives_left: next.fighters[0].stocks,
+        seconds: Math.round(next.tick / TICKS_PER_SECOND),
+      })
       // `vsBot` en el final le dice a la app que fue contra la máquina, y a qué
       // nivel: así puede ofrecer la revancha.
       context.onGameOver(0, { message: botEndingMessage(next.winner), vsBot: vsBot.level })
@@ -245,6 +291,7 @@ function start(k: KAPLAYCtx, context: GameContext): () => void {
         offering = true
         // El cartel de la máquina va al medio: el de controles le deja lugar.
         devices.help.hide()
+        analytics.track('fight_bot_offer', {})
         overlay.offerBot(startBotMatch)
       }
     } else if (offering) {
@@ -253,8 +300,10 @@ function start(k: KAPLAYCtx, context: GameContext): () => void {
     }
 
     const advanced = session.tick(pressed[0] | devices.primary())
-    const state = session.snapshot().state
+    const snapshot = session.snapshot()
+    const state = snapshot.state
     if (!state) return
+    if (advanced && snapshot.previous) sounds.update(snapshot.previous, state)
 
     // La cámara sólo se mueve cuando la simulación se movió: si siguiera
     // suavizando mientras la partida está trabada esperando al rival, parecería
@@ -304,11 +353,19 @@ function start(k: KAPLAYCtx, context: GameContext): () => void {
   let disposed = false
   if (session) {
     void currentFightToken().then((token) => {
-      if (!disposed && mode === 'online') session.start(token, eventGameIdFrom(context.config))
+      if (!disposed && mode === 'online') {
+        analytics.track('fight_queue', { ranked: eventGameIdFrom(context.config) !== undefined, logged_in: token !== undefined })
+        session.start(token, eventGameIdFrom(context.config))
+      }
     })
   }
 
   return () => {
+    // Se fue en el medio (cerró, salió con Esc, cambió de página).
+    if (!ended && (mode === 'bot' || namesAsked)) analytics.track('fight_quit', { vs: mode === 'bot' ? 'bot' : 'human' })
+    if (!ended && mode === 'online' && !namesAsked) {
+      analytics.track('fight_queue_leave', { wait_seconds: Math.round(queuedTicks / TICKS_PER_SECOND) })
+    }
     disposed = true
     clock.stop()
     unlisten()

@@ -2,6 +2,7 @@ import type { Input } from '../../fight/sim/input'
 import { createGamepadInput } from './fightGamepad'
 import { createControlsHelp, isTouchScreen, type ControlScheme, type ControlsHelp } from './fightHelp'
 import { createTouchControls } from './fightTouch'
+import { analytics } from '../../infrastructure/analytics'
 
 /**
  * Todo lo que no es teclado, junto: los controles táctiles, los mandos y el
@@ -28,11 +29,15 @@ export function createFightDevices(mount: HTMLElement): FightDevices {
     help.setScheme(count > 0 ? 'gamepad' : fallback())
     // Que se vea que lo reconoció, y cómo se juega con él.
     if (count > 0) help.show(4500)
+    analytics.track(count > 0 ? 'gamepad_connected' : 'gamepad_disconnected', { count })
   })
   if (pads.count() > 0) {
     touch.setHidden(true)
     help.setScheme('gamepad')
   }
+
+  // Con qué se juega: teclado, dedos o mando.
+  analytics.track('fight_controls', { scheme: pads.count() > 0 ? 'gamepad' : fallback() })
 
   // Arranca abierto: la vista decide cuándo se cierra (cuando empieza la pelea).
   help.show()

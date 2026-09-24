@@ -19,6 +19,10 @@ import { useOpenRound } from '../providers/OrderRoundProvider'
 import { PageSpinner } from '../components/ProtectedRoute'
 import { useAsync } from '../hooks/useAsync'
 import { useAction } from '../hooks/useAction'
+import { analytics, type AnalyticsItem } from '../../infrastructure/analytics'
+
+/** Los combos se venden en pesos. */
+const CURRENCY = 'ARS'
 
 const dateFormat = new Intl.DateTimeFormat('es-AR', { dateStyle: 'short' })
 
@@ -66,6 +70,8 @@ function JoinForm({ round, onJoined }: { round: OrderRound; onJoined: () => void
 
   const join = useAction(async () => {
     await orders.joinRound(code)
+    // El código no se manda: es la llave de la camada.
+    analytics.track('order_round_join', { round: round.name || round.id })
     onJoined()
   })
 
@@ -126,6 +132,20 @@ function OrderBuilder({ round, onOrderChanged }: { round: OrderRound; onOrderCha
     setNotes(mine.data.notes)
   }, [mine.data])
 
+  // Vio los combos: `view_item_list` es el primer paso del embudo de compra en GA.
+  useEffect(() => {
+    if (!catalog.data || catalog.data.length === 0) return
+    analytics.track('view_item_list', {
+      item_list_name: 'Combos',
+      items: catalog.data.map((product, index) => ({
+        item_id: product.id,
+        item_name: product.name,
+        price: product.price,
+        index,
+      })),
+    })
+  }, [catalog.data])
+
   const lines = useMemo<OrderDraftLine[]>(
     () =>
       Object.entries(quantities)
@@ -142,7 +162,26 @@ function OrderBuilder({ round, onOrderChanged }: { round: OrderRound; onOrderCha
   const total = subtotal + (quote?.fee ?? 0)
 
   const place = useAction(async () => {
+    const editing = current !== null
     const order = await orders.placeOrder(lines, notes)
+    // Los eventos de comercio de GA: con `purchase` salen los ingresos, los
+    // combos más pedidos y el ticket promedio. Editar un pedido que ya estaba
+    // no es otra compra.
+    analytics.track(editing ? 'order_update' : 'purchase', {
+      transaction_id: order.id,
+      value: order.total,
+      shipping: order.deliveryFee,
+      currency: CURRENCY,
+      delivery_inside: order.deliveryInside ?? undefined,
+      items: order.items.map(
+        (item): AnalyticsItem => ({
+          item_id: item.productId ?? item.name,
+          item_name: item.name,
+          price: item.unitPrice,
+          quantity: item.quantity,
+        }),
+      ),
+    })
     mine.setData(order)
     setSaved(true)
     onOrderChanged()
@@ -150,6 +189,7 @@ function OrderBuilder({ round, onOrderChanged }: { round: OrderRound; onOrderCha
 
   const cancel = useAction(async () => {
     const order = await orders.cancelMyOrder()
+    analytics.track('order_cancel', { transaction_id: order.id, value: order.total, currency: CURRENCY })
     mine.setData(order)
     setQuantities({})
     setNotes('')
@@ -159,6 +199,16 @@ function OrderBuilder({ round, onOrderChanged }: { round: OrderRound; onOrderCha
 
   const setQuantity = (productId: string, quantity: number) => {
     setSaved(false)
+    const next = Math.max(0, Math.min(MAX_ITEM_QUANTITY, quantity))
+    const delta = next - (quantities[productId] ?? 0)
+    const product = (catalog.data ?? []).find((item) => item.id === productId)
+    if (delta !== 0 && product) {
+      analytics.track(delta > 0 ? 'add_to_cart' : 'remove_from_cart', {
+        currency: CURRENCY,
+        value: product.price * Math.abs(delta),
+        items: [{ item_id: product.id, item_name: product.name, price: product.price, quantity: Math.abs(delta) }],
+      })
+    }
     setQuantities((current) => ({
       ...current,
       [productId]: Math.max(0, Math.min(MAX_ITEM_QUANTITY, quantity)),

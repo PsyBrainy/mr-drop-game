@@ -4,6 +4,7 @@ import { useAuth } from '../providers/AuthProvider'
 import { useContainer, useRepositories } from '../providers/ContainerProvider'
 import { useAsync } from '../hooks/useAsync'
 import { useAction } from '../hooks/useAction'
+import { analytics } from '../../infrastructure/analytics'
 import { EventStatusBadge } from '../components/EventStatusBadge'
 import { AddressPicker } from '../components/AddressPicker'
 
@@ -21,6 +22,7 @@ export function AccountPage() {
 
   const save = useAction(async () => {
     await auth.updateDisplayName(displayName)
+    analytics.track('profile_update', { field: 'display_name' })
     await refresh()
     setSaved(true)
   })

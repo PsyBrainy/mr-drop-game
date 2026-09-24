@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { BOT_LEVEL_ORDER } from '../../../fight/bot/bot'
-import { BOT_NAME, botDisplayName, botEndingMessage, botLevelFromConfig, endingMessage, eventGameIdFrom } from '../fightOnline'
+import { BOT_NAME, botDisplayName, botEndingMessage, botLevelFromConfig, endingMessage, eventGameIdFrom, fightResult } from '../fightOnline'
 
 /**
  * El final importa tanto como la pelea: no es lo mismo perder que quedarse sin
@@ -79,5 +79,16 @@ describe('desde qué concurso se pelea', () => {
     expect(eventGameIdFrom({})).toBeUndefined()
     expect(eventGameIdFrom({ eventGameId: '' })).toBeUndefined()
     expect(eventGameIdFrom({ eventGameId: 7 })).toBeUndefined()
+  })
+})
+
+describe('el resultado para Analytics', () => {
+  it('desde el lugar de cada uno', () => {
+    expect(fightResult('result', 0, 0)).toBe('win')
+    expect(fightResult('result', 0, 1)).toBe('lose')
+    expect(fightResult('result', null, 1)).toBe('draw')
+    expect(fightResult('forfeit', 1, 1)).toBe('win_rival_left')
+    expect(fightResult('forfeit', 1, 0)).toBe('lose_left')
+    expect(fightResult('desync', null, 0)).toBe('desync')
   })
 })

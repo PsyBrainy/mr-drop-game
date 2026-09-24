@@ -5,6 +5,7 @@ import { useContainer, useRepositories } from '../providers/ContainerProvider'
 import { useConfirm } from '../providers/ConfirmProvider'
 import { useAsync } from '../hooks/useAsync'
 import { useAction } from '../hooks/useAction'
+import { analytics } from '../../infrastructure/analytics'
 import { LazyAddressPickerMap } from './map/lazy'
 
 type Resolved =
@@ -77,12 +78,15 @@ export function AddressPicker({
   const save = useAction(async () => {
     if (!point) return
     const result = await addresses.saveMine({ ...point, label })
+    // Sólo que la guardó: la dirección no se manda nunca.
+    analytics.track('address_saved', {})
     current.setData(result)
     setSaved(true)
   })
 
   const remove = useAction(async () => {
     await addresses.deleteMine()
+    analytics.track('address_deleted', {})
     current.setData(null)
     setPoint(null)
     setLabel('')

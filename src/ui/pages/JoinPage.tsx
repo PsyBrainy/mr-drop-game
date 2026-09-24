@@ -4,6 +4,7 @@ import { AccessCode } from '../../domain/access/AccessCode'
 import { useAuth } from '../providers/AuthProvider'
 import { useUseCases } from '../providers/ContainerProvider'
 import { useAction } from '../hooks/useAction'
+import { analytics } from '../../infrastructure/analytics'
 import { pendingCode } from '../lib/pendingCode'
 
 /**
@@ -22,7 +23,16 @@ export function JoinPage() {
   const [autoTried, setAutoTried] = useState(false)
 
   const redeem = useAction(async (raw: string) => {
-    const result = await redeemAccessCode.execute(raw)
+    let result: Awaited<ReturnType<typeof redeemAccessCode.execute>>
+    try {
+      result = await redeemAccessCode.execute(raw)
+    } catch (error) {
+      // El código nunca se manda: es la llave de entrada al concurso.
+      analytics.track('code_redeem_failed', { reason: error instanceof Error ? error.message : 'error' })
+      throw error
+    }
+    // `join_group` es el evento de GA para "se sumó a un grupo".
+    analytics.track('join_group', { group_id: result.eventSlug, already_joined: result.alreadyJoined })
     pendingCode.clear()
     navigate(`/concurso/${result.eventSlug}`, {
       replace: true,
