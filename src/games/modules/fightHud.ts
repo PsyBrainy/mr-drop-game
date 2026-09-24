@@ -66,6 +66,16 @@ export interface FightHud {
   setNames(names: readonly [string, string]): void
   /** Marca cuál es el jugador local (online): su nombre lleva "vos". */
   setLocal(index: PlayerIndex | null): void
+  /**
+   * Marca a quién maneja la máquina. Se tiene que ver siempre: nadie puede creer
+   * que le ganó (o le perdió) a una persona cuando era el bot.
+   */
+  setBot(index: PlayerIndex | null): void
+  /**
+   * Muestra el cartel de "no hay rivales" con el botón para pelear contra la
+   * máquina. `null` lo saca. Es lo único del HUD que se puede tocar.
+   */
+  offerBot(onAccept: (() => void) | null): void
   update(panels: readonly [PlayerPanel, PlayerPanel]): void
   setStatus(text: string | null): void
   placeTags(anchors: readonly [TagAnchor, TagAnchor]): void
@@ -98,11 +108,13 @@ export function createFightHud(mount: HTMLElement, view: { width: number; height
   mount.appendChild(root)
 
   const top = el('div', 'fight-hud__top', root)
+  const badges: HTMLSpanElement[] = []
   const panels = ([0, 1] as const).map((index) => {
     const panelRoot = el('div', `fight-panel fight-panel--p${index + 1}`, top)
     const head = el('div', 'fight-panel__head', panelRoot)
     const badge = el('span', 'fight-panel__badge', head)
     badge.textContent = `P${index + 1}`
+    badges[index] = badge
     const name = el('span', 'fight-panel__name', head)
     const hearts = el('div', 'fight-panel__hearts', head)
     const barRow = el('div', 'fight-panel__bar-row', panelRoot)
@@ -125,6 +137,24 @@ export function createFightHud(mount: HTMLElement, view: { width: number; height
   })
 
   let local: PlayerIndex | null = null
+  let bot: PlayerIndex | null = null
+
+  // El cartel de "no hay rivales". Vive en el medio de la pantalla.
+  const offer = el('div', 'fight-offer', root)
+  offer.hidden = true
+  const offerText = el('p', 'fight-offer__text', offer)
+  offerText.textContent = 'No encontramos a nadie para pelear todavía.'
+  const offerHint = el('p', 'fight-offer__hint', offer)
+  offerHint.textContent = 'Seguimos buscando. Mientras tanto, podés pelear contra la máquina.'
+  const offerButton = el('button', 'fight-offer__btn', offer)
+  offerButton.setAttribute('type', 'button')
+  offerButton.textContent = 'Pelear contra la máquina'
+  let onOffer: (() => void) | null = null
+  const acceptOffer = (event: Event): void => {
+    event.preventDefault()
+    onOffer?.()
+  }
+  offerButton.addEventListener('click', acceptOffer)
   let names: readonly [string, string] = ['Jugador 1', 'Jugador 2']
 
   const paintNames = (): void => {
@@ -135,6 +165,9 @@ export function createFightHud(mount: HTMLElement, view: { width: number; height
       tag.textContent = names[index]
       tag.classList.toggle('is-local', local === index)
       panel.root.classList.toggle('is-local', local === index)
+      tag.classList.toggle('is-bot', bot === index)
+      panel.root.classList.toggle('is-bot', bot === index)
+      badges[index]!.textContent = bot === index ? 'BOT' : `P${index + 1}`
     })
   }
   paintNames()
@@ -182,6 +215,14 @@ export function createFightHud(mount: HTMLElement, view: { width: number; height
       local = index
       paintNames()
     },
+    setBot(index) {
+      bot = index
+      paintNames()
+    },
+    offerBot(accept) {
+      onOffer = accept
+      offer.hidden = accept === null
+    },
     update(data) {
       paintPanel(panels[0]!, data[0])
       paintPanel(panels[1]!, data[1])
@@ -205,6 +246,7 @@ export function createFightHud(mount: HTMLElement, view: { width: number; height
       })
     },
     destroy() {
+      offerButton.removeEventListener('click', acceptOffer)
       root.remove()
     },
   }

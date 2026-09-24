@@ -105,6 +105,8 @@ src/fight/
     protocol.fixtures.json ✓ el mismo archivo commiteado en psy-ws; los dos lo verifican
     port.ts     ✓ interface Transport
     session.ts  ✓ delay-based: retrasa el input propio y se frena si falta el del rival
+  bot/
+    bot.ts      ✓ el rival de la máquina: input a partir del estado, con semilla. Fuera de la sim
   replay/
     format.ts   ✓ log de inputs serializable + re-simulación y traza
 

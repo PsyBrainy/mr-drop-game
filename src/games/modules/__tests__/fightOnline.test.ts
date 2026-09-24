@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { endingMessage } from '../fightOnline'
+import { BOT_NAME, botEndingMessage, endingMessage } from '../fightOnline'
 
 /**
  * El final importa tanto como la pelea: no es lo mismo perder que quedarse sin
@@ -29,5 +29,19 @@ describe('el cartel del final', () => {
     // que valga. Decir "perdiste" sería mentir.
     expect(endingMessage('desync', null, 0)).toContain('dejaron de coincidir')
     expect(endingMessage('disagreement', null, 0)).toContain('no cuenta')
+  })
+})
+
+describe('la pelea contra el bot', () => {
+  it('el cartel del final dice que fue contra la máquina, ganes o pierdas', () => {
+    // Nadie tiene que irse creyendo que le ganó a una persona.
+    expect(botEndingMessage(0)).toContain('máquina')
+    expect(botEndingMessage(1)).toContain('máquina')
+    expect(botEndingMessage(null)).toContain('máquina')
+    expect(botEndingMessage(0)).not.toBe(botEndingMessage(1))
+  })
+
+  it('el bot tiene nombre de bot', () => {
+    expect(BOT_NAME.toLowerCase()).toContain('bot')
   })
 })

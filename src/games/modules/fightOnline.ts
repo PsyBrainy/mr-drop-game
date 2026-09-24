@@ -11,7 +11,9 @@ import { startFixedClock } from '../../fight/clock'
 import { OSO } from '../../fight/data/characters/oso'
 import { SMALL_STAGE } from '../../fight/data/stage'
 import { NONE, type Input } from '../../fight/sim/input'
-import { TICKS_PER_SECOND } from '../../fight/sim/tick'
+import { step, TICKS_PER_SECOND } from '../../fight/sim/tick'
+import { initialState, type MatchState } from '../../fight/sim/state'
+import { botStep, createBot, type Bot } from '../../fight/bot/bot'
 import { DEFAULT_RULES, type World } from '../../fight/sim/world'
 import { NetSession, type SessionPhase } from '../../fight/net/session'
 import type { Slot } from '../../fight/net/protocol'
@@ -46,6 +48,22 @@ const PHASE_LABELS: Record<SessionPhase, string> = {
   playing: 'Peleando',
   stalled: 'Esperando al rival…',
   ended: 'Terminó',
+}
+
+/**
+ * Después de tanto tiempo en la cola sin rival, se ofrece pelear contra la
+ * máquina. Se ofrece y no se impone: la cola sigue buscando mientras tanto, y
+ * nadie termina contra un bot sin haberlo elegido.
+ */
+export const BOT_OFFER_SECONDS = 10
+
+/** El nombre del rival de la máquina. El HUD le agrega la marca BOT al lado. */
+export const BOT_NAME = 'Rasta Bot'
+
+/** Qué decir al terminar contra el bot: que quede claro que no fue contra una persona. */
+export function botEndingMessage(winner: 0 | 1 | null): string {
+  if (winner === null) return 'Empate contra la máquina'
+  return winner === 0 ? '¡Le ganaste a la máquina!' : 'Te ganó la máquina'
 }
 
 /** Después de tantos frames trabado, se avisa: medio segundo ya se nota. */
@@ -86,14 +104,26 @@ function start(k: KAPLAYCtx, context: GameContext): () => void {
   const transport = createWebSocketTransport(fightServerUrl)
   let ended = false
 
+  // Online contra una persona, o local contra el bot cuando no apareció nadie.
+  // Pasar al bot corta la sesión de red: desde ahí la pelea es de este
+  // navegador solo, no viaja al servidor y no cuenta para nada.
+  let mode: 'online' | 'bot' = 'online'
+  let queuedTicks = 0
+  let offering = false
+  let vsBot: { state: MatchState; previous: MatchState; bot: Bot } | null = null
+
   const session = new NetSession(transport, world, {
-    onPhase: () => hud(),
+    onPhase: () => {
+      if (mode === 'online') hud()
+    },
     onEnd: (reason, winner) => {
+      if (mode === 'bot') return
       ended = true
       hud()
       context.onGameOver(0, { message: endingMessage(reason, winner, session.snapshot().slot) })
     },
     onError: (code, message) => {
+      if (mode === 'bot') return
       ended = true
       overlay.setStatus(code)
       context.onGameOver(0, { message })
@@ -123,8 +153,64 @@ function start(k: KAPLAYCtx, context: GameContext): () => void {
     overlay.update([panelOf(state.fighters[0], world.rules), panelOf(state.fighters[1], world.rules)])
   }
 
+  const startBotMatch = (): void => {
+    if (mode === 'bot') return
+    mode = 'bot'
+    offering = false
+    overlay.offerBot(null)
+    overlay.setStatus(null)
+    session.dispose()
+
+    const seed = (Math.random() * 0x7fffffff) | 0
+    const state = initialState(world, seed)
+    vsBot = { state, previous: state, bot: createBot(seed, 'normal') }
+    camera = initialCamera(world, VIEW)
+    previousCamera = camera
+
+    // El jugador siempre es el 0 contra el bot, y el bot se marca como tal.
+    overlay.setLocal(0)
+    overlay.setBot(1)
+    overlay.setNames(['…', BOT_NAME])
+    void myFightName().then((mine) => overlay.setNames([mine, BOT_NAME]))
+    overlay.update([panelOf(state.fighters[0], world.rules), panelOf(state.fighters[1], world.rules)])
+  }
+
+  const tickBot = (): void => {
+    if (!vsBot || ended) return
+    const decided = botStep(vsBot.bot, vsBot.state, 1, world)
+    const next = step(vsBot.state, [pressed[0] | touch.mask(), decided.input], world)
+    vsBot = { state: next, previous: vsBot.state, bot: decided.bot }
+
+    previousCamera = camera
+    camera = approachCamera(camera, targetCamera(next, world, VIEW))
+    overlay.update([panelOf(next.fighters[0], world.rules), panelOf(next.fighters[1], world.rules)])
+
+    if (next.over) {
+      ended = true
+      context.onGameOver(0, { message: botEndingMessage(next.winner) })
+    }
+  }
+
   const clock = startFixedClock(() => {
     if (ended) return
+    if (mode === 'bot') {
+      tickBot()
+      return
+    }
+
+    // En la cola: pasado un rato sin rival, se ofrece el bot. Si aparece
+    // alguien, el cartel se va solo.
+    const phase = session.snapshot().phase
+    if (phase === 'queued') {
+      queuedTicks += 1
+      if (!offering && queuedTicks >= BOT_OFFER_SECONDS * TICKS_PER_SECOND) {
+        offering = true
+        overlay.offerBot(startBotMatch)
+      }
+    } else if (offering) {
+      offering = false
+      overlay.offerBot(null)
+    }
 
     const advanced = session.tick(pressed[0] | touch.mask())
     const state = session.snapshot().state
@@ -141,6 +227,18 @@ function start(k: KAPLAYCtx, context: GameContext): () => void {
   }, TICKS_PER_SECOND)
 
   k.onDraw(() => {
+    if (mode === 'bot' && vsBot) {
+      const alpha = Math.min(1, clock.alpha())
+      const shown: Camera = {
+        x: previousCamera.x + (camera.x - previousCamera.x) * alpha,
+        y: previousCamera.y + (camera.y - previousCamera.y) * alpha,
+        scale: previousCamera.scale + (camera.scale - previousCamera.scale) * alpha,
+      }
+      drawMatch(k, shown, vsBot.state, vsBot.previous, alpha)
+      overlay.placeTags(tagAnchors(shown, vsBot.state, vsBot.previous, alpha))
+      return
+    }
+
     const snapshot = session.snapshot()
     const state = snapshot.state
     if (!state) return
@@ -163,7 +261,7 @@ function start(k: KAPLAYCtx, context: GameContext): () => void {
   // no, contesta AUTH_REQUIRED y el HUD lo muestra.
   let disposed = false
   void currentFightToken().then((token) => {
-    if (!disposed) session.start(token)
+    if (!disposed && mode === 'online') session.start(token)
   })
 
   return () => {
