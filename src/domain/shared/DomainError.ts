@@ -28,6 +28,14 @@ export type DomainErrorCode =
   | 'ORDER_EMPTY'
   | 'ORDER_DELIVERED'
   | 'PRODUCT_UNAVAILABLE'
+  | 'COURIER_REQUIRED'
+  | 'NOT_ON_SHIFT'
+  | 'ORDER_NOT_FOUND'
+  | 'ROUND_STILL_OPEN'
+  | 'ORDER_TAKEN'
+  | 'TRANSITION_INVALID'
+  | 'NOT_A_COURIER'
+  | 'POSITION_INVALID'
   | 'UNEXPECTED'
 
 const MESSAGES: Record<DomainErrorCode, string> = {
@@ -49,6 +57,14 @@ const MESSAGES: Record<DomainErrorCode, string> = {
   ORDER_EMPTY: 'Elegí al menos un combo para hacer el pedido.',
   ORDER_DELIVERED: 'Ese pedido ya fue entregado y no se puede cambiar.',
   PRODUCT_UNAVAILABLE: 'Uno de los combos ya no está disponible. Revisá tu pedido.',
+  COURIER_REQUIRED: 'Esto es solo para repartidores.',
+  NOT_ON_SHIFT: 'Arrancá el turno antes de tomar o mover pedidos.',
+  ORDER_NOT_FOUND: 'No encontramos ese pedido.',
+  ROUND_STILL_OPEN: 'La camada sigue abierta: los pedidos se reparten cuando se cierra.',
+  ORDER_TAKEN: 'Ese pedido ya lo tomó otro repartidor.',
+  TRANSITION_INVALID: 'Ese pedido no puede pasar a ese estado.',
+  NOT_A_COURIER: 'Esa persona no es repartidor.',
+  POSITION_INVALID: 'La ubicación que llegó no es válida.',
   UNEXPECTED: 'Algo salió mal. Probá de nuevo en un momento.',
 }
 

@@ -10,7 +10,8 @@
     "lint": "tsc -b --noEmit",
     "test": "vitest run",
     "test:watch": "vitest",
-    "dev:host": "vite --host"
+    "dev:host": "vite --host",
+    "test:db": "scripts/db-test.sh"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.116.0",

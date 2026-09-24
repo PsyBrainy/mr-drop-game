@@ -12,7 +12,7 @@ import type { OrderRoundRow, OrderRow } from './rows'
 
 const ROUND_COLUMNS = 'id, name, status, opened_at, closed_at'
 const ORDER_COLUMNS =
-  'id, round_id, user_id, status, notes, total, delivery_fee, delivery_inside, lat, lng, address_label, created_at, delivered_at, order_items (product_id, name, unit_price, quantity)'
+  'id, round_id, user_id, status, notes, total, delivery_fee, delivery_inside, lat, lng, address_label, courier_id, created_at, delivered_at, order_items (product_id, name, unit_price, quantity)'
 
 export class SupabaseOrderRepository implements OrderRepository {
   async getOpenRound(): Promise<OrderRound | null> {
@@ -142,11 +142,9 @@ export class SupabaseOrderRepository implements OrderRepository {
   async setStatus(orderId: string, status: OrderStatus): Promise<void> {
     const { error } = await getSupabase()
       .from('orders')
-      .update({
-        status,
-        delivered_at: status === 'delivered' ? new Date().toISOString() : null,
-        updated_at: new Date().toISOString(),
-      })
+      // delivered_at, courier_id y el historial los resuelve el trigger de
+      // 0013 a partir del estado: acá solo se manda el estado.
+      .update({ status, updated_at: new Date().toISOString() })
       .eq('id', orderId)
     if (error) throw translateError(error)
   }

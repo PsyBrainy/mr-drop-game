@@ -3,6 +3,7 @@ import { Leaf, Truck, ArrowLeft } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import type { OrderWithProfile } from '../../../application/ports/OrderRepository'
 import { isRoundOpen, ORDER_STATUS_LABEL, type OrderRound, type OrderStatus } from '../../../domain/order/Order'
+import { isAwaitingDelivery } from '../../../domain/order/OrderFlow'
 import { formatPrice } from '../../../domain/order/Product'
 import { wazeNavigationUrl } from '../../../domain/user/UserAddress'
 import { useRepositories } from '../../providers/ContainerProvider'
@@ -264,7 +265,9 @@ function RoundOrders({ round, onDeleted }: { round: OrderRound; onDeleted: () =>
 
   const everything = list.data ?? []
   const all = useMemo(() => everything.filter((order) => order.status !== 'cancelled'), [everything])
-  const pending = all.filter((order) => order.status === 'pending')
+  // "Pendientes" es todo lo que todavía hay que resolver: sin salir, en camino,
+  // o que no se pudo entregar y espera que el admin decida.
+  const pending = all.filter((order) => needsDelivery(order.status))
   const delivered = all.filter((order) => order.status === 'delivered')
   const cancelled = everything.filter((order) => order.status === 'cancelled')
   const visible =
@@ -397,7 +400,7 @@ function OrderCard({
           <Avatar displayName={order.displayName} avatarUrl={order.avatarUrl} />
           <strong>{order.displayName}</strong>
         </div>
-        <span className={`badge ${order.status === 'pending' ? 'badge--live' : 'badge--closed'}`}>
+        <span className={`badge ${isAwaitingDelivery(order.status) ? 'badge--live' : 'badge--closed'}`}>
           {ORDER_STATUS_LABEL[order.status]}
         </span>
         <span className="spacer" />
@@ -427,14 +430,14 @@ function OrderCard({
             Waze
           </a>
         )}
-        {order.status === 'pending' && (
+        {needsDelivery(order.status) && (
           <button type="button" className="btn btn--ghost btn--sm" disabled={busy} onClick={() => onStatus('delivered')}>
             Marcar entregado
           </button>
         )}
-        {(delivered || cancelled) && (
+        {(delivered || cancelled || order.status === 'failed') && (
           <button type="button" className="btn btn--ghost btn--sm" disabled={busy} onClick={() => onStatus('pending')}>
-            {delivered ? 'Volver a pendiente' : 'Reactivar'}
+            {delivered ? 'Volver a pendiente' : cancelled ? 'Reactivar' : 'Volver a la bolsa'}
           </button>
         )}
         <span className="spacer" />
@@ -449,4 +452,8 @@ function OrderCard({
       </div>
     </div>
   )
+}
+
+function needsDelivery(status: OrderStatus): boolean {
+  return isAwaitingDelivery(status) || status === 'failed'
 }

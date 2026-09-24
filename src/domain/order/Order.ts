@@ -1,7 +1,11 @@
 import type { Coordinates } from '../user/UserAddress'
 
 export type RoundStatus = 'open' | 'closed'
-export type OrderStatus = 'pending' | 'delivered' | 'cancelled'
+/**
+ * Los tres primeros los mueve el reparto (ver OrderFlow.ts); delivered y
+ * failed son cómo terminó; cancelled lo pone el usuario o el admin.
+ */
+export type OrderStatus = 'pending' | 'assigned' | 'on_the_way' | 'delivered' | 'failed' | 'cancelled'
 
 export interface OrderRound {
   readonly id: string
@@ -30,6 +34,8 @@ export interface Order extends Coordinates {
   /** null en pedidos anteriores al costo de envío. */
   readonly deliveryInside: boolean | null
   readonly addressLabel: string
+  /** Quién lo lleva. Solo en assigned / on_the_way (y queda en delivered / failed). */
+  readonly courierId: string | null
   readonly items: OrderItem[]
   readonly createdAt: Date
   readonly deliveredAt: Date | null
@@ -64,6 +70,9 @@ export function itemCount(order: Pick<Order, 'items'>): number {
 
 export const ORDER_STATUS_LABEL: Record<OrderStatus, string> = {
   pending: 'Pendiente',
+  assigned: 'Asignado',
+  on_the_way: 'En camino',
   delivered: 'Entregado',
+  failed: 'No entregado',
   cancelled: 'Cancelado',
 }

@@ -164,6 +164,7 @@ export const toOrder = (row: OrderRow): Order => ({
   lat: row.lat,
   lng: row.lng,
   addressLabel: row.address_label,
+  courierId: row.courier_id ?? null,
   items: (row.order_items ?? []).map(toOrderItem),
   createdAt: new Date(row.created_at),
   deliveredAt: toDate(row.delivered_at),

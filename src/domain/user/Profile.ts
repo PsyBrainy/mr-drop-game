@@ -1,4 +1,5 @@
-export type AppRole = 'player' | 'admin'
+/** courier: repartidor. Se asigna a mano desde el dashboard de Supabase, como admin. */
+export type AppRole = 'player' | 'admin' | 'courier'
 
 export interface Profile {
   readonly id: string
@@ -9,6 +10,10 @@ export interface Profile {
 
 export function isAdmin(profile: Profile | null): boolean {
   return profile?.role === 'admin'
+}
+
+export function isCourier(profile: Profile | null): boolean {
+  return profile?.role === 'courier'
 }
 
 export function initialsOf(profile: Profile): string {

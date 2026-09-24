@@ -1,0 +1,37 @@
+{
+  "$comment": "Contrato del reparto entre la base (mrdrop/supabase/migrations/0012 y 0013), el dominio web (OrderFlow.ts) y la app Android de repartidores. El mismo archivo va commiteado en los dos repos y los dos lo verifican. Al cambiar el flujo se edita en los dos lados, o no se cambia.",
+  "version": 1,
+  "statuses": ["pending", "assigned", "on_the_way", "delivered", "failed", "cancelled"],
+  "courierTransitions": [
+    { "from": "pending", "to": "assigned", "via": "claim_order" },
+    { "from": "assigned", "to": "on_the_way", "via": "courier_update_order" },
+    { "from": "assigned", "to": "pending", "via": "courier_update_order" },
+    { "from": "on_the_way", "to": "delivered", "via": "courier_update_order" },
+    { "from": "on_the_way", "to": "failed", "via": "courier_update_order" }
+  ],
+  "rpc": {
+    "start_shift": {},
+    "end_shift": {},
+    "report_position": {
+      "p_lat": "double",
+      "p_lng": "double",
+      "p_accuracy_m": "real?",
+      "p_heading_deg": "real?",
+      "p_speed_mps": "real?",
+      "p_recorded_at": "timestamptz?"
+    },
+    "claim_order": { "p_order_id": "uuid" },
+    "courier_update_order": { "p_order_id": "uuid", "p_status": "order_status" }
+  },
+  "errors": {
+    "AUTH_REQUIRED": "28000",
+    "COURIER_REQUIRED": "P0020",
+    "NOT_ON_SHIFT": "P0021",
+    "ORDER_NOT_FOUND": "P0022",
+    "ROUND_STILL_OPEN": "P0023",
+    "ORDER_TAKEN": "P0024",
+    "TRANSITION_INVALID": "P0025",
+    "NOT_A_COURIER": "P0026",
+    "POSITION_INVALID": "P0027"
+  }
+}

@@ -6,7 +6,7 @@ export interface ProfileRow {
   id: string
   display_name: string
   avatar_url: string | null
-  role: 'player' | 'admin'
+  role: 'player' | 'admin' | 'courier'
 }
 
 export interface EventRow {
@@ -118,12 +118,13 @@ export interface OrderRow {
   id: string
   round_id: string
   user_id: string
-  status: 'pending' | 'delivered' | 'cancelled'
+  status: 'pending' | 'assigned' | 'on_the_way' | 'delivered' | 'failed' | 'cancelled'
   notes: string
   total: number | string
   lat: number
   lng: number
   address_label: string
+  courier_id: string | null
   delivery_fee: number | string
   delivery_inside: boolean | null
   created_at: string

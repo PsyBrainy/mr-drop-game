@@ -9,8 +9,10 @@ Arquitectura hexagonal: `domain` (0 deps) → `application` (puertos + casos de 
 | `npm run dev` | Dev server (`dev:host` para probar desde el celular) |
 | `npm run lint` | Typecheck (`tsc -b --noEmit`) |
 | `npm test` | Vitest |
+| `npm run test:db` | Todas las migraciones + `supabase/tests/*.test.sql` en un Postgres 16 descartable (Docker, o `DB_TEST_URL`) |
 
-Antes de entregar cualquier cambio: `npm run lint && npm test`. Los dos, siempre.
+Antes de entregar cualquier cambio: `npm run lint && npm test`. Los dos, siempre. Si se tocó una
+migración, también `npm run test:db`.
 
 ## Convenciones que ya rigen el repo
 
@@ -27,7 +29,13 @@ Antes de entregar cualquier cambio: `npm run lint && npm test`. Los dos, siempre
 - **Las medidas de sprites se miden, no se estiman** (bounding box del alfa) y `assets.test.ts`
   las cruza contra el PNG real y contra el techo de VRAM de un celular.
 - **Migraciones a mano.** `supabase/migrations/NNNN_*.sql` numeradas en orden, se corren en el
-  SQL Editor. No hay CLI de Supabase en este flujo.
+  SQL Editor. No hay CLI de Supabase en este flujo. Idempotentes, y un valor nuevo de enum va en
+  su propia migración (el Editor corre todo en una transacción y Postgres no deja usar el valor
+  en la misma). `scripts/db-test.sh` corre cada una en su transacción, igual que el Editor.
+- **Una regla de la base se prueba en la base.** RLS y funciones `SECURITY DEFINER` se prueban
+  con un escenario en `supabase/tests/*.test.sql` que "es" cada actor
+  (`set request.jwt.claim.sub`) y verifica lo que le deja y lo que no. Un mock de Supabase en
+  Vitest no prueba RLS.
 
 ---
 
@@ -309,3 +317,92 @@ arquitectura, con un personaje:
   texto (el de "Mi cuenta" es el nombre de la persona). Los códigos de acceso y tokens se tapan
   de las URLs (`safePath`).
 
+
+---
+
+# Reparto (app de repartidores)
+
+La app Android de repartidores toma pedidos, cambia su estado y reporta la posición; el admin
+ve todo en el panel. Decisiones cerradas; si alguna se reabre, se actualiza esto en el mismo
+commit.
+
+```
+app repartidor ──WS──┐                  ┌──WS── panel admin (web)
+                     ▼                  ▼
+                psy-ws /ws/delivery  (relé en tiempo real)
+                     │  ▲
+   funciones SQL     │  │  LISTEN / NOTIFY delivery
+   COMO el usuario   ▼  │
+                Postgres (reglas: 0013)
+```
+
+- **La base decide; psy-ws reparte.** Las reglas son las funciones y el RLS de 0013. psy-ws las
+  llama haciéndose pasar por el usuario (`set local role authenticated` + el `sub` del token), así
+  que decide lo mismo que si la app hablara directo con la base. El módulo y sus reglas están en
+  `psy-ws/CLAUDE.md`, sección "Reparto".
+- **Nada de Supabase Realtime** (costo, y no atarse a Supabase). Los triggers hacen
+  `pg_notify('delivery', …)` con ids y estados, nunca direcciones; psy-ws escucha y avisa a quien
+  corresponda. 0013 además saca `orders` y `courier_presence` de la publicación de Realtime si
+  estaban.
+- **La app no usa la API de Supabase para el reparto**: sólo Supabase Auth para el login (el
+  token) y después todo por `/ws/delivery`. Lo único atado a Supabase es la identidad y dónde
+  vive Postgres.
+
+## La base decide, la app pide
+
+El repartidor **no tiene policy de update** sobre `orders`. Todo pasa por funciones de
+`0013_delivery_tracking.sql` que validan quién, qué y desde dónde:
+
+| Función | Quién | Qué |
+| --- | --- | --- |
+| `start_shift()` / `end_shift()` | repartidor | Turno. Cortarlo borra la posición |
+| `report_position(lat, lng, …)` | repartidor en turno | Última posición. Una más vieja que la guardada se ignora |
+| `claim_order(id)` | repartidor en turno | Toma de la bolsa. `for update`: dos no toman el mismo |
+| `courier_update_order(id, estado)` | el repartidor que lo tiene | Mueve según el contrato |
+| `assign_order(id, courier \| null)` | admin | Asigna, reasigna o devuelve a la bolsa |
+
+El admin sigue corrigiendo estados con update directo desde el panel. Lo que se deriva del
+estado (`delivered_at`, `status_changed_at`, soltar `courier_id` al volver a la bolsa) y el
+historial en `order_events` lo resuelven **triggers**, así ningún camino se olvida de hacerlo.
+
+## El flujo
+
+```
+pending ──claim_order / assign_order──> assigned ──> on_the_way ──> delivered
+   ▲                                       │                  └──> failed
+   └──────────── lo suelta ────────────────┘
+```
+
+- Se reparte **con la camada cerrada**. Mientras está abierta el usuario puede rearmar o
+  cancelar; la bolsa del repartidor está vacía y `claim_order` responde `ROUND_STILL_OPEN`.
+- El repartidor no cancela ni toca lo terminado. `failed` lo resuelve el admin (reasignar o
+  volver a la bolsa).
+- `assigned` y `on_the_way` exigen `courier_id` (check de la tabla, no de la app).
+
+**El contrato** es `src/domain/order/orderFlow.contract.json` (estados, transiciones, RPCs y
+códigos de error), commiteado también en la app. `OrderFlow.ts` es el espejo en el dominio.
+`courierFlow.test.ts` cruza contrato ↔ dominio ↔ migraciones (lee el bloque
+`-- contrato:inicio/fin` de 0013 y los `add value` del enum): cambiar uno solo rompe el test.
+
+## Ubicación
+
+- **Solo en turno.** `courier_presence` tiene un check: fuera de turno no hay lat/lng.
+- **Última posición, no recorrido.** `order_events` guarda dónde estaba el repartidor *al
+  cambiar el estado* (si reportó en los últimos 2 minutos), nada más.
+- El cliente no ve `order_events` ni `courier_presence`. Ver "tu pedido en camino" en un mapa
+  es una decisión aparte, no un efecto de agregar una policy.
+- Las posiciones van del celular a psy-ws, que las pasa al panel en vivo y las guarda en
+  `courier_presence` cada 30 s (no cada lectura de GPS: eso es lo caro).
+
+## Plan
+
+- **M0 ✓** — Esquema (0012 + 0013) con NOTIFY, dominio y contrato con tests, escenarios de RLS en
+  `supabase/tests/delivery.test.sql`, compatibilidad del panel con los estados nuevos. En
+  psy-ws, el módulo `delivery/` con `/ws/delivery`, la escucha de NOTIFY y el tablero de
+  posiciones; el cable está en `delivery-protocol.fixtures.json`.
+- **M1** — App sin GPS contra `/ws/delivery`: login, bolsa y mis pedidos, detalle, Waze, cambios
+  de estado. En la web: el panel se conecta a `/ws/delivery` (asignar, ver quién lleva cada
+  pedido) con su copia del fixture del protocolo.
+- **M2** — Seguimiento: foreground service de ubicación en la app, mapa en vivo en el panel
+  (psy-ws ya reparte las posiciones).
+- **M3** — "En camino" para el cliente, push al asignar, cola offline de cambios de estado.
