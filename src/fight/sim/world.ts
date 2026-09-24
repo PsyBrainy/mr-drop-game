@@ -26,10 +26,36 @@ export interface Platform {
   readonly bottom: Fx
 }
 
+/**
+ * Una plataforma flotante "blanda", como las de Brawlhalla: se atraviesa desde
+ * abajo y de costado, se aterriza desde arriba, y apretando abajo se la
+ * atraviesa hacia abajo. No tiene paredes: no se cuelga nadie de ella.
+ *
+ * Se mueve de ida y vuelta en línea recta: parte de su posición y llega a
+ * `travel` en medio `period`, y vuelve en el otro medio. El recorrido es una
+ * función del tick y nada más (ver `platforms.ts`): no guarda estado, así que no
+ * hay nada que se pueda desincronizar entre los dos peers.
+ */
+export interface SoftPlatform {
+  /** Borde izquierdo y altura del piso en el tick 0 (el punto de partida). */
+  readonly left: Fx
+  readonly top: Fx
+  readonly width: Fx
+  /** Cuánto se corre en la ida. (0, 0) es una plataforma quieta. */
+  readonly travelX: Fx
+  readonly travelY: Fx
+  /** Ticks de una ida y vuelta completa. Par, para que la mitad sea exacta. */
+  readonly period: number
+  /** Desfase en ticks: dos plataformas que no van al mismo compás. */
+  readonly phase: number
+}
+
 export interface Stage {
   readonly name: string
-  /** La plataforma principal. Las flotantes llegan cuando haya más de un escenario. */
+  /** La plataforma principal. */
   readonly ground: Platform
+  /** Las flotantes, arriba. Se revisan en este orden: el orden es parte del determinismo. */
+  readonly platforms: readonly SoftPlatform[]
   /** Fuera de esto, ring-out. */
   readonly blastLeft: Fx
   readonly blastRight: Fx

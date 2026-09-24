@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { DODGE, HEAVY, JUMP, LEFT, LIGHT, NONE, RIGHT } from '../../../fight/sim/input'
+import { DODGE, DOWN, HEAVY, JUMP, LEFT, LIGHT, NONE, RIGHT } from '../../../fight/sim/input'
 import { ACTION_BUTTONS, readStick, STICK_DEADZONE, STICK_JUMP } from '../fightTouch'
 
 /**
@@ -37,9 +37,13 @@ describe('el stick', () => {
     expect(STICK_JUMP).toBeGreaterThan(STICK_DEADZONE)
   })
 
-  it('para abajo no hace nada: la sim no lo usa', () => {
-    expect(readStick(0, 100, R).input).toBe(NONE)
-    expect(readStick(-60, 60, R).input).toBe(LEFT)
+  it('para abajo es bajarse de una flotante', () => {
+    expect(readStick(0, 100, R).input).toBe(DOWN)
+    expect(readStick(-70, 70, R).input).toBe(LEFT | DOWN)
+  })
+
+  it('caminar con el pulgar un poco torcido hacia abajo no te baja', () => {
+    expect(readStick(90, R * STICK_JUMP * 0.8, R).input).toBe(RIGHT)
   })
 
   it('la palanca no se sale del aro aunque el dedo sí', () => {

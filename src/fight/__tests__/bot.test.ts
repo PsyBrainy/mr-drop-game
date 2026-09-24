@@ -78,6 +78,27 @@ describe('el bot', () => {
     }
   })
 
+  it('si está en una flotante y el rival abajo, se baja a buscarlo', () => {
+    const platform = SMALL_STAGE.platforms[0]!
+    let state = withFighter(initialState(world, 1), 1, {
+      x: platform.left + platform.width / 2,
+      y: platform.top,
+      grounded: true,
+      platform: 0,
+    })
+    state = withFighter(state, 0, { x: platform.left + platform.width / 2 + fx(10) })
+    let bot = createBot(5)
+    let leftPlatform = false
+    for (let frame = 0; frame < TICKS_PER_SECOND * 3 && !leftPlatform; frame += 1) {
+      const decided = botStep(bot, state, 1, world)
+      bot = decided.bot
+      state = step(state, [NONE, decided.input], world)
+      if (state.fighters[1].platform === -1) leftPlatform = true
+    }
+    expect(leftPlatform).toBe(true)
+    expect(state.fighters[1].stocks).toBe(world.rules.stocks)
+  })
+
   it('con la misma semilla juega exactamente igual', () => {
     const a = play(initialState(world, 1), 600).inputs
     const b = play(initialState(world, 1), 600).inputs

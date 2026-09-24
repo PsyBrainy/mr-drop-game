@@ -78,6 +78,22 @@ export const PLATFORM = {
 } as const
 
 /**
+ * Las plataformas flotantes (las de `SMALL_STAGE.platforms`): una pasarela de
+ * chapa con una tira de luces rasta abajo. Un solo dibujo para todas: el ancho
+ * de la textura es el del piso más `insetX` de cada lado (los soportes), y
+ * `surfaceY` es la línea donde se pisa, en px de textura.
+ */
+export const SOFT_PLATFORM = {
+  key: 'fight-terraza-soft',
+  src: '/terraza_flotante_256x60.png',
+  width: 128,
+  height: 30,
+  textureScale: 2,
+  insetX: 4,
+  surfaceY: 6,
+} as const
+
+/**
  * El punto alrededor del cual gira el parallax: el encuadre de arranque. Con la
  * cámara ahí, todas las capas se ven como se dibujaron.
  */
@@ -98,4 +114,4 @@ export function layerCamera(camera: Camera, parallax: number): Camera {
   }
 }
 
-export const STAGE_SPRITES = [SKY, ...LAYERS, PLATFORM] as const
+export const STAGE_SPRITES = [SKY, ...LAYERS, PLATFORM, SOFT_PLATFORM] as const

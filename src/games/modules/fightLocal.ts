@@ -117,8 +117,8 @@ export default createKaplayGame({
   slug: 'fight-local',
   name: 'Pelea (local, 2 jugadores)',
   howToPlay:
-    'Jugador 1: A y D para moverse, W salto, F golpe rápido, G golpe fuerte, S esquive. ' +
-    'Jugador 2: flechas, arriba salto, coma golpe rápido, punto golpe fuerte, abajo esquive. ' +
+    'Jugador 1: A y D para moverse, W salto, F golpe rápido, G golpe fuerte, H esquive, S bajarse de una plataforma. ' +
+    'Jugador 2: flechas, arriba salto, abajo bajarse, coma golpe rápido, punto golpe fuerte, barra (/) esquive. ' +
     'Nadie tiene vida: el daño que acumulás hace que te manden más lejos, y se pierde una vida al salir de la pantalla. ' +
     'El fuerte mata pero tarda en salir; los rápidos acumulan. El esquive cubre unos frames y en el aire gasta un salto. ' +
     'Si llegás al costado de la plataforma te podés colgar y saltar desde ahí, pero se resbala y el agarre se gasta.',

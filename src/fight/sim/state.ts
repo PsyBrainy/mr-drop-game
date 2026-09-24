@@ -59,6 +59,18 @@ export interface Fighter {
   /** Frames que lleva en el estado actual. Los ataques de M2 lo van a usar como reloj. */
   readonly stateFrames: number
   readonly grounded: boolean
+  /**
+   * Sobre qué plataforma flotante está parado (su índice en `stage.platforms`),
+   * o -1 si está en el piso principal o en el aire. Lo necesita la física para
+   * llevarlo encima cuando la plataforma se mueve.
+   */
+  readonly platform: number
+  /**
+   * Frames en los que atraviesa las plataformas flotantes después de bajarse de
+   * una apretando abajo. Sin esto aterrizaría en la misma plataforma en el frame
+   * siguiente.
+   */
+  readonly dropThrough: number
   readonly airJumpsLeft: number
   readonly jumpBuffer: number
   /** Qué ataque está haciendo. `stateFrames` es su reloj. */
@@ -125,6 +137,8 @@ function spawnFighter(world: World, index: PlayerIndex): Fighter {
     state: 'idle',
     stateFrames: 0,
     grounded: true,
+    platform: -1,
+    dropThrough: 0,
     airJumpsLeft: tuning.airJumps,
     jumpBuffer: 0,
     attack: null,
@@ -163,6 +177,8 @@ export function respawn(draft: FighterDraft, world: World, index: PlayerIndex): 
   draft.state = 'idle'
   draft.stateFrames = 0
   draft.grounded = true
+  draft.platform = -1
+  draft.dropThrough = 0
   draft.airJumpsLeft = tuning.airJumps
   draft.jumpBuffer = 0
   draft.attack = null

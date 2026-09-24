@@ -36,6 +36,19 @@ export const SMALL_STAGE: Stage = {
   /** Arriba también mata, como en Brawlhalla: un golpe fuerte hacia el cielo es KO. */
   blastTop: fx(-400),
   blastBottom: fx(800),
+  /**
+   * Dos flotantes arriba, como en Brawlhalla. Su piso queda 90 px por encima del
+   * principal: más bajo que el apex de un salto (~100 px), así que se sube de un
+   * salto, pero lo justo como para que haya que apuntarle. Se mueven de lado a
+   * lado a contramano (una va cuando la otra vuelve): acercan y alejan los dos
+   * pisos de arriba, que es lo que cambia la pelea sin ser un sorteo. Una ida y
+   * vuelta cada 8 segundos es lo bastante lento como para pararse encima sin
+   * pensar en ella.
+   */
+  platforms: [
+    { left: fx(250), top: fx(330), width: fx(120), travelX: fx(70), travelY: 0, period: 480, phase: 0 },
+    { left: fx(590), top: fx(330), width: fx(120), travelX: fx(-70), travelY: 0, period: 480, phase: 0 },
+  ],
   spawns: [
     { x: fx(380), y: fx(420) },
     { x: fx(580), y: fx(420) },

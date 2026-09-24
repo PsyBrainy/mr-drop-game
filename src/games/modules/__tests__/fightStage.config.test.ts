@@ -6,7 +6,7 @@ import { SMALL_STAGE } from '../../../fight/data/stage'
 import { fx, toPixels } from '../../../fight/sim/fixed'
 import { initialState, type MatchState } from '../../../fight/sim/state'
 import { DEFAULT_RULES, type World } from '../../../fight/sim/world'
-import { LAYERS, layerCamera, PARALLAX_ANCHOR, PLATFORM, SKY, STAGE_SPRITES } from '../fightStage.config'
+import { LAYERS, layerCamera, PARALLAX_ANCHOR, PLATFORM, SKY, SOFT_PLATFORM, STAGE_SPRITES } from '../fightStage.config'
 import { VIEW } from '../fightView'
 
 /**
@@ -39,6 +39,21 @@ describe('la azotea coincide con el piso de la sim', () => {
     expect(PLATFORM.x).toBeLessThanOrEqual(toPixels(ground.left))
     expect(PLATFORM.x + PLATFORM.width).toBeGreaterThanOrEqual(toPixels(ground.right))
     expect(PLATFORM.y + PLATFORM.height).toBeGreaterThanOrEqual(toPixels(ground.bottom))
+  })
+})
+
+describe('las flotantes coinciden con las de la sim', () => {
+  it('el dibujo cubre el piso entero de cada flotante, con los soportes a los costados', () => {
+    for (const platform of SMALL_STAGE.platforms) {
+      expect(SOFT_PLATFORM.width).toBe(toPixels(platform.width) + SOFT_PLATFORM.insetX * 2)
+    }
+  })
+
+  it('la textura mide lo que dice el config, a 2x', () => {
+    expect(pngSize(SOFT_PLATFORM.src)).toEqual({
+      width: SOFT_PLATFORM.width * SOFT_PLATFORM.textureScale,
+      height: SOFT_PLATFORM.height * SOFT_PLATFORM.textureScale,
+    })
   })
 })
 

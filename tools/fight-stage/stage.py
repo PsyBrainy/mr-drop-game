@@ -390,9 +390,56 @@ def platform():
     return up(im, 2)
 
 
+# ------------------------------------------------------------------ plataforma flotante
+# Mundo: 120 px de piso. La textura suma 4 px de cada lado (los soportes) y
+# abajo la luz rasta que tira hacia el vacío. 2 px de textura por px de mundo.
+SOFT_W, SOFT_H, SOFT_INSET, SOFT_TOP = 128, 30, 4, 3
+
+
+def soft_platform():
+    W, H = SOFT_W, SOFT_H
+    im = Image.new('RGBA', (W, H), (0, 0, 0, 0))
+    d = ImageDraw.Draw(im)
+    x0, x1 = SOFT_INSET, W - SOFT_INSET - 1
+    top = SOFT_TOP
+    # halo de la tira de luz, abajo: bandas cada vez más transparentes
+    glow = Image.new('RGBA', (W, H), (0, 0, 0, 0))
+    g = ImageDraw.Draw(glow)
+    for i, a in enumerate((70, 45, 25, 12)):
+        y = top + 11 + i * 3
+        for k, col in enumerate((RED, YEL, GRN)):
+            seg0 = x0 + 6 + k * (x1 - x0 - 12) // 3
+            seg1 = x0 + 6 + (k + 1) * (x1 - x0 - 12) // 3
+            g.rectangle((seg0 + i * 2, y, seg1 - i * 2, y + 2), fill=col + (a,))
+    im = Image.alpha_composite(im, glow)
+    d = ImageDraw.Draw(im)
+    # cuerpo: una pasarela de chapa con borde de cemento, como la cornisa
+    d.rectangle((x0, top, x1, top + 8), fill=(70, 74, 92))
+    d.rectangle((x0, top, x1, top + 2), fill=(150, 146, 160))
+    d.line((x0, top, x1, top), fill=(206, 204, 214))
+    # rejilla
+    for x in range(x0 + 3, x1 - 2, 4):
+        d.line((x, top + 4, x + 2, top + 7), fill=(48, 50, 64))
+    # tira de LEDs rasta debajo
+    for k, col in enumerate((RED, YEL, GRN)):
+        seg0 = x0 + 6 + k * (x1 - x0 - 12) // 3
+        seg1 = x0 + 6 + (k + 1) * (x1 - x0 - 12) // 3
+        d.rectangle((seg0, top + 9, seg1 - 1, top + 10), fill=col)
+        for x in range(seg0 + 1, seg1 - 1, 3):
+            d.point((x, top + 9), fill=tuple(min(255, v + 70) for v in col))
+    # soportes / tornillos en las puntas
+    for x in (x0, x1 - 3):
+        d.rectangle((x, top - 1, x + 3, top + 9), fill=(110, 114, 130))
+        d.point((x + 1, top + 2), fill=(40, 40, 50))
+    # contorno
+    d.rectangle((x0 - 1, top - 1, x1 + 1, top + 11), outline=OUTLINE)
+    return up(im, 2)
+
+
 if __name__ == '__main__':
     sky().save(os.path.join(OUT, 'terraza_cielo_960x540.png'), optimize=True)
     far_layer().save(os.path.join(OUT, 'terraza_lejos_1400x460.png'), optimize=True)
     mid_layer().save(os.path.join(OUT, 'terraza_medio_1700x560.png'), optimize=True)
     platform().save(os.path.join(OUT, 'terraza_plataforma_1180x470.png'), optimize=True)
+    soft_platform().save(os.path.join(OUT, 'terraza_flotante_256x60.png'), optimize=True)
     print('ok')

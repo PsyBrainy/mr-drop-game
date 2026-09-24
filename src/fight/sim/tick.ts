@@ -11,7 +11,8 @@
  */
 
 import { isOver, type MoveKey } from './attack'
-import { axis, DODGE, HEAVY, JUMP, LIGHT, pressed, type Input } from './input'
+import { FX_ZERO } from './fixed'
+import { axis, DODGE, DOWN, HEAVY, held, JUMP, LIGHT, pressed, type Input } from './input'
 import {
   accelerate,
   applyGravity,
@@ -36,6 +37,13 @@ import type { FighterTuning, World } from './world'
 /** Ticks por segundo de la simulación. La vista dibuja a los FPS que dé el navegador. */
 export const TICKS_PER_SECOND = 60
 
+/**
+ * Frames que se atraviesan las flotantes después de bajarse de una. Alcanza para
+ * que los pies pasen el piso de la plataforma (cae 0,9 px/frame² desde quieto:
+ * en 10 frames ya bajó ~45 px) y no tanto como para atravesar además la de abajo.
+ */
+export const DROP_THROUGH_FRAMES = 10
+
 export function step(state: MatchState, inputs: readonly [Input, Input], world: World): MatchState {
   const draft = cloneState(state)
 
@@ -57,7 +65,7 @@ export function step(state: MatchState, inputs: readonly [Input, Input], world: 
 
   // 3. Física
   for (const index of PLAYERS) {
-    integrate(draft.fighters[index], world.tuning[index], world)
+    integrate(draft.fighters[index], world.tuning[index], world, draft.tick)
   }
 
   // 4 y 5. Las cajas de golpe salen del frame data y del reloj del ataque, así
@@ -93,6 +101,7 @@ function advanceTimers(draft: FighterDraft): void {
   if (draft.jumpBuffer > 0) draft.jumpBuffer -= 1
   if (draft.landLag > 0) draft.landLag -= 1
   if (draft.state === 'cling' && draft.clingLeft > 0) draft.clingLeft -= 1
+  if (draft.dropThrough > 0) draft.dropThrough -= 1
 }
 
 function applyInput(draft: FighterDraft, input: Input, tuning: FighterTuning): void {
@@ -142,6 +151,16 @@ function applyInput(draft: FighterDraft, input: Input, tuning: FighterTuning): v
       enter(draft, 'air')
       return
     }
+    return
+  }
+
+  // Abajo sobre una plataforma flotante: bajarse atravesándola.
+  if (held(input, DOWN) && draft.grounded && draft.platform >= 0) {
+    draft.grounded = false
+    draft.platform = -1
+    draft.dropThrough = DROP_THROUGH_FRAMES
+    draft.vy = FX_ZERO
+    enter(draft, 'air')
     return
   }
 
@@ -215,6 +234,7 @@ function jump(draft: FighterDraft, tuning: FighterTuning): void {
   if (draft.grounded) {
     draft.vy = tuning.jumpVelocity
     draft.grounded = false
+    draft.platform = -1
     draft.jumpBuffer = 0
     enter(draft, 'air')
     return
@@ -231,7 +251,7 @@ function jump(draft: FighterDraft, tuning: FighterTuning): void {
   draft.stateFrames = 0
 }
 
-function integrate(draft: FighterDraft, tuning: FighterTuning, world: World): void {
+function integrate(draft: FighterDraft, tuning: FighterTuning, world: World, tick: number): void {
   const wasAirborne = !draft.grounded
 
   if (draft.state === 'cling') {
@@ -241,7 +261,7 @@ function integrate(draft: FighterDraft, tuning: FighterTuning, world: World): vo
 
   decayKnockback(draft, tuning)
   applyGravity(draft, tuning)
-  const moved = moveAndCollide(draft, tuning, world.stage)
+  const moved = moveAndCollide(draft, tuning, world.stage, tick)
 
   if (draft.state === 'cling') {
     // Se sale de la pared por tiempo o porque se terminó el canto. Las dos

@@ -9,6 +9,7 @@
 
 import { fxAbs, fxApproach, fxClamp, FX_ZERO, type Fx } from './fixed'
 import type { FighterDraft } from './state'
+import { isOverPlatform, platformAt } from './platforms'
 import type { FighterTuning, Stage } from './world'
 
 /**
@@ -82,12 +83,39 @@ export function moveAndCollide(
   draft: FighterDraft,
   tuning: FighterTuning,
   stage: Stage,
+  tick: number,
 ): MoveResult {
+  if (!draft.grounded) draft.platform = -1
+
+  // Parado en una plataforma que se mueve: primero la plataforma lo lleva, y
+  // recién después se mueve él. Es lo que hace que quedarse quieto encima sea
+  // quedarse quieto respecto de la plataforma, no del mundo.
+  if (draft.grounded && draft.platform >= 0) {
+    const platform = stage.platforms[draft.platform]!
+    const before = platformAt(platform, tick)
+    const after = platformAt(platform, tick + 1)
+    draft.x += after.left - before.left
+    draft.y = after.top
+  }
+
   const previousY = draft.y
   const previousX = draft.x
 
   draft.x += draft.vx
   draft.y += draft.vy
+
+  if (draft.grounded && draft.platform >= 0) {
+    const span = platformAt(stage.platforms[draft.platform]!, tick + 1)
+    // Caminar de más por el borde de la plataforma: se cae, igual que del piso.
+    if (!isOverPlatform(draft.x, tuning.halfWidth, span)) {
+      draft.grounded = false
+      draft.platform = -1
+    } else {
+      draft.y = span.top
+      draft.vy = FX_ZERO
+    }
+    return { landed: false, wall: 0 }
+  }
 
   const overGround = isOverGround(draft.x, tuning, stage)
 
@@ -109,6 +137,27 @@ export function moveAndCollide(
     draft.airJumpsLeft = tuning.airJumps
     draft.clingLeft = tuning.wall.clingFrames
     return { landed: true, wall: 0 }
+  }
+
+  // Las flotantes: sólo cayendo, sólo cruzando el piso de arriba hacia abajo
+  // (por cruce, igual que el piso principal: a velocidad de caída no se las
+  // atraviesa por túnel), y no mientras se está bajando de una a propósito.
+  if (draft.vy >= 0 && draft.dropThrough === 0) {
+    for (let index = 0; index < stage.platforms.length; index += 1) {
+      const platform = stage.platforms[index]!
+      const before = platformAt(platform, tick)
+      const after = platformAt(platform, tick + 1)
+      const crossed = previousY <= before.top && draft.y >= after.top
+      if (crossed && isOverPlatform(draft.x, tuning.halfWidth, after)) {
+        draft.y = after.top
+        draft.vy = FX_ZERO
+        draft.grounded = true
+        draft.platform = index
+        draft.airJumpsLeft = tuning.airJumps
+        draft.clingLeft = tuning.wall.clingFrames
+        return { landed: true, wall: 0 }
+      }
+    }
   }
 
   return { landed: false, wall: hitWall(draft, tuning, stage, previousX) }

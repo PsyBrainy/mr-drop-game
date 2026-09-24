@@ -49,6 +49,6 @@ done
 # El escenario de la pelea (la terraza). Ya se genera con las medidas finales y
 # ninguna textura pasa de 1700 px, así que van tal cual.
 # Se regeneran con tools/fight-stage/stage.py.
-for capa in terraza_cielo_960x540 terraza_lejos_1400x460 terraza_medio_1700x560 terraza_plataforma_1180x470; do
+for capa in terraza_cielo_960x540 terraza_lejos_1400x460 terraza_medio_1700x560 terraza_plataforma_1180x470 terraza_flotante_256x60; do
   copy "$capa"
 done

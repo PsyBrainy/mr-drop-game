@@ -110,6 +110,7 @@ export function applyHit(hit: PendingHit, draft: MatchDraft): void {
   victim.vx = fxMul(move.knockback.x, factor) * attacker.facing
   victim.vy = fxMul(move.knockback.y, factor)
   victim.grounded = false
+  victim.platform = -1
   victim.state = 'hitstun'
   victim.stateFrames = 0
   victim.attack = null

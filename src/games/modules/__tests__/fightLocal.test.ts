@@ -8,7 +8,8 @@ import { initialState } from '../../../fight/sim/state'
 import { withFighter } from '../../../fight/__tests__/harness'
 import { DEFAULT_RULES, type World } from '../../../fight/sim/world'
 import { ART_SCALE, FEET_Y, FRAME_PX, ORIGIN_X, spriteKey } from '../fightSprites.config'
-import { LAYERS, PLATFORM, SKY } from '../fightStage.config'
+import { LAYERS, PLATFORM, SKY, SOFT_PLATFORM } from '../fightStage.config'
+import { platformAt } from '../../../fight/sim/platforms'
 
 /**
  * La vista no decide nada: dibuja el estado. Eso la hace verificable con un `k`
@@ -101,6 +102,22 @@ describe('la vista de la pelea', () => {
       SKY.key, ...LAYERS.map((layer) => layer.key), PLATFORM.key,
     ])
     expect(fighters(sprites)).toHaveLength(2)
+  })
+
+  it('dibuja las flotantes justo donde la sim dice que se pisa', () => {
+    const state = initialState(world, 1)
+    const { k, sprites } = stubKaplay()
+
+    drawMatch(k, FLAT, state, state, 0)
+
+    const floats = sprites.filter((sprite) => sprite.sprite === SOFT_PLATFORM.key)
+    expect(floats).toHaveLength(SMALL_STAGE.platforms.length)
+    for (const [index, sprite] of floats.entries()) {
+      const span = platformAt(SMALL_STAGE.platforms[index]!, state.tick)
+      // La línea que se pisa en el dibujo es el `top` de la sim.
+      expect(sprite.y + SOFT_PLATFORM.surfaceY / SOFT_PLATFORM.textureScale).toBe(toPixels(span.top))
+      expect(sprite.x + SOFT_PLATFORM.insetX).toBe(toPixels(span.left))
+    }
   })
 
   it('cada jugador tiene su piel', () => {

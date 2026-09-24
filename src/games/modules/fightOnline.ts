@@ -302,7 +302,7 @@ export default createKaplayGame({
   slug: 'fight-online',
   name: 'Pelea (online, 1v1)',
   howToPlay:
-    'A y D para moverte, W saltar, F golpe rápido, G golpe fuerte, S esquive. ' +
+    'A y D para moverte, W saltar, F golpe rápido, G golpe fuerte, H esquive, S bajarse de una plataforma. ' +
     'Nadie tiene vida: el daño que acumulás hace que te manden más lejos, y se pierde una vida al salir de la pantalla. ' +
     'Si llegás al costado de la plataforma te podés colgar y saltar desde ahí. ' +
     'Cuando aparezca "esperando al rival" la partida se frena hasta que llegue su jugada: nadie adivina nada.',

@@ -90,6 +90,7 @@ src/fight/
     world.ts    ✓ el contrato de escenario, personaje y reglas (las instancias van en data/)
     state.ts    ✓ MatchState / Fighter (datos planos, serializables)
     physics.ts  ✓ integración, fricción piso vs aire, piso por cruce, freno del empuje
+    platforms.ts ✓ dónde está cada flotante en cada tick (función pura del tick, sin estado)
     tick.ts     ✓ step(state, inputs, world) -> state. El orden de fases vive acá y sólo acá.
     hash.ts     ✓ checksum del estado, para detectar desync
     attack.ts   ✓ el contrato del frame data: fases, cajas, empuje, prioridad
@@ -138,8 +139,8 @@ resultado que valga: sólo se registra con `VITE_ENABLE_FIGHT_LOCAL=true` (en el
 aun así es `sandboxOnly`. Sin la variable no aparece ni en el sandbox.
 
 **Para probarlo:** con `VITE_ENABLE_FIGHT_LOCAL=true`, `npm run dev` y abrir `/sandbox?juego=fight-local`. Jugador 1 con
-`A`/`D`/`W` + `F` rápido, `G` fuerte, `S` esquive; jugador 2 con las flechas + `,` `.` y flecha
-abajo. Con `/sandbox?juego=fight-local&cajas` se dibujan las cajas de golpe mientras están
+`A`/`D`/`W`/`S` + `F` rápido, `G` fuerte, `H` esquive; jugador 2 con las flechas + `,` `.` `/`.
+Abajo (`S` / flecha abajo) es bajarse de una plataforma flotante. Con `/sandbox?juego=fight-local&cajas` se dibujan las cajas de golpe mientras están
 activas: es la forma de ver el frame data jugando. Sin `cajas` no se ven, como en el juego. El sandbox monta cualquier juego del registry sin Supabase, sin evento y sin código.
 
 Algo se ve raro ahí y es esperado: en una pestaña de fondo el canvas queda negro y el tick

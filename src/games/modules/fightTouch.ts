@@ -1,4 +1,4 @@
-import { DODGE, HEAVY, JUMP, LEFT, LIGHT, NONE, RIGHT, type Input } from '../../fight/sim/input'
+import { DODGE, DOWN, HEAVY, JUMP, LEFT, LIGHT, NONE, RIGHT, type Input } from '../../fight/sim/input'
 
 /**
  * Los controles en pantalla para jugar con el dedo. A la izquierda un stick para
@@ -41,9 +41,9 @@ export interface StickReading {
 
 /**
  * Lee el stick: desplazamiento del dedo respecto del centro, en px (la y crece
- * hacia abajo, como en la pantalla). Los costados caminan, arriba salta, y se
- * pueden combinar: arriba en diagonal es un salto hacia ese lado. Abajo no hace
- * nada, porque la sim no lo usa. La palanca no se sale del aro aunque el dedo sí.
+ * hacia abajo, como en la pantalla). Los costados caminan, arriba salta, abajo
+ * baja de una plataforma flotante, y se pueden combinar: arriba en diagonal es
+ * un salto hacia ese lado. La palanca no se sale del aro aunque el dedo sí.
  */
 export function readStick(dx: number, dy: number, radius: number): StickReading {
   const distance = Math.sqrt(dx * dx + dy * dy)
@@ -54,6 +54,9 @@ export function readStick(dx: number, dy: number, radius: number): StickReading 
   const pushY = radius > 0 ? knobY / radius : 0
   let input: Input = pushX <= -STICK_DEADZONE ? LEFT : pushX >= STICK_DEADZONE ? RIGHT : NONE
   if (pushY <= -STICK_JUMP) input |= JUMP
+  // Abajo pide el mismo empuje que arriba: bajarse sin querer de una flotante
+  // por apoyar el pulgar torcido sería peor que tener que empujar un poco más.
+  if (pushY >= STICK_JUMP) input |= DOWN
   return { knobX, knobY, input }
 }
 

@@ -16,7 +16,7 @@
  */
 
 import { toPixels } from '../sim/fixed'
-import { DODGE, HEAVY, JUMP, LEFT, LIGHT, NONE, RIGHT, type Input } from '../sim/input'
+import { DODGE, DOWN, HEAVY, JUMP, LEFT, LIGHT, NONE, RIGHT, type Input } from '../sim/input'
 import { rngFromSeed, rngNext, type RngState } from '../sim/rng'
 import { resistanceOf, type Fighter, type MatchState, type PlayerIndex } from '../sim/state'
 import type { World } from '../sim/world'
@@ -183,6 +183,11 @@ export function botStep(
     const heavyChance = weak ? 0.5 : 0.15
     const button = self.grounded && next() < heavyChance ? HEAVY : LIGHT
     return out({ rng, cooldown, move: NONE }, toward | button)
+  }
+
+  // Parado en una flotante y el rival abajo: bajarse a buscarlo.
+  if (self.grounded && self.platform >= 0 && dy > 50 && next() < 0.7) {
+    return out({ rng, cooldown, move: NONE }, DOWN)
   }
 
   // El rival saltó y está arriba cerca: ir a buscarlo al aire.

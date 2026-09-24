@@ -19,7 +19,8 @@ import {
   spriteKey,
   spriteSrc,
 } from './fightSprites.config'
-import { LAYERS, layerCamera, PLATFORM, SKY, STAGE_SPRITES } from './fightStage.config'
+import { LAYERS, layerCamera, PLATFORM, SKY, SOFT_PLATFORM, STAGE_SPRITES } from './fightStage.config'
+import { platformAt } from '../../fight/sim/platforms'
 
 /**
  * Cómo se ve una pelea. Lo comparten la versión local y la online: las dos
@@ -210,6 +211,34 @@ export function drawStage(k: KAPLAYCtx, camera: Camera): void {
 }
 
 /**
+ * Las flotantes, donde la sim dice que están: su posición es una función del
+ * tick, así que se interpola entre el tick anterior y el actual igual que los
+ * personajes, y el que está parado encima no se despega del dibujo.
+ */
+export function drawPlatforms(
+  k: KAPLAYCtx,
+  camera: Camera,
+  state: MatchState,
+  previous: MatchState,
+  alpha: number,
+): void {
+  const art = SOFT_PLATFORM
+  for (const platform of SMALL_STAGE.platforms) {
+    const from = platformAt(platform, previous.tick)
+    const to = platformAt(platform, state.tick)
+    const left = interpolate(toPixels(from.left), toPixels(to.left), alpha)
+    const top = interpolate(toPixels(from.top), toPixels(to.top), alpha)
+    const corner = project(camera, VIEW, left - art.insetX, top - art.surfaceY / art.textureScale)
+    k.drawSprite({
+      sprite: art.key,
+      pos: k.vec2(corner.x, corner.y),
+      width: art.width * camera.scale,
+      height: art.height * camera.scale,
+    })
+  }
+}
+
+/**
  * Un frame entero, a partir del estado. Es toda la vista: nada de acá decide
  * nada del juego, y por eso se puede verificar con un `k` de mentira que anota
  * los rectángulos que se pidieron.
@@ -232,6 +261,7 @@ export function drawMatch(
   options: DrawOptions = {},
 ): void {
   drawStage(k, camera)
+  drawPlatforms(k, camera, state, previous, alpha)
   for (const index of PLAYERS) {
     drawFighter(k, camera, state.fighters[index], previous.fighters[index], alpha, index)
   }

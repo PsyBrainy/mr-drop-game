@@ -35,6 +35,8 @@ function mixFighter(hash: number, fighter: Fighter): number {
   h = mix(h, STATE_CODES[fighter.state])
   h = mix(h, fighter.stateFrames)
   h = mix(h, fighter.grounded ? 1 : 0)
+  h = mix(h, fighter.platform)
+  h = mix(h, fighter.dropThrough)
   h = mix(h, fighter.airJumpsLeft)
   h = mix(h, fighter.jumpBuffer)
   h = mix(h, fighter.attack === null ? 0 : MOVE_CODES[fighter.attack])

@@ -1,4 +1,4 @@
-import { DODGE, HEAVY, JUMP, LEFT, LIGHT, NONE, RIGHT, type Input } from '../../fight/sim/input'
+import { DODGE, DOWN, HEAVY, JUMP, LEFT, LIGHT, NONE, RIGHT, type Input } from '../../fight/sim/input'
 
 /**
  * El teclado. Lo comparten las dos vistas: en la local cada mitad del teclado
@@ -7,14 +7,19 @@ import { DODGE, HEAVY, JUMP, LEFT, LIGHT, NONE, RIGHT, type Input } from '../../
  * servidor, no la tecla que aprieta.
  */
 
+/**
+ * Abajo (S / flecha abajo) es bajarse de las plataformas flotantes, así que el
+ * esquive se corrió al lado de los golpes: F G H y , . / quedan en fila, una
+ * tecla por acción.
+ */
 const P1 = {
-  LEFT: 'KeyA', RIGHT: 'KeyD', JUMP: 'KeyW',
-  LIGHT: 'KeyF', HEAVY: 'KeyG', DODGE: 'KeyS',
+  LEFT: 'KeyA', RIGHT: 'KeyD', JUMP: 'KeyW', DOWN: 'KeyS',
+  LIGHT: 'KeyF', HEAVY: 'KeyG', DODGE: 'KeyH',
 } as const
 
 const P2 = {
-  LEFT: 'ArrowLeft', RIGHT: 'ArrowRight', JUMP: 'ArrowUp',
-  LIGHT: 'Comma', HEAVY: 'Period', DODGE: 'ArrowDown',
+  LEFT: 'ArrowLeft', RIGHT: 'ArrowRight', JUMP: 'ArrowUp', DOWN: 'ArrowDown',
+  LIGHT: 'Comma', HEAVY: 'Period', DODGE: 'Slash',
 } as const
 
 /**
@@ -33,12 +38,14 @@ export function listenKeyboard(inputs: [Input, Input]): () => void {
       case P1.LEFT: return bind(0, LEFT)
       case P1.RIGHT: return bind(0, RIGHT)
       case P1.JUMP: return bind(0, JUMP)
+      case P1.DOWN: return bind(0, DOWN)
       case P1.LIGHT: return bind(0, LIGHT)
       case P1.HEAVY: return bind(0, HEAVY)
       case P1.DODGE: return bind(0, DODGE)
       case P2.LEFT: return bind(1, LEFT)
       case P2.RIGHT: return bind(1, RIGHT)
       case P2.JUMP: return bind(1, JUMP)
+      case P2.DOWN: return bind(1, DOWN)
       case P2.LIGHT: return bind(1, LIGHT)
       case P2.HEAVY: return bind(1, HEAVY)
       case P2.DODGE: return bind(1, DODGE)

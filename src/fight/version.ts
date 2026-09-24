@@ -11,5 +11,7 @@
  */
 /**
  * 2: el salto de pared sale más para arriba (jumpX 6 → 3, jumpY -11 → -13).
+ * 3: plataformas flotantes que se mueven; el estado del peleador suma
+ *    `platform` y `dropThrough`, y abajo (DOWN) sirve para bajarse de ellas.
  */
-export const SIM_VERSION = 2
+export const SIM_VERSION = 3
