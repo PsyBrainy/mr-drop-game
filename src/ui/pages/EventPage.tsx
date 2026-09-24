@@ -6,6 +6,7 @@ import { EventStatusBadge, formatDate } from '../components/EventStatusBadge'
 import { Leaderboard } from '../components/Leaderboard'
 import { PageSpinner } from '../components/ProtectedRoute'
 import { gameKind, isGameImplemented } from '../../games/registry'
+import { GameCover } from '../components/GameCover'
 
 export function EventPage() {
   const { slug = '' } = useParams<{ slug: string }>()
@@ -91,13 +92,7 @@ export function EventPage() {
               const playable = isOpen && isParticipant && isGameImplemented(eventGame.game.slug)
               return (
                 <article key={eventGame.id} className="card game-card">
-                  <div className="game-card__cover">
-                    {eventGame.game.coverUrl ? (
-                      <img src={eventGame.game.coverUrl} alt="" />
-                    ) : (
-                      <span aria-hidden="true">🎮</span>
-                    )}
-                  </div>
+                  <GameCover game={eventGame.game} />
                   <h3 style={{ margin: 0 }}>{eventGame.game.name}</h3>
                   <p className="muted" style={{ margin: 0, fontSize: '0.92rem', flex: 1 }}>
                     {eventGame.game.description}

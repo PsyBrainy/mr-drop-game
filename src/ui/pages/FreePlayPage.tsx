@@ -7,6 +7,7 @@ import { Avatar } from '../components/Avatar'
 import { Leaderboard } from '../components/Leaderboard'
 import { PageSpinner } from '../components/ProtectedRoute'
 import { gameKind, isGameImplemented } from '../../games/registry'
+import { GameCover } from '../components/GameCover'
 import { FightRanking } from '../components/FightRanking'
 
 /**
@@ -84,13 +85,7 @@ export function FreePlayPage() {
               const isMatch = gameKind(eventGame.game.slug) === 'match'
               return (
                 <article key={eventGame.id} className="card game-card">
-                  <div className="game-card__cover">
-                    {eventGame.game.coverUrl ? (
-                      <img src={eventGame.game.coverUrl} alt="" />
-                    ) : (
-                      <span aria-hidden="true">🎮</span>
-                    )}
-                  </div>
+                  <GameCover game={eventGame.game} />
                   <h3 style={{ margin: 0 }}>{eventGame.game.name}</h3>
                   <p className="muted" style={{ margin: 0, fontSize: '0.92rem' }}>
                     {eventGame.game.description}

@@ -1,4 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
+import { existsSync } from 'node:fs'
 
 /**
  * El registry depende de dos variables de build (`VITE_FIGHT_WS_URL` y
@@ -68,5 +69,26 @@ describe('registry de juegos', () => {
     const registry = await loadRegistry()
     expect(registry.isGameImplemented('no-existe')).toBe(false)
     expect(registry.unavailableReason('no-existe')).toBe('sin módulo')
+  })
+})
+
+describe('la imagen de la tarjeta', () => {
+  it('cada juego que se ofrece trae su captura, y el archivo existe', async () => {
+    const { gameCoverUrl } = await loadRegistry({ ws: 'wss://x' })
+    for (const slug of ['mrdrop-run', 'fight-online']) {
+      const cover = gameCoverUrl(slug, null)
+      expect(cover).toMatch(/^\/covers\/.+\.webp$/)
+      expect(existsSync(`public${cover}`)).toBe(true)
+    }
+  })
+
+  it('la que cargó el admin en la base manda', async () => {
+    const { gameCoverUrl } = await loadRegistry()
+    expect(gameCoverUrl('mrdrop-run', 'https://cdn/otra.png')).toBe('https://cdn/otra.png')
+  })
+
+  it('un juego sin captura queda sin imagen (y se ve el joystick)', async () => {
+    const { gameCoverUrl } = await loadRegistry()
+    expect(gameCoverUrl('no-existe', null)).toBeNull()
   })
 })

@@ -39,6 +39,11 @@ interface RegistryEntry {
    * el admin lo vea en el panel que un jugador lo descubra en la cancha.
    */
   missing?: () => string | null
+  /**
+   * Captura del juego para la tarjeta (en `public/covers/`). Si el admin carga
+   * `games.cover_url` en la base, manda esa.
+   */
+  cover?: string
 }
 
 /**
@@ -46,7 +51,11 @@ interface RegistryEntry {
  * El import es dinámico: Kaplay y los sprites solo se descargan al entrar a jugar.
  */
 const REGISTRY: Record<string, RegistryEntry> = {
-  'mrdrop-run': { load: () => import('./modules/mrdropRun'), aspectRatio: 960 / 540 },
+  'mrdrop-run': {
+    load: () => import('./modules/mrdropRun'),
+    aspectRatio: 960 / 540,
+    cover: '/covers/mrdrop-run.webp',
+  },
   // La pelea de verdad: 1v1 contra otra persona por psy-ws. Se ofrece en
   // concursos y en juego libre, pero sin ranking hasta que el resultado se
   // pueda validar re-simulando el replay.
@@ -55,6 +64,7 @@ const REGISTRY: Record<string, RegistryEntry> = {
     aspectRatio: 960 / 540,
     kind: 'match',
     ownHud: true,
+    cover: '/covers/fight-online.webp',
     missing: () => (fightServerConfigured ? null : 'falta VITE_FIGHT_WS_URL'),
   },
   // Banco de pruebas de la pelea: dos jugadores en el mismo teclado. No es un
@@ -106,6 +116,14 @@ export function gameKind(slug: string): GameKind {
 /** ¿La app tiene que poner su HUD genérico encima? No, si el juego trae el suyo. */
 export function gameHasOwnHud(slug: string): boolean {
   return REGISTRY[slug]?.ownHud === true
+}
+
+/**
+ * La imagen de la tarjeta: la que cargó el admin en la base, o si no la
+ * captura que trae el juego. `null` si no hay ninguna.
+ */
+export function gameCoverUrl(slug: string, coverUrl: string | null): string | null {
+  return coverUrl ?? REGISTRY[slug]?.cover ?? null
 }
 
 export function gameAspectRatio(slug: string): number {
