@@ -112,8 +112,15 @@ export const OSO: FighterTuning = {
   wall: {
     clingFrames: 45,
     slide: fxRatio(12, 10),
-    jumpX: fx(6),
-    jumpY: fx(-11),
+    /**
+     * El salto de pared sale casi para arriba: poco hacia afuera y fuerte hacia
+     * arriba. Con 6 y -11 te despegaba de la pared más de lo que te subía, y
+     * desde la mitad del canto para abajo ya no había forma de volver aunque se
+     * jugara perfecto (el test "desde abajo del borde" lo mide). Lo que decide si
+     * un golpe mata sigue siendo lo lejos que te manda, no la pared.
+     */
+    jumpX: fx(3),
+    jumpY: fx(-13),
   },
 
   moves: MOVES,

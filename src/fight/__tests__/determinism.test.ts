@@ -68,7 +68,7 @@ describe('determinismo', () => {
     const final = runReplay(sample, world)
 
     expect(formatHash(hashState(final))).toBe('0204a651')
-    expect(SIM_VERSION).toBe(1)
+    expect(SIM_VERSION).toBe(2)
   })
 
   it('step no toca el estado que recibe', () => {

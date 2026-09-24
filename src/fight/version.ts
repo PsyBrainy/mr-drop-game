@@ -9,4 +9,7 @@
  * incompatibilidad de protocolo, es que van a ver dos partidas diferentes — y
  * los replays viejos no se pueden validar con la sim nueva.
  */
-export const SIM_VERSION = 1
+/**
+ * 2: el salto de pared sale más para arriba (jumpX 6 → 3, jumpY -11 → -13).
+ */
+export const SIM_VERSION = 2

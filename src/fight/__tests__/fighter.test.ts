@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { jumpAirFrames, jumpApexPx, walkFrames } from '../data/fighter'
 import { OSO } from '../data/characters/oso'
 import { groundWidthPx, SMALL_STAGE } from '../data/stage'
-import { toPixels } from '../sim/fixed'
+import { fx, toPixels } from '../sim/fixed'
 import { JUMP, LEFT, NONE, RIGHT } from '../sim/input'
 import { initialState } from '../sim/state'
 import { step, TICKS_PER_SECOND } from '../sim/tick'
@@ -205,6 +205,53 @@ describe('el ajuste deja un juego jugable', () => {
     expect(state.fighters[0].x).toBeGreaterThanOrEqual(
       SMALL_STAGE.ground.left - OSO.halfWidth,
     )
+  })
+
+  /**
+   * Una recuperación jugada como la jugaría una persona: apretando hacia el
+   * escenario, saltando cada `gap` frames mientras cae, y saltando de la pared
+   * si se colgó. Prueba varios ritmos: alcanza con que alguno llegue, porque lo
+   * que se verifica es que se PUEDA volver, no que cualquier ritmo sirva.
+   */
+  function canRecoverFrom(dx: number, dy: number): boolean {
+    for (const gap of [8, 12, 16, 20, 26]) {
+      let state = withFighter(initialState(world, 1), 0, {
+        x: SMALL_STAGE.ground.right + fx(dx),
+        y: SMALL_STAGE.ground.top + fx(dy),
+        vx: 0,
+        vy: fx(3),
+        grounded: false,
+        state: 'air',
+      })
+      state = withFighter(state, 1, { x: SMALL_STAGE.ground.left + fx(40) })
+      let since = 99
+      let previous = NONE
+      for (let frame = 0; frame < 360; frame += 1) {
+        const me = state.fighters[0]
+        let input = me.state === 'cling' ? JUMP : LEFT | (me.vy >= 0 && since >= gap ? JUMP : NONE)
+        if (previous & JUMP) input &= ~JUMP
+        since = input & JUMP ? 0 : since + 1
+        previous = input
+        state = step(state, [input, NONE], world)
+        if (state.fighters[0].stocks < 3) break
+        if (state.fighters[0].grounded) return true
+      }
+    }
+    return false
+  }
+
+  it('desde abajo del borde, colgándose de la pared, se vuelve a subir', () => {
+    // Pegado al canto y bien por debajo del piso: sin la pared no se llega, con
+    // la pared tiene que alcanzar. Si el salto de pared te despega más de lo que
+    // te sube, caerse por el borde es perder la vida aunque no te hayan pegado.
+    expect(canRecoverFrom(20, 120)).toBe(true)
+    expect(canRecoverFrom(20, 180)).toBe(true)
+    expect(canRecoverFrom(80, 180)).toBe(true)
+  })
+
+  it('pero de muy lejos no se vuelve: el golpe fuerte tiene que poder matar', () => {
+    // Si se pudiera volver de cualquier lado, nadie saldría nunca de la pantalla.
+    expect(canRecoverFrom(300, 0)).toBe(false)
   })
 
   it('el escenario se cruza caminando en un tiempo razonable', () => {
