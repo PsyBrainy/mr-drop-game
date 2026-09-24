@@ -24,6 +24,7 @@ import {
 import { listenKeyboard } from './fightControls'
 import { COLORS, drawMatch, loadFightAssets, tagAnchors, VIEW } from './fightView'
 import { createFightHud, panelOf } from './fightHud'
+import { createTouchControls } from './fightTouch'
 import { myFightName, rivalFightName } from '../../infrastructure/ws/fightNames'
 
 /**
@@ -72,6 +73,8 @@ function start(k: KAPLAYCtx, context: GameContext): () => void {
 
   loadFightAssets(k)
   const overlay = createFightHud(context.mountPoint, VIEW)
+  // Teclado y dedos son el mismo byte para la sim: se juntan con un OR.
+  const touch = createTouchControls(context.mountPoint)
   overlay.setNames(['…', '…'])
 
   // El teclado escribe en las dos ranuras, pero online sólo se usa la primera:
@@ -123,7 +126,7 @@ function start(k: KAPLAYCtx, context: GameContext): () => void {
   const clock = startFixedClock(() => {
     if (ended) return
 
-    const advanced = session.tick(pressed[0])
+    const advanced = session.tick(pressed[0] | touch.mask())
     const state = session.snapshot().state
     if (!state) return
 
@@ -169,6 +172,7 @@ function start(k: KAPLAYCtx, context: GameContext): () => void {
     unlisten()
     session.dispose()
     overlay.destroy()
+    touch.destroy()
   }
 }
 

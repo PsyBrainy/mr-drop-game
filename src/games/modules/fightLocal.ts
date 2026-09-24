@@ -10,6 +10,7 @@ import {
 import { listenKeyboard } from './fightControls'
 import { COLORS, drawMatch, loadFightAssets, tagAnchors, VIEW } from './fightView'
 import { createFightHud, panelOf } from './fightHud'
+import { createTouchControls } from './fightTouch'
 import { startFixedClock } from '../../fight/clock'
 import { OSO } from '../../fight/data/characters/oso'
 import { SMALL_STAGE } from '../../fight/data/stage'
@@ -61,6 +62,8 @@ function start(k: KAPLAYCtx, context: GameContext): () => void {
   // El HUD propio de la pelea: paneles arriba y el nombre sobre cada uno. En el
   // mismo teclado no hay cuentas, así que son "Jugador 1" y "Jugador 2".
   const overlay = createFightHud(context.mountPoint, VIEW)
+  // En pantallas táctiles, los controles en pantalla manejan al jugador 1.
+  const touch = createTouchControls(context.mountPoint)
   overlay.setNames(['Jugador 1', 'Jugador 2'])
 
   // Escribe el DOM sólo lo que cambió, así que se puede llamar en cada tick.
@@ -72,7 +75,7 @@ function start(k: KAPLAYCtx, context: GameContext): () => void {
     if (finished) return
 
     previous = current
-    current = step(current, [inputs[0], inputs[1]], world)
+    current = step(current, [inputs[0] | touch.mask(), inputs[1]], world)
 
     previousCamera = camera
     camera = approachCamera(camera, targetCamera(current, world, VIEW))
@@ -106,6 +109,7 @@ function start(k: KAPLAYCtx, context: GameContext): () => void {
     clock.stop()
     unlisten()
     overlay.destroy()
+    touch.destroy()
   }
 }
 
