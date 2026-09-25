@@ -117,6 +117,29 @@ problema: lo que falta son golpes que dejen al rival cerca y arriba, y eso es F3
 contra el +2 que se midió a mano antes es la definición: ahora cuenta el primer frame en que el
 esquive del rival *arranca*.)
 
+### F5 hecha (2026-09-25) — SIM_VERSION 9: gravity cancel
+
+Martín eligió el gravity cancel de Brawlhalla para "esquivo y ataco en el aire" (y no cortar
+cualquier esquive con un golpe).
+
+- **Qué es**: esquivar quieto en el aire (sin dirección) y, durante ese esquive, apretar un golpe:
+  sale el golpe **de piso** (con su dirección: rápido quieto es el jab, abajo la barrida, fuerte
+  el gancho…) aunque estés en el aire.
+- **Desde el frame 16 del esquive** (`dodge.attackCancelFrom`), el primero sin invulnerabilidad.
+  En Brawlhalla se puede antes, pero acá ya estaba decidido que esquivar y pegar a la vez no puede
+  ser gratis. Apretado antes, el buffer lo guarda y sale en el 16.
+- **Sólo el esquive quieto en el aire.** Con dirección, o en el piso, el esquive no se corta.
+  Cuesta un salto de aire, como cualquier esquive en el aire: no se puede encadenar sin fin.
+- **La gravedad sigue actuando** durante el golpe (el nombre viene de cancelar el estado de
+  "aire", no la gravedad). Quedarse flotando mientras se pega sería otra herramienta de
+  recuperación, y la recuperación ya está ajustada con el recovery.
+- **Un golpe de piso que toca el piso sigue** en vez de cortarse con castigo; eso queda para los
+  aéreos. Para eso el tick pregunta si el golpe es de la tabla del aire (`isAerialMove`).
+- Los pasos de `sLight` y `sSig` eran `vy: 0`, que tirados en el aire frenaban la caída en seco.
+  `motion.vy` pasó a ser opcional y esos dos sólo mueven en horizontal.
+- **Pendiente**: `followsUp` no prueba rutas con gravity cancel, así que "ningún combo a 100" no
+  las cubre todavía. Va en F6 junto con el bot.
+
 ### Sonidos nuevos (2026-09-25) — sin cambio de sim
 
 La comunidad mandó dos audios más de WhatsApp. Se recortaron por silencios (`silencedetect` a

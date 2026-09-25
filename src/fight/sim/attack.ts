@@ -97,7 +97,7 @@ export interface AttackData {
    * lo deja bajando igual; reemplazar corta la caída en seco, igual que el salto
    * de aire. Es un dato del reloj del ataque, como la caja: no se instancia nada.
    */
-  readonly motion?: { readonly frame: number; readonly vx?: Fx; readonly vy: Fx }
+  readonly motion?: { readonly frame: number; readonly vx?: Fx; readonly vy?: Fx }
   /**
    * Sólo una vez por vuelo: se recarga al tocar el piso y al recibir un golpe
    * (como en Brawlhalla: si te pegan, te devuelven la herramienta para volver).

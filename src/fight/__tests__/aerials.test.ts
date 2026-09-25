@@ -128,7 +128,7 @@ describe('la caída en picada', () => {
     const state = withFighter(initialState(world, 1), 0, { y: SMALL_STAGE.ground.top - fx(200), vy: fx(-8), grounded: false, state: 'air' })
     const at = run(state, pound.motion!.frame + 1, (f) => [f === 0 ? DOWN | HEAVY : NONE, NONE]).fighters[0]
     expect(at.attack).toBe('groundPound')
-    expect(at.vy).toBe(pound.motion!.vy + OSO.gravity)
+    expect(at.vy).toBe(pound.motion!.vy! + OSO.gravity)
   })
 
   it('errarla y tocar el piso cuesta caro', () => {

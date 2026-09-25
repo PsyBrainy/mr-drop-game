@@ -71,6 +71,14 @@ Antes del primer frame hay una cuenta: "3, 2, 1, ¡Buenos Humos!".
 
 Lo que viene (golpes con dirección, el fuerte aéreo que impulsa, combos) está en `tareas.md`, M6.
 
+## Gravity cancel
+
+Como en Brawlhalla: **en el aire, esquivá sin dirección y apretá un golpe**. Sale el golpe de
+piso en el aire: rápido quieto es el jab, rápido + abajo la barrida, fuerte el gancho, y así.
+Sale apenas se termina la invulnerabilidad del esquive (si lo apretás antes, sale solo en ese
+momento). Gasta un salto de aire, como cualquier esquive en el aire. Si el golpe te hace tocar el
+piso, sigue normalmente.
+
 ## Esquive
 
 La única defensa. Unos frames de invulnerabilidad (arranca un poquito después de apretar, así que

@@ -98,6 +98,12 @@ export interface Fighter {
    * todavía en hitstun, se estrella y se levanta: ver `land` en `physics.ts`.
    */
   readonly spiked: boolean
+  /**
+   * Está en un esquive quieto en el aire, y todavía puede cortarlo con un golpe
+   * de piso (gravity cancel). Se apaga al usarlo, al terminar el esquive y al
+   * tocar el piso.
+   */
+  readonly gravityCancel: boolean
   /** Qué ataque está haciendo. `stateFrames` es su reloj. */
   readonly attack: MoveKey | null
   /**
@@ -171,6 +177,7 @@ function spawnFighter(world: World, index: PlayerIndex): Fighter {
     bufferedAim: 'neutral',
     airMovesUsed: 0,
     spiked: false,
+    gravityCancel: false,
     attack: null,
     hitId: 0,
     // -1 y no 0: el 0 es un `hitId` válido y marcaría el primer golpe como ya recibido.
@@ -215,6 +222,7 @@ export function respawn(draft: FighterDraft, world: World, index: PlayerIndex): 
   draft.bufferedButton = null
   draft.airMovesUsed = 0
   draft.spiked = false
+  draft.gravityCancel = false
   draft.attack = null
   draft.landLag = 0
   draft.clingLeft = tuning.wall.clingFrames

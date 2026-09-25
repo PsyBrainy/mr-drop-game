@@ -43,7 +43,7 @@ describe('el impulso', () => {
     const at = run(start, RECOVERY.motion!.frame + 1, (f) => (f === 0 ? HEAVY : NONE)).fighters[0]
     expect(at.attack).toBe('recovery')
     // Reemplaza: venía bajando a maxFall, y ahora sube (más la gravedad de ese frame).
-    expect(at.vy).toBe(RECOVERY.motion!.vy + OSO.gravity)
+    expect(at.vy).toBe(RECOVERY.motion!.vy! + OSO.gravity)
     expect(at.vy).toBeLessThan(0)
   })
 

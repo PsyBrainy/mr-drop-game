@@ -159,8 +159,17 @@ export interface DodgeTuning {
   /** Ventana de invulnerabilidad, en frames desde que arranca. */
   readonly invulnFrom: number
   readonly invulnTo: number
-  /** Envión del esquive en el aire. En el piso es un esquive en el lugar. */
+  /**
+   * Envión del esquive con dirección, en el piso y en el aire. Sin dirección es
+   * en el lugar.
+   */
   readonly speed: Fx
+  /**
+   * Desde qué frame de un esquive quieto en el aire se lo puede cortar con un
+   * golpe de piso (gravity cancel). Tiene que ser después de `invulnTo`: pegar
+   * todavía invulnerable sería gratis (lo verifica un test).
+   */
+  readonly attackCancelFrom: number
 }
 
 /** Cuántas vidas tiene cada uno. Es regla de match, no de personaje. */

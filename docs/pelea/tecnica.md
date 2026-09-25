@@ -147,7 +147,12 @@ grounded + 'light'|'heavy' ───┴──moveFor──> MoveKey ──> tuni
 - **Una vez por vuelo** (`oncePerAirtime`): al salir el golpe en el aire se prende su bit
   (`airMoveBit`) en `airMovesUsed`. Con el bit prendido el golpe no sale (ni otro en su lugar).
   Se limpia al aterrizar (`moveAndCollide`) y al recibir un golpe (`applyHit`).
-- **Aterrizar en medio de un golpe**: `landLag` vale el `landingLag` del golpe si lo tiene, y si
+- **Gravity cancel**: `startDodge` prende `gravityCancel` si el esquive es en el aire y sin
+  dirección. En la rama del esquive de `applyInput`, desde `dodge.attackCancelFrom` y con un golpe
+  en el buffer, sale `moveFor(true, …)` (la tabla de piso) aunque esté en el aire. Se apaga al
+  usarlo, al terminar el esquive, al aterrizar (`land`) y al recibir un golpe.
+- **Aterrizar en medio de un golpe**: sólo los aéreos (`isAerialMove`) se cortan con castigo; un
+  golpe de piso tirado en el aire sigue. `landLag` vale el `landingLag` del golpe si lo tiene, y si
   no, `landFrames` del personaje.
 - **Empuje en hitstun**: `applyGravity` usa `knockbackMaxSpeed` como techo mientras hay hitstun, y
   `maxFall` el resto del tiempo.
@@ -159,7 +164,8 @@ grounded + 'light'|'heavy' ───┴──moveFor──> MoveKey ──> tuni
   "¿se apretó recién?", ahora se pregunta "¿hay un golpe guardado?", y al salir se borra.
   `applyHit` lo borra en el que recibe.
 - Tests: `__tests__/recovery.test.ts` (el impulso, una vez por vuelo, recargas, volver con y sin
-  recovery, nadie flota para siempre), `__tests__/aerials.test.ts` (el spike afuera y adentro
+  recovery, nadie flota para siempre), `__tests__/gravityCancel.test.ts` (qué sale, desde cuándo,
+  cuándo no, que el golpe de piso siga al aterrizar), `__tests__/aerials.test.ts` (el spike afuera y adentro
   del escenario, la caída en picada, el techo del empuje), `__tests__/buffer.test.ts` (sale en el primer frame libre, se pierde fuera de la
   ventana, guarda la dirección, un golpe lo borra), `__tests__/moves.test.ts` (la tabla es completa, cada input da un golpe, el tick la usa)
   y en `platforms.test.ts` el caso de abajo + golpe arriba de la flotante.

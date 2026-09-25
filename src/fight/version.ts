@@ -24,5 +24,8 @@
  * 8: los aéreos con dirección (M6 F4): spike (`dAir`), caída en picada con
  *    `landingLag`, tope propio del empuje en hitstun (`knockbackMaxSpeed`) y
  *    `spiked` en el estado (un spike que te estrella contra el piso termina el hitstun).
+ * 9: gravity cancel (M6 F5): desde un esquive quieto en el aire se tira el golpe
+ *    de piso (`gravityCancel` en el estado, `dodge.attackCancelFrom`). Un golpe de
+ *    piso que aterriza sigue; los pasos de `sLight` y `sSig` ya no tocan `vy`.
  */
-export const SIM_VERSION = 8
+export const SIM_VERSION = 9

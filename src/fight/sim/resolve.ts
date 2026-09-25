@@ -124,6 +124,7 @@ export function applyHit(hit: PendingHit, draft: MatchDraft): void {
   // que te saca después de gastarlo sería un KO seguro.
   victim.airMovesUsed = 0
   victim.spiked = move.knockback.y > 0
+  victim.gravityCancel = false
   // El hitstun crece con el empuje: si no, un golpe que te manda lejos te
   // devolvería el control enseguida y podrías volver antes de que te luzca.
   victim.hitstun = move.hitstun + Math.trunc((fxAbs(victim.vx) + fxAbs(victim.vy)) / FX_ONE / 2)

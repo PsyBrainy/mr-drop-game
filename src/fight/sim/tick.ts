@@ -21,7 +21,7 @@ import {
   moveAndCollide,
   slidOffWall,
 } from './physics'
-import { aimOf, moveFor } from './moves'
+import { aimOf, isAerialMove, moveFor } from './moves'
 import { applyClash, applyHit, detectExchange } from './resolve'
 import {
   cloneState,
@@ -138,7 +138,7 @@ function applyInput(draft: FighterDraft, input: Input, tuning: FighterTuning): v
     const move = draft.attack === null ? null : tuning.moves[draft.attack]
     if (move && !isOver(move, draft.stateFrames)) {
       if (move.motion && draft.stateFrames === move.motion.frame) {
-        draft.vy = move.motion.vy
+        if (move.motion.vy !== undefined) draft.vy = move.motion.vy
         if (move.motion.vx !== undefined) draft.vx = move.motion.vx * draft.facing
       }
       // Durante el golpe no se maneja. En el piso frena; en el aire conserva la
@@ -151,9 +151,28 @@ function applyInput(draft: FighterDraft, input: Input, tuning: FighterTuning): v
   }
 
   if (draft.state === 'dodge') {
+    // Gravity cancel: desde un esquive quieto en el aire se puede cortar el
+    // esquive con un golpe, y sale el golpe DE PISO aunque estés en el aire. Es la
+    // técnica de Brawlhalla que te deja tirar el jab, la barrida o el gancho
+    // arriba. Recién cuando se terminó la invulnerabilidad: si no, esquivar y
+    // pegar a la vez sería gratis.
+    if (
+      draft.gravityCancel &&
+      draft.stateFrames >= tuning.dodge.attackCancelFrom &&
+      draft.attackBuffer > 0 &&
+      draft.bufferedButton
+    ) {
+      const key = moveFor(true, draft.bufferedButton, draft.bufferedAim)
+      draft.attackBuffer = 0
+      draft.bufferedButton = null
+      draft.gravityCancel = false
+      startAttack(draft, key, axis(input))
+      return
+    }
     // El esquive conserva su envión hasta el final: sin fricción, si no, el
     // esquive en el aire no llevaría a ningún lado.
     if (draft.stateFrames < tuning.dodge.frames) return
+    draft.gravityCancel = false
     enter(draft, draft.grounded ? 'idle' : 'air')
   }
 
@@ -253,6 +272,8 @@ function startDodge(draft: FighterDraft, tuning: FighterTuning, direction: -1 | 
   draft.attack = null
   draft.vx = tuning.dodge.speed * direction
   draft.vy = 0
+  // Quieto y en el aire: el esquive que habilita el gravity cancel.
+  draft.gravityCancel = !draft.grounded && direction === 0
   return true
 }
 
@@ -328,13 +349,19 @@ function integrate(draft: FighterDraft, tuning: FighterTuning, world: World, tic
   }
 
   if (wasAirborne && draft.grounded) {
-    if (draft.state === 'attack') {
-      const move = draft.attack === null ? null : tuning.moves[draft.attack]
-      draft.landLag = move?.landingLag ?? tuning.landFrames
+    // Aterrizar en medio de un aéreo corta el golpe y castiga. Un golpe de piso
+    // tirado en el aire (gravity cancel) no: sigue en el piso, que es donde vive.
+    if (draft.state === 'attack' && draft.attack !== null && isAerialMove(draft.attack)) {
+      const move = tuning.moves[draft.attack]
+      draft.landLag = move.landingLag ?? tuning.landFrames
       draft.attack = null
+      enter(draft, 'land')
+      return
     }
-    enter(draft, 'land')
-    return
+    if (draft.state !== 'attack') {
+      enter(draft, 'land')
+      return
+    }
   }
 
   // Un golpe o un esquive se terminan por su propio reloj, no porque el

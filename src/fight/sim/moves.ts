@@ -45,3 +45,10 @@ const AIR: Record<AttackButton, Record<Aim, MoveKey>> = {
 export function moveFor(grounded: boolean, button: AttackButton, aim: Aim): MoveKey {
   return (grounded ? GROUND : AIR)[button][aim]
 }
+
+const AERIAL: ReadonlySet<MoveKey> = new Set(Object.values(AIR).flatMap((row) => Object.values(row)))
+
+/** ¿Es de la tabla del aire? Un golpe de piso tirado en el aire (gravity cancel) no lo es. */
+export function isAerialMove(key: MoveKey): boolean {
+  return AERIAL.has(key)
+}

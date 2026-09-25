@@ -56,7 +56,8 @@ const S_LIGHT: AttackData = {
   scaling: 7,
   hitstun: 12,
   priority: 1,
-  motion: { frame: 1, vx: fx(3), vy: 0 },
+  // Sólo horizontal: tirado en el aire (gravity cancel) no frena la caída.
+  motion: { frame: 1, vx: fx(3) },
 }
 
 /**
@@ -117,7 +118,7 @@ const S_SIG: AttackData = {
   // Más alta que los livianos: el fuerte atraviesa un golpe rápido, que es lo
   // que evita que apretar el botón rápido a ciegas sea siempre la respuesta.
   priority: 2,
-  motion: { frame: 10, vx: fx(4), vy: 0 },
+  motion: { frame: 10, vx: fx(4) },
 }
 
 /**
@@ -298,6 +299,9 @@ export const OSO: FighterTuning = {
     invulnFrom: 3,
     invulnTo: 15,
     speed: fx(8),
+    // El primer frame después de la invulnerabilidad: el gravity cancel más
+    // rápido posible sin pegar invulnerable. 16 frames son ~0,27 s.
+    attackCancelFrom: 16,
   },
 
   /**

@@ -35,7 +35,7 @@ arquitectura, con un personaje:
   el validador. Abandonar es perder, salvo que la sim diga que ya había terminado. Contra el bot
   no cuenta (es local y no pasa por el servidor).
 - **M5** — Rollback, sólo si M3 se siente mal con pings reales. No antes.
-- **M6** — Ataques con dirección y bases para combos. **En curso** (F0 ✓, F1 ✓, A0 ✓, F2 ✓, F3 ✓, F4 ✓, sigue F5): fases abajo.
+- **M6** — Ataques con dirección y bases para combos. **En curso** (F0 ✓, F1 ✓, A0 ✓, F2 ✓, F3 ✓, F4 ✓, F5 ✓, sigue F6): fases abajo.
   Va antes que M5.
 
 ## M6: ataques con dirección y bases para combos
@@ -83,9 +83,15 @@ sonido sí puede seguir por familia hasta que la comunidad grabe más.
 - [x] **Sonidos nuevos ✓** (2026-09-25, entre F4 y F5). Del tercer par de audios de la comunidad:
   sonido propio para `nLight`, `nAir`, `dAir`, `recovery` y `groundPound` (los dos personajes), y
   el esquive del rasta 2, que no tenía. Sin cambio de sim. Qué recorte va con qué: `memoria.md`.
-- [ ] **F5 — Esquive → golpe.** `dodge.attackCancelFrom`, después de `invulnTo`.
+- [x] **F5 ✓ — Gravity cancel** (2026-09-25). Esquive quieto en el aire → el golpe de piso, en
+  el aire (`gravityCancel` en el estado, `dodge.attackCancelFrom` = 16, el primer frame después de
+  la invulnerabilidad). Un golpe de piso que aterriza sigue en vez de cortarse. Sin dibujos
+  nuevos: los golpes de piso se ven igual en el aire. `SIM_VERSION` 9 (mrdrop y psy-ws).
+  **Pendiente:** `followsUp` todavía no prueba rutas con gravity cancel, así que las invariantes
+  de combo no las cubren.
 - [ ] **F6 — Terminaciones.** Sonido propio para los golpes que todavía suenan por familia
-  (`sLight`, `dLight`, `nSig`, `sSig`, `dSig`, `sAir`), si llegan más audios; el bot usando la
+  (`sLight`, `dLight`, `nSig`, `sSig`, `dSig`, `sAir`), si llegan más audios; `followsUp`
+  probando rutas con gravity cancel (y las invariantes de combo con eso); el bot usando la
   dirección y el recovery, `fightHelp.ts` y el contador de combo en el HUD (lo deriva la vista, no
   la sim).
 
@@ -107,8 +113,8 @@ sonido sí puede seguir por familia hasta que la comunidad grabe más.
 
 1. ¿Tres direcciones o cuatro con arriba separado? **F0 salió con tres** (ver `memoria.md`);
    pasar a cuatro después es sumar una columna a `moveFor`, no rehacer.
-2. "Esquivo y ataco en el aire": ¿cortar el esquive con un golpe (F5), o el gravity cancel de
-   Brawlhalla (esquive quieto en el aire → golpe de piso)?
+2. ~~"Esquivo y ataco en el aire"~~: **el gravity cancel de Brawlhalla** (decidido por Martín,
+   hecho en F5).
 3. ~~¿El spike rebota contra el piso?~~ No rebota: te estrella y **te levantás** (se termina el
    hitstun). Decidido en F4 porque dejarlo aturdido en el piso regalaba combos; ver `memoria.md`.
 4. **¿Tiene que poder matarse por arriba?** Hoy no se puede: la zona de muerte de arriba está a

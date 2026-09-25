@@ -174,6 +174,8 @@ export function moveAndCollide(
 function land(draft: FighterDraft, tuning: FighterTuning, top: Fx, platform: number): void {
   if (draft.hitstun > 0 && draft.spiked) draft.hitstun = 0
   draft.spiked = false
+  // El gravity cancel es del aire: esquivar quieto y caer al piso no lo guarda.
+  draft.gravityCancel = false
   draft.y = top
   draft.vy = FX_ZERO
   draft.grounded = true

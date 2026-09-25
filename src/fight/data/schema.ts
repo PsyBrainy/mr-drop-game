@@ -37,7 +37,7 @@ const attackSchema = z.object({
   priority: whole.nonnegative(),
   // El impulso arranca después del frame 0: en el 0 el golpe recién se está
   // eligiendo, y aplicarlo ahí saltearía el orden del tick.
-  motion: z.object({ frame: positive, vx: whole.optional(), vy: whole }).optional(),
+  motion: z.object({ frame: positive, vx: whole.optional(), vy: whole.optional() }).optional(),
   oncePerAirtime: z.boolean().optional(),
   landingLag: positive.optional(),
 }).refine((move) => !move.motion || move.motion.frame < move.startup + move.active + move.recovery, {

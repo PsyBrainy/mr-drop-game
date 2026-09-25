@@ -48,6 +48,7 @@ function mixFighter(hash: number, fighter: Fighter): number {
   h = mix(h, AIM_CODES[fighter.bufferedAim])
   h = mix(h, fighter.airMovesUsed)
   h = mix(h, fighter.spiked ? 1 : 0)
+  h = mix(h, fighter.gravityCancel ? 1 : 0)
   h = mix(h, fighter.attack === null ? 0 : MOVE_CODES[fighter.attack])
   h = mix(h, fighter.hitId)
   h = mix(h, fighter.lastHitBy)
