@@ -46,6 +46,8 @@ Antes del primer frame hay una cuenta: "3, 2, 1, ¡Buenos Humos!".
 
 - Al pegar podés apuntar para el otro lado: el personaje se da vuelta.
 - Abajo + golpe arriba de una plataforma flotante pega; abajo solo es lo que te baja.
+- Un golpe apretado un poquito antes de poder pegar (hasta 6 frames, una décima de segundo) no
+  se pierde: sale apenas se pueda, con la dirección que tenías al apretarlo.
 - Si los dos pegan en el mismo frame gana el fuerte; si son del mismo tipo, **choque**: nadie
   cobra y los dos rebotan.
 - Un aéreo que no terminó cuando tocás el piso te deja unos frames sin control.

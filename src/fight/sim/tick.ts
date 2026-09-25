@@ -100,6 +100,8 @@ function advanceTimers(draft: FighterDraft): void {
   if (draft.hitstun > 0) draft.hitstun -= 1
   if (draft.invuln > 0) draft.invuln -= 1
   if (draft.jumpBuffer > 0) draft.jumpBuffer -= 1
+  if (draft.attackBuffer > 0) draft.attackBuffer -= 1
+  if (draft.attackBuffer === 0) draft.bufferedButton = null
   if (draft.landLag > 0) draft.landLag -= 1
   if (draft.state === 'cling' && draft.clingLeft > 0) draft.clingLeft -= 1
   if (draft.dropThrough > 0) draft.dropThrough -= 1
@@ -108,8 +110,20 @@ function advanceTimers(draft: FighterDraft): void {
 function applyInput(draft: FighterDraft, input: Input, tuning: FighterTuning): void {
   if (draft.state === 'dead') return
 
-  // El salto se anota siempre, incluso sin poder saltar: para eso está el buffer.
+  // El salto y los golpes se anotan siempre, incluso sin poder hacerlos: para eso
+  // están los buffers. Si en el mismo frame se aprietan los dos golpes, gana el
+  // rápido, como antes de que hubiera buffer.
   if (pressed(draft.prevInput, input, JUMP)) draft.jumpBuffer = tuning.jumpBufferFrames
+  const button = pressed(draft.prevInput, input, LIGHT)
+    ? 'light'
+    : pressed(draft.prevInput, input, HEAVY)
+      ? 'heavy'
+      : null
+  if (button) {
+    draft.bufferedButton = button
+    draft.bufferedAim = aimOf(input)
+    draft.attackBuffer = tuning.attackBufferFrames
+  }
 
   if (draft.hitstun > 0) return
 
@@ -157,12 +171,10 @@ function applyInput(draft: FighterDraft, input: Input, tuning: FighterTuning): v
 
   // Los golpes van antes que bajarse de la flotante: abajo + golpe arriba de una
   // es el golpe bajo (`dLight`), no bajarse. Bajarse queda para abajo solo.
-  if (pressed(draft.prevInput, input, LIGHT)) {
-    startAttack(draft, moveFor(draft.grounded, 'light', aimOf(input)), axis(input))
-    return
-  }
-  if (pressed(draft.prevInput, input, HEAVY)) {
-    startAttack(draft, moveFor(draft.grounded, 'heavy', aimOf(input)), axis(input))
+  if (draft.attackBuffer > 0 && draft.bufferedButton) {
+    startAttack(draft, moveFor(draft.grounded, draft.bufferedButton, draft.bufferedAim), axis(input))
+    draft.attackBuffer = 0
+    draft.bufferedButton = null
     return
   }
 

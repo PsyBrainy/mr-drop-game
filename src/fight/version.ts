@@ -15,5 +15,7 @@
  *    `platform` y `dropThrough`, y abajo (DOWN) sirve para bajarse de ellas.
  * 4: once golpes con dirección (M6 F0). El estado guarda la clave nueva del golpe
  *    y abajo + golpe arriba de una flotante pega en vez de bajarse.
+ * 5: buffer de golpe (M6 F1). El estado suma `attackBuffer`, `bufferedButton` y
+ *    `bufferedAim`: un golpe apretado antes de poder pegar sale apenas se pueda.
  */
-export const SIM_VERSION = 4
+export const SIM_VERSION = 5

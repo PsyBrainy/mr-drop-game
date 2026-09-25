@@ -44,11 +44,13 @@ src/fight/
     tick.ts     ✓ step(state, inputs, world) -> state. El orden de fases vive acá y sólo acá.
     hash.ts     ✓ checksum del estado, para detectar desync
     attack.ts   ✓ el contrato del frame data: fases, cajas, empuje, prioridad
+    moves.ts    ✓ de un input a un golpe: botón × dirección × piso/aire (la tabla de Brawlhalla)
     collision.ts ✓ AABB y solapamiento
     resolve.ts  ✓ hitbox vs hurtbox, un golpe por swing, choque por prioridad
   data/         instancias: el motor define la forma, los datos la llenan.
     stage.ts    ✓ geometría del escenario y sus zonas de muerte
     fighter.ts  ✓ medidas derivadas para los tests de invariantes
+    combos.ts   ✓ ventaja de frames y combos reales, medidos jugando la sim
     schema.ts   ✓ validación Zod del frame data, al cargar y nunca en el tick
     characters/oso.ts ✓ el personaje entero: física, esquive y los tres ataques
   net/          protocolo y sesión. Puerto de transporte, sin WebSocket concreto adentro.
@@ -136,8 +138,30 @@ grounded + 'light'|'heavy' ───┴──moveFor──> MoveKey ──> tuni
   de sonidos suena). Mientras un golpe no tenga dibujo ni sonido propio, usa los de su familia.
   Cuando un golpe cambie de frame data, el test de duración de `fightSprites.config.test.ts`
   pide su tabla de poses propia.
-- Tests: `__tests__/moves.test.ts` (la tabla es completa, cada input da un golpe, el tick la usa)
+- **Buffer de golpe**: al empezar `applyInput` se anota cualquier golpe apretado (botón y
+  dirección) con `attackBufferFrames` de vida, aunque no se pueda pegar. Donde antes se preguntaba
+  "¿se apretó recién?", ahora se pregunta "¿hay un golpe guardado?", y al salir se borra.
+  `applyHit` lo borra en el que recibe.
+- Tests: `__tests__/buffer.test.ts` (sale en el primer frame libre, se pierde fuera de la
+  ventana, guarda la dirección, un golpe lo borra), `__tests__/moves.test.ts` (la tabla es completa, cada input da un golpe, el tick la usa)
   y en `platforms.test.ts` el caso de abajo + golpe arriba de la flotante.
+
+## Medir combos: `data/combos.ts`
+
+Herramientas de análisis, no del tick. Juegan la sim de verdad (no hay fórmulas que se olviden
+de un aterrizaje o de la fricción):
+
+- `standoff(world, key, damage)`: el 0 a punto de tirar `key` contra el 1, parado en el centro
+  de la caja del golpe, en el medio del escenario (en el aire, para los aéreos).
+- `frameAdvantage(world, key, damage)`: ventaja en frames, distancia y altura cuando el rival
+  recupera el control.
+- `followsUp(world, first, second, damage)`: si `second` entra como combo real atrás de `first`
+  (rival todavía en hitstun), probando ir hacia el rival y apretar en cada tick, y saltar antes
+  para los aéreos.
+- `inputOf` / `pressFor`: el casillero y el byte de input de cada golpe.
+
+`__tests__/combos.test.ts` tiene el control positivo de la herramienta y las invariantes de combo.
+La tabla de resultados vive en `memoria.md` y se regenera en cada fase que cambia golpes.
 
 ## Versión de la sim
 

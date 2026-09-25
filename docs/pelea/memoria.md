@@ -79,6 +79,54 @@ Además: `attackBuffer` + `bufferedMove` en el estado (como `jumpBuffer`), corta
 golpe desde `dodge.attackCancelFrom` (después de `invulnTo`), y un tope de velocidad propio para
 el hitstun en vez de `maxFall`.
 
+### F1 hecha (2026-09-25) — SIM_VERSION 5
+
+- **Buffer de golpe de 6 frames** (100 ms). Alcanza para apretar el segundo golpe mirando
+  terminar el primero; con más de ~10 el personaje empieza a hacer cosas que uno ya no quería.
+- Se guarda **el botón y la dirección del momento en que se apretó**; si sale de piso o de aire
+  se decide cuando sale. Tocar abajo + rápido y soltar abajo enseguida da el golpe bajo igual.
+- **Recibir un golpe borra el buffer**: lo pedido antes del golpe ya no vale al salir del hitstun.
+- Apretar los dos botones en el mismo frame: gana el rápido, como antes.
+- **Qué es un combo real** (`data/combos.ts`, definición de Brawlhalla): el segundo golpe entra con
+  el rival todavía en hitstun, con al menos 2 frames de hitstun al empezar el tick. Con 1, el rival
+  lo termina en la fase de timers y ya tiene la fase de input para esquivar.
+- La medición se hace **jugando la sim**, no con fórmulas: la ventaja es el primer tick en que un
+  golpe nuevo del que pegó arranca contra el primero en que un esquive del rival arranca. Los dos
+  se paran en el medio del escenario, donde no hay flotantes abajo (con los aéreos, aterrizar en
+  una flotante cambiaba la medida: el `nAir` daba +7 y era sólo porque el rival aterrizaba).
+- `followsUp` prueba ir hacia el rival y apretar en cada tick posible, y para los aéreos saltar
+  antes en cada tick posible. Tiene su control positivo en el test (un rápido que aturde 60 frames
+  sin empujar tiene que dar combo, con y sin salto), así que "no hay combo" es un resultado y no
+  un error de la herramienta.
+
+#### Ventaja medida con `data/combos.ts` (SIM_VERSION 5, datos de F0)
+
+Ventaja / distancia horizontal / altura del rival sobre el que pegó, cuando el rival puede actuar.
+
+| Golpe | 0 de daño | 50 | 100 |
+| --- | --- | --- | --- |
+| rápido de piso (`nLight`, `sLight`, `dLight`) | +1 / 63 px / 0 | +2 / 80 px / 0 | +2 / 93 px / 0 |
+| fuerte de piso (`nSig`, `sSig`, `dSig`) | +0 / 181 px / 0 | +4 / 286 px / 0 | +8 / 428 px / -9 |
+| rápido aéreo (`nAir`, `sAir`, `dAir`) | +0 / 75 px / 63 | +2 / 103 px / 56 | +3 / 129 px / 90 |
+| fuerte aéreo (`recovery`, `groundPound`) | +17 / 177 px / 90 | +21 / 286 px / 81 | +25 / 428 px / 69 |
+
+**Combos reales: 0 de 121 pares, a 0, 20, 40 y 100 de daño.** Con el buffer la mano ya no es el
+problema: lo que falta son golpes que dejen al rival cerca y arriba, y eso es F3. (El +1 del rápido
+contra el +2 que se midió a mano antes es la definición: ahora cuenta el primer frame en que el
+esquive del rival *arranca*.)
+
+### Cada golpe con su animación (2026-09-25)
+
+Pedido de Martín: cada ataque tiene su propia animación. Decidido que el dibujo entra **en la
+misma fase** que los datos del golpe, no en una fase de arte al final: el golpe del rival se lee
+por el dibujo, y uno que se ve como otro engaña. Los sonidos pueden seguir por familia (son
+grabaciones de la comunidad, no se generan).
+
+Hace falta lugar primero: las hojas se sirven escaladas 2x y ya ocupan ~17 MB de los 20 que
+permite el test (120 dibujos de 192×192). Servirlas a 1x y escalar en la vista con filtro "nearest" da el mismo pixel art
+con un cuarto de la VRAM (fase A0). Los dibujos se hacen por código (`tools/rasta-sprites`:
+esqueletos de poses en `anims.py`), así que un golpe nuevo son números, no píxeles.
+
 ### F0 hecha (2026-09-25) — SIM_VERSION 4
 
 - Los 11 golpes existen y la tabla decide cuál sale; los datos son los tres de siempre, así que

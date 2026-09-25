@@ -146,5 +146,11 @@ export const OSO: FighterTuning = {
   moves: MOVES,
 
   jumpBufferFrames: 4,
+  /**
+   * 6 frames (100 ms): alcanza para apretar el segundo golpe mientras se ve
+   * terminar el primero, sin tener que adivinar el frame. Con más de ~10 se
+   * empieza a sentir que el personaje hace cosas que uno ya no quería.
+   */
+  attackBufferFrames: 6,
   landFrames: 3,
 }

@@ -116,6 +116,10 @@ export function applyHit(hit: PendingHit, draft: MatchDraft): void {
   victim.attack = null
   victim.landLag = 0
   victim.lastHitBy = attacker.hitId
+  // Lo que había pedido antes del golpe ya no vale: si no, al salir del hitstun
+  // soltaría un golpe apretado cuando todavía estaba en otra situación.
+  victim.attackBuffer = 0
+  victim.bufferedButton = null
   // El hitstun crece con el empuje: si no, un golpe que te manda lejos te
   // devolvería el control enseguida y podrías volver antes de que te luzca.
   victim.hitstun = move.hitstun + Math.trunc((fxAbs(victim.vx) + fxAbs(victim.vy)) / FX_ONE / 2)

@@ -18,6 +18,10 @@ import { MOVE_CODES } from './attack'
 import type { Fighter, MatchState } from './state'
 import { STATE_CODES } from './state'
 
+/** Códigos del golpe guardado. Explícitos, como los de estado y golpe. */
+const BUTTON_CODES = { none: 0, light: 1, heavy: 2 } as const
+const AIM_CODES = { neutral: 0, side: 1, down: 2 } as const
+
 const FNV_OFFSET = 0x811c9dc5
 const FNV_PRIME = 0x01000193
 
@@ -39,6 +43,9 @@ function mixFighter(hash: number, fighter: Fighter): number {
   h = mix(h, fighter.dropThrough)
   h = mix(h, fighter.airJumpsLeft)
   h = mix(h, fighter.jumpBuffer)
+  h = mix(h, fighter.attackBuffer)
+  h = mix(h, BUTTON_CODES[fighter.bufferedButton ?? 'none'])
+  h = mix(h, AIM_CODES[fighter.bufferedAim])
   h = mix(h, fighter.attack === null ? 0 : MOVE_CODES[fighter.attack])
   h = mix(h, fighter.hitId)
   h = mix(h, fighter.lastHitBy)

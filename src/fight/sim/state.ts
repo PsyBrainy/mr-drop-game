@@ -10,6 +10,7 @@
  */
 
 import type { MoveKey } from './attack'
+import type { Aim, AttackButton } from './moves'
 import { FX_ZERO, type Fx } from './fixed'
 import { NONE, type Input } from './input'
 import { rngFromSeed, type RngState } from './rng'
@@ -73,6 +74,20 @@ export interface Fighter {
   readonly dropThrough: number
   readonly airJumpsLeft: number
   readonly jumpBuffer: number
+  /**
+   * Frames que se recuerda un golpe pedido cuando todavía no se podía pegar (en
+   * el recovery de otro, aterrizando, al final del esquive). Sin esto encadenar
+   * golpes exige clavar el frame exacto en que se recupera el control, y los
+   * combos existirían en el papel pero no en las manos.
+   *
+   * Se guarda el botón y la dirección del momento en que se apretó, no la del
+   * momento en que sale: tocar abajo + rápido y soltar abajo enseguida tiene que
+   * dar el golpe bajo igual. Si es de piso o de aire se decide al salir, porque
+   * eso depende de dónde esté el personaje en ese frame.
+   */
+  readonly attackBuffer: number
+  readonly bufferedButton: AttackButton | null
+  readonly bufferedAim: Aim
   /** Qué ataque está haciendo. `stateFrames` es su reloj. */
   readonly attack: MoveKey | null
   /**
@@ -141,6 +156,9 @@ function spawnFighter(world: World, index: PlayerIndex): Fighter {
     dropThrough: 0,
     airJumpsLeft: tuning.airJumps,
     jumpBuffer: 0,
+    attackBuffer: 0,
+    bufferedButton: null,
+    bufferedAim: 'neutral',
     attack: null,
     hitId: 0,
     // -1 y no 0: el 0 es un `hitId` válido y marcaría el primer golpe como ya recibido.
@@ -181,6 +199,8 @@ export function respawn(draft: FighterDraft, world: World, index: PlayerIndex): 
   draft.dropThrough = 0
   draft.airJumpsLeft = tuning.airJumps
   draft.jumpBuffer = 0
+  draft.attackBuffer = 0
+  draft.bufferedButton = null
   draft.attack = null
   draft.landLag = 0
   draft.clingLeft = tuning.wall.clingFrames

@@ -94,6 +94,13 @@ export interface FighterTuning {
    */
   readonly jumpBufferFrames: number
   /**
+   * Frames que se recuerda un golpe apretado antes de poder pegar. Ver
+   * `attackBuffer` en el estado. No puede ser muy largo: un golpe apretado de
+   * más lejos que esto tiene que perderse, o un botón de más sale solo medio
+   * segundo después, cuando ya no tiene sentido.
+   */
+  readonly attackBufferFrames: number
+  /**
    * Cuánto se frena el empuje de un golpe, por frame. Sin esto, cualquier
    * knockback te manda afuera tarde o temprano, porque en el aire no hay nada
    * que te detenga: el KO dejaría de depender de la fuerza del golpe.
