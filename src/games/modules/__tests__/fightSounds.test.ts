@@ -1,11 +1,12 @@
 import { existsSync } from 'node:fs'
 import { describe, expect, it } from 'vitest'
 import { fx } from '../../../fight/sim/fixed'
-import { DODGE, HEAVY, LIGHT, NONE, type Input } from '../../../fight/sim/input'
+import { MOVE_KEYS } from '../../../fight/sim/attack'
+import { DODGE, HEAVY, LIGHT, NONE, RIGHT, type Input } from '../../../fight/sim/input'
 import { initialState, type MatchState } from '../../../fight/sim/state'
 import { step } from '../../../fight/sim/tick'
 import { testWorld, withFighter } from '../../../fight/__tests__/harness'
-import { allSoundNames, FIGHT_SOUNDS, soundCues, soundUrl, type SoundCue } from '../fightSounds'
+import { allSoundNames, FIGHT_SOUNDS, soundCues, soundFor, soundUrl, type SoundCue } from '../fightSounds'
 
 /**
  * Los sonidos se prueban con la sim de verdad: se juega y se mira qué habría
@@ -33,6 +34,12 @@ describe('cuándo suena', () => {
 
   it('un golpe suena una vez, del que pega', () => {
     const cues = playCues(initialState(world, 1), [[LIGHT, NONE], ...idle(30)])
+    // Rápido quieto es el jab, que tiene sonido propio.
+    expect(cues).toEqual([{ slot: 0, kind: 'nLight' }])
+  })
+
+  it('un golpe sin sonido propio suena como su familia', () => {
+    const cues = playCues(initialState(world, 1), [[RIGHT | LIGHT, NONE], ...idle(30)])
     expect(cues).toEqual([{ slot: 0, kind: 'lightGround' }])
   })
 
@@ -49,7 +56,7 @@ describe('cuándo suena', () => {
     let state = withFighter(initialState(world, 1), 0, { x: fx(400), facing: 1 })
     state = withFighter(state, 1, { x: fx(430), facing: -1 })
     const cues = playCues(state, [[LIGHT, NONE], ...idle(20)])
-    expect(cues).toContainEqual({ slot: 0, kind: 'lightGround' })
+    expect(cues).toContainEqual({ slot: 0, kind: 'nLight' })
     expect(cues).toContainEqual({ slot: 1, kind: 'hurt' })
   })
 
@@ -63,6 +70,18 @@ describe('cuándo suena', () => {
 describe('los archivos', () => {
   it('cada sonido configurado existe en public/sounds', () => {
     for (const name of allSoundNames()) expect(existsSync(`public${soundUrl(name)}`), name).toBe(true)
+  })
+
+  it('cada golpe suena en los dos personajes', () => {
+    for (const slot of [0, 1] as const) {
+      for (const move of MOVE_KEYS) {
+        expect(FIGHT_SOUNDS[slot][soundFor(slot, move)]?.length, `${move} del ${slot}`).toBeGreaterThan(0)
+      }
+    }
+  })
+
+  it('los dos personajes esquivan con sonido', () => {
+    for (const character of FIGHT_SOUNDS) expect(character.dodge?.length).toBeGreaterThan(0)
   })
 
   it('cada personaje tiene sus propios sonidos de golpe', () => {

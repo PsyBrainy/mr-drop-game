@@ -80,8 +80,12 @@ sonido sí puede seguir por familia hasta que la comunidad grabe más.
   spike que te estrella contra el piso termina el hitstun. `dLight → sAir` sigue siendo combo
   (de 0 a 40). Hojas nuevas: `n_air`, `d_air`, `ground_pound`: **los once golpes tienen dibujo
   propio**. `SIM_VERSION` 8 (mrdrop y psy-ws).
+- [x] **Sonidos nuevos ✓** (2026-09-25, entre F4 y F5). Del tercer par de audios de la comunidad:
+  sonido propio para `nLight`, `nAir`, `dAir`, `recovery` y `groundPound` (los dos personajes), y
+  el esquive del rasta 2, que no tenía. Sin cambio de sim. Qué recorte va con qué: `memoria.md`.
 - [ ] **F5 — Esquive → golpe.** `dodge.attackCancelFrom`, después de `invulnTo`.
-- [ ] **F6 — Terminaciones.** Sonidos por golpe (si hay grabaciones nuevas), el bot usando la
+- [ ] **F6 — Terminaciones.** Sonido propio para los golpes que todavía suenan por familia
+  (`sLight`, `dLight`, `nSig`, `sSig`, `dSig`, `sAir`), si llegan más audios; el bot usando la
   dirección y el recovery, `fightHelp.ts` y el contador de combo en el HUD (lo deriva la vista, no
   la sim).
 

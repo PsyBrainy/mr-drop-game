@@ -1,7 +1,8 @@
 /**
  * Los sonidos de la pelea. Los grabó la comunidad: dos audios de WhatsApp, uno
  * por personaje, recortados en pedacitos (`public/sounds/`). El audio 1 es el
- * rasta (jugador 1) y el audio 2 el rasta de la otra paleta (jugador 2).
+ * rasta (jugador 1) y el audio 2 el rasta de la otra paleta (jugador 2). Un
+ * tercer par, de otra voz, dio sonido propio a algunos golpes (`MOVE_VOICES`).
  *
  * Son de la vista, no de la simulación: se deciden comparando el estado del
  * frame anterior con el nuevo ("arrancó un golpe", "le pegaron", "perdió una
@@ -15,11 +16,34 @@
 import type { MoveKey } from '../../fight/sim/attack'
 import type { MatchState, PlayerIndex } from '../../fight/sim/state'
 
-export type SoundKind = 'lightGround' | 'lightAir' | 'heavy' | 'dodge' | 'hurt' | 'ko'
+/**
+ * Las familias de siempre (rápido de piso, rápido aéreo, fuerte) y, desde que la
+ * comunidad mandó más audios, algunos golpes con sonido propio. Un golpe sin
+ * sonido propio suena como su familia (`MOVE_SOUND`).
+ */
+export type SoundKind =
+  | 'lightGround' | 'lightAir' | 'heavy'
+  | 'nLight' | 'nAir' | 'dAir' | 'recovery' | 'groundPound'
+  | 'dodge' | 'hurt' | 'ko'
 
 export interface SoundCue {
   readonly slot: PlayerIndex
   readonly kind: SoundKind
+}
+
+/**
+ * Los golpes con sonido propio. Salen del tercer par de audios de la comunidad
+ * (septiembre de 2026), recortados por silencios y normalizados al mismo pico que
+ * los de antes (-2 dB). Son de otra voz que los de cada personaje, así que los
+ * comparten los dos: son el sonido del golpe, no del que lo tira. Qué recorte va
+ * con qué golpe está en docs/pelea/memoria.md.
+ */
+const MOVE_VOICES: Partial<Record<SoundKind, readonly string[]>> = {
+  nLight: ['golpe_jab'],
+  nAir: ['golpe_patada_circulo'],
+  dAir: ['golpe_pisoton'],
+  recovery: ['golpe_recovery'],
+  groundPound: ['golpe_picada'],
 }
 
 /**
@@ -35,12 +59,16 @@ export const FIGHT_SOUNDS: readonly [Partial<Record<SoundKind, readonly string[]
     dodge: ['rasta_dodge'],
     hurt: ['rasta_hurt'],
     ko: ['rasta_ko'],
+    ...MOVE_VOICES,
   },
   {
     lightGround: ['rasta2_light_1', 'rasta2_light_2'],
     lightAir: ['rasta2_light_2'],
     heavy: ['rasta2_heavy'],
+    // Tres soplidos del tercer audio: el rasta 2 no tenía esquive.
+    dodge: ['rasta2_dodge'],
     hurt: ['rasta2_hurt'],
+    ...MOVE_VOICES,
   },
 ]
 
@@ -56,21 +84,27 @@ export function soundUrl(name: string): string {
 }
 
 /**
- * Qué familia de sonido lleva cada golpe. Hay once golpes y tres familias de
- * sonidos grabados; un golpe nuevo suena como el de su familia hasta tener los suyos.
+ * Qué suena con cada golpe, en orden de preferencia: el sonido propio si el
+ * personaje lo tiene, y si no, el de su familia.
  */
-export const MOVE_SOUND: Record<MoveKey, SoundKind> = {
-  nLight: 'lightGround',
-  sLight: 'lightGround',
-  dLight: 'lightGround',
-  nSig: 'heavy',
-  sSig: 'heavy',
-  dSig: 'heavy',
-  nAir: 'lightAir',
-  sAir: 'lightAir',
-  dAir: 'lightAir',
-  recovery: 'heavy',
-  groundPound: 'heavy',
+export const MOVE_SOUND: Record<MoveKey, readonly SoundKind[]> = {
+  nLight: ['nLight', 'lightGround'],
+  sLight: ['lightGround'],
+  dLight: ['lightGround'],
+  nSig: ['heavy'],
+  sSig: ['heavy'],
+  dSig: ['heavy'],
+  nAir: ['nAir', 'lightAir'],
+  sAir: ['lightAir'],
+  dAir: ['dAir', 'lightAir'],
+  recovery: ['recovery', 'heavy'],
+  groundPound: ['groundPound', 'heavy'],
+}
+
+/** El primer sonido de la lista que ese personaje tiene. Si no tiene ninguno, el último (no suena). */
+export function soundFor(slot: PlayerIndex, move: MoveKey): SoundKind {
+  const kinds = MOVE_SOUND[move]
+  return kinds.find((kind) => (FIGHT_SOUNDS[slot][kind]?.length ?? 0) > 0) ?? kinds[kinds.length - 1]!
 }
 
 /** Lo que pasó entre un frame y el siguiente que tiene que sonar. */
@@ -81,7 +115,7 @@ export function soundCues(previous: MatchState, state: MatchState): SoundCue[] {
     const now = state.fighters[slot]
     // Un golpe nuevo: entró al estado de ataque, o encadenó otro (cambia el id).
     if (now.state === 'attack' && now.attack && (before.state !== 'attack' || before.hitId !== now.hitId)) {
-      cues.push({ slot, kind: MOVE_SOUND[now.attack] })
+      cues.push({ slot, kind: soundFor(slot, now.attack) })
     }
     if (now.state === 'dodge' && before.state !== 'dodge') cues.push({ slot, kind: 'dodge' })
     if (now.stocks < before.stocks) cues.push({ slot, kind: 'ko' })

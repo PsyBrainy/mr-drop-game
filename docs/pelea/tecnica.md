@@ -134,8 +134,11 @@ grounded + 'light'|'heavy' ───┴──moveFor──> MoveKey ──> tuni
 - `data/schema.ts` exige los 11 golpes. Un personaje puede repetir el mismo objeto en varios
   casilleros (el Oso lo hace en F0), pero los escribe todos.
 - La vista no decide nada con esto: `fightSprites.config.ts` tiene `MOVE_ANIM` (qué hoja dibuja
-  cada golpe) y una tabla de poses por golpe, y `fightSounds.ts` tiene `MOVE_SOUND` (qué familia
-  de sonidos suena). Mientras un golpe no tenga dibujo ni sonido propio, usa los de su familia.
+  cada golpe) y una tabla de poses por golpe, y `fightSounds.ts` tiene `MOVE_SOUND`: por golpe,
+  los sonidos en orden de preferencia (el propio y después el de su familia). `soundFor` elige
+  el primero que el personaje tiene. Hoy tienen sonido propio `nLight`, `nAir`, `dAir`,
+  `recovery` y `groundPound`, compartidos por los dos personajes; el resto suena por familia.
+  Los recortes están en `public/sounds/` (mp3 mono, 44,1 kHz, 96 kbps, pico a -2 dB).
   Cuando un golpe cambie de frame data, el test de duración de `fightSprites.config.test.ts`
   pide su tabla de poses propia.
 - **Golpes con impulso** (`motion` en el frame data): en el frame `motion.frame` del ataque, en

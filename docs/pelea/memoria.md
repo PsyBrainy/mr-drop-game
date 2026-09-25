@@ -117,6 +117,29 @@ problema: lo que falta son golpes que dejen al rival cerca y arriba, y eso es F3
 contra el +2 que se midió a mano antes es la definición: ahora cuenta el primer frame en que el
 esquive del rival *arranca*.)
 
+### Sonidos nuevos (2026-09-25) — sin cambio de sim
+
+La comunidad mandó dos audios más de WhatsApp. Se recortaron por silencios (`silencedetect` a
+-35 dB) y se normalizaron al pico de los de antes (-2 dB; el soplido del esquive al de
+`rasta_dodge`, -9,6 dB). **No se pudieron escuchar**: la asignación sale de la forma de onda y el
+espectrograma (duración, ataque, si hay voz o es aire), así que conviene escucharlos y
+reasignar si alguno no cuadra (es cambiar un nombre en `fightSounds.ts`).
+
+| Recorte | De dónde | Cómo es | Va en |
+| --- | --- | --- | --- |
+| `golpe_recovery` | audio de las 12:28:10, 0,53–1,03 s | Grito fuerte con voz sostenida | El recovery (sube gritando) |
+| `golpe_jab` | idem, 1,20–1,40 s | Chasquido corto y seco | `nLight` (el jab) |
+| `rasta2_dodge` | idem, 2,08–2,57 s | Tres soplidos suaves, sin voz | El esquive del rasta 2 |
+| `golpe_pisoton` | idem, 2,91–3,23 s | "¡Ha!" corto y fuerte | `dAir` (el spike) |
+| `golpe_patada_circulo` | idem, 3,29–3,56 s | Exhalación con voz, media | `nAir` |
+| `golpe_picada` | audio de las 12:28:36, 0,38–1,30 s | Voz larga, en varios golpes | `groundPound` (la caída en picada) |
+
+- Es otra voz que la de cada personaje (tono de ~300 Hz; los del rasta 2 andan en ~200-230), así
+  que **los golpes nuevos los comparten los dos**: son el sonido del golpe, no del que lo tira. El
+  soplido del esquive no tiene voz, así que va sólo para el rasta 2, que no tenía.
+- `MOVE_SOUND` pasó a ser una lista por golpe: el sonido propio primero y el de la familia
+  después. Hay un test que exige que todos los golpes suenen en los dos personajes.
+
 ### F4 hecha (2026-09-25) — SIM_VERSION 8
 
 - **El spike (`dAir`)**, el pedido original: pegarle para abajo en el aire al que está por caerse
