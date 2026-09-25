@@ -117,6 +117,28 @@ problema: lo que falta son golpes que dejen al rival cerca y arriba, y eso es F3
 contra el +2 que se midió a mano antes es la definición: ahora cuenta el primer frame en que el
 esquive del rival *arranca*.)
 
+### Quinto audio (2026-09-25) — sin cambio de sim: los once golpes con sonido propio
+
+Audio de las 13:21:05, 12,6 s, con cuatro tramos de voz separados por silencios. Martín avisó
+que en algún lado dice **"mirá que te voy a cobrar, psy"** y que eso tenía que ser un golpe o el
+sonido de cuando alguien se cae. **Tampoco se pudo escuchar**; la frase se ubicó por forma: es el
+único tramo de largo compatible con nueve sílabas (1,06–2,80 s) que termina en una fricativa
+larga seguida de una vocal ("…psy"). Los otros dos tramos largos (6,4–8,4 s y 9,8–12,5 s) son
+habla corrida, demasiado largos para un golpe, y no se usaron.
+
+| Recorte | De dónde | Cómo es | Va en |
+| --- | --- | --- | --- |
+| `frase_cobrar` | 1,03–2,82 s | La frase ("mirá que te voy a cobrar, psy") | **Perder una vida**: el rasta 2 (no tenía) y el rasta 1 turnándola con la suya |
+| `golpe_humo` | 3,35–3,76 s | Onomatopeya: golpe de voz y siseo largo | `dSig`, la barrida de humo |
+| `golpe_barrida` | 3,87–4,21 s | Onomatopeya: golpe y siseo corto | `dLight`, la barrida |
+| `golpe_patada` | 4,29–4,62 s | Onomatopeya: golpe fuerte y siseo | `sAir`, la patada voladora |
+| `golpe_gancho` | 8,57–9,03 s | Un golpe seco y fuerte, suelto | `nSig`, el gancho |
+
+- Con esto **los once golpes tienen sonido propio** y hay un test que lo exige (las familias
+  quedan como respaldo para un personaje futuro al que le falten).
+- `golpe_humo` salía muy bajo (pico a -12 dB) y se subió 10 dB como los demás; tiene un piso de
+  ruido apenas más alto, conviene escucharlo.
+
 ### Cuarto audio (2026-09-25) — sin cambio de sim
 
 Un audio más de la comunidad (13:19:00, 2,45 s). Tiene un golpecito de micrófono al principio

@@ -2,8 +2,8 @@
  * Los sonidos de la pelea. Los grabó la comunidad: dos audios de WhatsApp, uno
  * por personaje, recortados en pedacitos (`public/sounds/`). El audio 1 es el
  * rasta (jugador 1) y el audio 2 el rasta de la otra paleta (jugador 2). Un
- * tercer par y un cuarto audio, de otras voces, dieron sonido propio a algunos
- * golpes (`MOVE_VOICES`).
+ * tercer par y dos audios más, de otras voces, dieron sonido propio a todos los
+ * golpes (`MOVE_VOICES`) y la frase de cuando alguien se cae.
  *
  * Son de la vista, no de la simulación: se deciden comparando el estado del
  * frame anterior con el nuevo ("arrancó un golpe", "le pegaron", "perdió una
@@ -24,7 +24,8 @@ import type { MatchState, PlayerIndex } from '../../fight/sim/state'
  */
 export type SoundKind =
   | 'lightGround' | 'lightAir' | 'heavy'
-  | 'nLight' | 'sLight' | 'sSig' | 'nAir' | 'dAir' | 'recovery' | 'groundPound'
+  | 'nLight' | 'sLight' | 'dLight' | 'nSig' | 'sSig' | 'dSig'
+  | 'nAir' | 'sAir' | 'dAir' | 'recovery' | 'groundPound'
   | 'dodge' | 'hurt' | 'ko'
 
 export interface SoundCue {
@@ -45,6 +46,12 @@ const MOVE_VOICES: Partial<Record<SoundKind, readonly string[]>> = {
   // primera sílaba, que se separa limpia, el puño de costado.
   sLight: ['golpe_puno'],
   sSig: ['golpe_bocanada'],
+  // Del quinto audio (13:21:05): tres onomatopeyas cortas seguidas y un golpe
+  // seco. Con esto los once golpes tienen sonido propio.
+  dLight: ['golpe_barrida'],
+  nSig: ['golpe_gancho'],
+  dSig: ['golpe_humo'],
+  sAir: ['golpe_patada'],
   nAir: ['golpe_patada_circulo'],
   dAir: ['golpe_pisoton'],
   recovery: ['golpe_recovery'],
@@ -63,7 +70,8 @@ export const FIGHT_SOUNDS: readonly [Partial<Record<SoundKind, readonly string[]
     heavy: ['rasta_heavy'],
     dodge: ['rasta_dodge'],
     hurt: ['rasta_hurt'],
-    ko: ['rasta_ko'],
+    // "Mirá que te voy a cobrar, psy" (quinto audio): se turna con el de siempre.
+    ko: ['rasta_ko', 'frase_cobrar'],
     ...MOVE_VOICES,
   },
   {
@@ -73,6 +81,8 @@ export const FIGHT_SOUNDS: readonly [Partial<Record<SoundKind, readonly string[]
     // Tres soplidos del tercer audio: el rasta 2 no tenía esquive.
     dodge: ['rasta2_dodge'],
     hurt: ['rasta2_hurt'],
+    // El rasta 2 no tenía sonido al perder una vida: se queda con la frase.
+    ko: ['frase_cobrar'],
     ...MOVE_VOICES,
   },
 ]
@@ -95,12 +105,12 @@ export function soundUrl(name: string): string {
 export const MOVE_SOUND: Record<MoveKey, readonly SoundKind[]> = {
   nLight: ['nLight', 'lightGround'],
   sLight: ['sLight', 'lightGround'],
-  dLight: ['lightGround'],
-  nSig: ['heavy'],
+  dLight: ['dLight', 'lightGround'],
+  nSig: ['nSig', 'heavy'],
   sSig: ['sSig', 'heavy'],
-  dSig: ['heavy'],
+  dSig: ['dSig', 'heavy'],
   nAir: ['nAir', 'lightAir'],
-  sAir: ['lightAir'],
+  sAir: ['sAir', 'lightAir'],
   dAir: ['dAir', 'lightAir'],
   recovery: ['recovery', 'heavy'],
   groundPound: ['groundPound', 'heavy'],

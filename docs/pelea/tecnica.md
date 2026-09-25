@@ -138,9 +138,9 @@ grounded + 'light'|'heavy' ───┴──moveFor──> MoveKey ──> tuni
 - La vista no decide nada con esto: `fightSprites.config.ts` tiene `MOVE_ANIM` (qué hoja dibuja
   cada golpe) y una tabla de poses por golpe, y `fightSounds.ts` tiene `MOVE_SOUND`: por golpe,
   los sonidos en orden de preferencia (el propio y después el de su familia). `soundFor` elige
-  el primero que el personaje tiene. Hoy tienen sonido propio `nLight`, `sLight`, `sSig`, `nAir`,
-  `dAir`, `recovery` y `groundPound`, compartidos por los dos personajes; el resto suena por
-  familia.
+  el primero que el personaje tiene. **Los once golpes tienen sonido propio**, compartidos por
+  los dos personajes; las familias (`lightGround`, `lightAir`, `heavy`, de cada personaje) quedan
+  como respaldo. `fightSounds.test.ts` exige que cada golpe suene con el suyo.
   Los recortes están en `public/sounds/` (mp3 mono, 44,1 kHz, 96 kbps, pico a -2 dB).
   Cuando un golpe cambie de frame data, el test de duración de `fightSprites.config.test.ts`
   pide su tabla de poses propia.

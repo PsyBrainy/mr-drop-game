@@ -97,8 +97,8 @@ sonido sí puede seguir por familia hasta que la comunidad grabe más.
   de sim: `SIM_VERSION` sigue en 9.
 - [x] **Cuarto audio ✓** (2026-09-25): sonido propio para `sLight` (el puño) y `sSig` (la
   bocanada). Detalle en `memoria.md`.
-- [ ] **Queda para cuando lleguen más audios:** sonido propio para `dLight`, `nSig`, `dSig` y
-  `sAir` (hoy suenan por familia).
+- [x] **Quinto audio ✓** (2026-09-25): sonido propio para `dLight`, `nSig`, `dSig` y `sAir`
+  (**los once golpes suenan distinto**), y "mirá que te voy a cobrar, psy" al perder una vida.
 
 ### Invariantes que tienen que existir al cerrar M6
 

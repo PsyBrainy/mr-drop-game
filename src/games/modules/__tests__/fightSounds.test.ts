@@ -6,7 +6,7 @@ import { DODGE, DOWN, HEAVY, LIGHT, NONE, RIGHT, type Input } from '../../../fig
 import { initialState, type MatchState } from '../../../fight/sim/state'
 import { step } from '../../../fight/sim/tick'
 import { testWorld, withFighter } from '../../../fight/__tests__/harness'
-import { allSoundNames, FIGHT_SOUNDS, soundCues, soundFor, soundUrl, type SoundCue } from '../fightSounds'
+import { allSoundNames, FIGHT_SOUNDS, MOVE_SOUND, soundCues, soundFor, soundUrl, type SoundCue } from '../fightSounds'
 
 /**
  * Los sonidos se prueban con la sim de verdad: se juega y se mira qué habría
@@ -38,10 +38,15 @@ describe('cuándo suena', () => {
     expect(cues).toEqual([{ slot: 0, kind: 'nLight' }])
   })
 
-  it('un golpe sin sonido propio suena como su familia', () => {
-    // La barrida todavía no tiene sonido propio.
+  it('la barrida suena con su recorte', () => {
     const cues = playCues(initialState(world, 1), [[DOWN | LIGHT, NONE], ...idle(30)])
-    expect(cues).toEqual([{ slot: 0, kind: 'lightGround' }])
+    expect(cues).toEqual([{ slot: 0, kind: 'dLight' }])
+  })
+
+  it('cada golpe suena con su sonido propio, no con el de su familia', () => {
+    for (const slot of [0, 1] as const) {
+      for (const move of MOVE_KEYS) expect(soundFor(slot, move), `${move} del ${slot}`).toBe(MOVE_SOUND[move][0])
+    }
   })
 
   it('el puño y la bocanada suenan con los recortes del cuarto audio', () => {
@@ -52,7 +57,8 @@ describe('cuándo suena', () => {
   it('el fuerte y el esquive del otro jugador, con su sonido', () => {
     const cues = playCues(initialState(world, 1), [[NONE, HEAVY], ...idle(40), [NONE, DODGE], ...idle(30)])
     expect(cues).toEqual([
-      { slot: 1, kind: 'heavy' },
+      // Fuerte quieto es el gancho.
+      { slot: 1, kind: 'nSig' },
       { slot: 1, kind: 'dodge' },
     ])
   })
@@ -86,8 +92,11 @@ describe('los archivos', () => {
     }
   })
 
-  it('los dos personajes esquivan con sonido', () => {
-    for (const character of FIGHT_SOUNDS) expect(character.dodge?.length).toBeGreaterThan(0)
+  it('los dos personajes esquivan y se caen con sonido', () => {
+    for (const character of FIGHT_SOUNDS) {
+      expect(character.dodge?.length).toBeGreaterThan(0)
+      expect(character.ko?.length).toBeGreaterThan(0)
+    }
   })
 
   it('cada personaje tiene sus propios sonidos de golpe', () => {
