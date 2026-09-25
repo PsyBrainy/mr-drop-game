@@ -46,6 +46,7 @@ function mixFighter(hash: number, fighter: Fighter): number {
   h = mix(h, fighter.attackBuffer)
   h = mix(h, BUTTON_CODES[fighter.bufferedButton ?? 'none'])
   h = mix(h, AIM_CODES[fighter.bufferedAim])
+  h = mix(h, fighter.airMovesUsed)
   h = mix(h, fighter.attack === null ? 0 : MOVE_CODES[fighter.attack])
   h = mix(h, fighter.hitId)
   h = mix(h, fighter.lastHitBy)

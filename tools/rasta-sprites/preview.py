@@ -1,7 +1,7 @@
 import sys
 from build import *
 from PIL import ImageDraw
-BOX={'light_ground':((7,45),(17,47),[4,5,6]),'light_air':((3,45),(15,53),[5,6,7,8]),'heavy':((8,60),(12,56),[12,13,14,15])}
+BOX={'light_ground':((7,45),(17,47),[4,5,6]),'light_air':((3,45),(15,53),[5,6,7,8]),'heavy':((8,60),(12,56),[12,13,14,15]),'recovery':((-8,28),(38,82),[3,4,5,6,7,8])}
 def prev(names, path, k=4):
     Z = F // W  # px de hoja por px de arte (1 desde A0)
     rows=[]

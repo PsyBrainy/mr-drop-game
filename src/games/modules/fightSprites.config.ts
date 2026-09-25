@@ -47,7 +47,7 @@ export function skinOf(index: PlayerIndex): Skin {
 
 export type AnimName =
   | 'idle' | 'walk' | 'air' | 'land'
-  | 'lightGround' | 'lightAir' | 'heavy'
+  | 'lightGround' | 'lightAir' | 'heavy' | 'recovery'
   | 'dodge' | 'wall' | 'hurt' | 'ko'
 
 /** Cuántos dibujos tiene cada hoja y cómo se llama el archivo (sin la piel adelante). */
@@ -59,6 +59,7 @@ export const SHEETS: Record<AnimName, { readonly file: string; readonly frames: 
   lightGround: { file: 'light_ground_6x1_96', frames: 6 },
   lightAir: { file: 'light_air_6x1_96', frames: 6 },
   heavy: { file: 'heavy_9x1_96', frames: 9 },
+  recovery: { file: 'recovery_6x1_96', frames: 6 },
   dodge: { file: 'dodge_6x1_96', frames: 6 },
   wall: { file: 'wall_4x1_96', frames: 4 },
   hurt: { file: 'hurt_2x1_96', frames: 2 },
@@ -95,8 +96,11 @@ const HEAVY_POSES = [
   5, 5, 5, 5, 5, 5, 6, 6, 6, 6, 6, 6, 7, 7, 7, 7, 7, 8, 8, 8, 8, 8,
 ]
 
+// startup 3 (se encoge) | activo 6 (sube pegando) | recovery 16
+const RECOVERY_POSES = [0, 0, 0, 1, 1, 1, 2, 2, 2, 3, 3, 3, 3, 3, 3, 4, 4, 4, 4, 4, 5, 5, 5, 5, 5]
+
 /**
- * Hay once golpes y tres hojas dibujadas: mientras un golpe no tenga su dibujo,
+ * Hay once golpes y cuatro hojas dibujadas: mientras un golpe no tenga su dibujo,
  * usa el de su familia (rápido de piso, rápido aéreo, fuerte). Cuando un golpe
  * cambie de frame data en la sim, necesita su tabla propia acá — el test de
  * duración lo avisa — y más adelante su hoja propia.
@@ -111,7 +115,7 @@ export const POSE_BY_FRAME: Record<MoveKey | 'dodge', readonly number[]> = {
   nAir: LIGHT_AIR_POSES,
   sAir: LIGHT_AIR_POSES,
   dAir: LIGHT_AIR_POSES,
-  recovery: HEAVY_POSES,
+  recovery: RECOVERY_POSES,
   groundPound: HEAVY_POSES,
   // 26 frames: se agacha y se esconde en su nube
   dodge: [0, 0, 0, 1, 1, 1, 1, 2, 2, 2, 2, 2, 3, 3, 3, 4, 4, 4, 4, 4, 4, 5, 5, 5, 5, 5],
@@ -128,12 +132,12 @@ export const MOVE_ANIM: Record<MoveKey, AnimName> = {
   nAir: 'lightAir',
   sAir: 'lightAir',
   dAir: 'lightAir',
-  recovery: 'heavy',
+  recovery: 'recovery',
   groundPound: 'heavy',
 }
 
 /** El dibujo del golpe estirado en cada hoja: tiene que coincidir con el primer frame activo. */
-const IMPACT_BY_ANIM: Partial<Record<AnimName, number>> = { lightGround: 2, lightAir: 2, heavy: 3 }
+const IMPACT_BY_ANIM: Partial<Record<AnimName, number>> = { lightGround: 2, lightAir: 2, heavy: 3, recovery: 1 }
 
 export const IMPACT_POSE: Record<MoveKey, number> = Object.fromEntries(
   MOVE_KEYS.map((key) => [key, IMPACT_BY_ANIM[MOVE_ANIM[key]] ?? 0]),

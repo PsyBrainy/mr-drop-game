@@ -10,7 +10,7 @@
  * el log para validar quién ganó.
  */
 
-import { isOver, type MoveKey } from './attack'
+import { airMoveBit, isOver, type MoveKey } from './attack'
 import { FX_ZERO } from './fixed'
 import { axis, DODGE, DOWN, HEAVY, held, JUMP, LIGHT, pressed, type Input } from './input'
 import {
@@ -137,6 +137,10 @@ function applyInput(draft: FighterDraft, input: Input, tuning: FighterTuning): v
   if (draft.state === 'attack') {
     const move = draft.attack === null ? null : tuning.moves[draft.attack]
     if (move && !isOver(move, draft.stateFrames)) {
+      if (move.motion && draft.stateFrames === move.motion.frame) {
+        draft.vy = move.motion.vy
+        if (move.motion.vx !== undefined) draft.vx = move.motion.vx * draft.facing
+      }
       // Durante el golpe no se maneja. En el piso frena; en el aire conserva la
       // inercia con la que llegó, que es lo que hace que un aéreo se "tire".
       accelerate(draft, tuning, 0)
@@ -172,10 +176,16 @@ function applyInput(draft: FighterDraft, input: Input, tuning: FighterTuning): v
   // Los golpes van antes que bajarse de la flotante: abajo + golpe arriba de una
   // es el golpe bajo (`dLight`), no bajarse. Bajarse queda para abajo solo.
   if (draft.attackBuffer > 0 && draft.bufferedButton) {
-    startAttack(draft, moveFor(draft.grounded, draft.bufferedButton, draft.bufferedAim), axis(input))
+    const key = moveFor(draft.grounded, draft.bufferedButton, draft.bufferedAim)
     draft.attackBuffer = 0
     draft.bufferedButton = null
-    return
+    // Un golpe de una vez por vuelo ya gastado no sale, y no sale otro en su
+    // lugar: apretar fuerte cayendo y que salga algo que no se pidió es peor que
+    // no hacer nada. El resto del frame sigue: se puede moverse y saltar.
+    if (spendAirMove(draft, tuning, key)) {
+      startAttack(draft, key, axis(input))
+      return
+    }
   }
 
   // Abajo sobre una plataforma flotante: bajarse atravesándola.
@@ -213,6 +223,18 @@ function startAttack(draft: FighterDraft, key: MoveKey, direction: -1 | 0 | 1): 
   draft.hitId += 1
   // Los golpes de piso te plantan. En el aire no: ahí mandan la inercia y la gravedad.
   if (draft.grounded) draft.vx = 0
+}
+
+/**
+ * ¿Se puede tirar este golpe? Si es de una vez por vuelo y se tira en el aire,
+ * lo marca como gastado. En el piso no se gasta nada: el vuelo todavía no empezó.
+ */
+function spendAirMove(draft: FighterDraft, tuning: FighterTuning, key: MoveKey): boolean {
+  if (!tuning.moves[key].oncePerAirtime || draft.grounded) return true
+  const bit = airMoveBit(key)
+  if ((draft.airMovesUsed & bit) !== 0) return false
+  draft.airMovesUsed |= bit
+  return true
 }
 
 /**

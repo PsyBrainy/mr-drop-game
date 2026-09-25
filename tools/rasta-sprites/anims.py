@@ -184,6 +184,42 @@ def heavy():
     return poses, table
 
 
+def fx_vstreaks(x0, y0, y1, n=3, gap=3):
+    """Estelas verticales: el rastro de un golpe que sube."""
+    def f(cv_, t):
+        for k in range(n):
+            x = x0 + (k - (n - 1) / 2) * gap
+            streak(cv_, (x, y0 + abs(k - 1) * 3), (x, y1), 'fx')
+    return f
+
+
+# ------------------------------------------------------------------ recovery (el fuerte en el aire)
+# Gancho para arriba con el puño adelante: sube pegando. startup 0-2, activo 3-8
+# (el impulso sale en el 3), recovery 9-24. La caja: x -8..28, y 38..82.
+def recovery():
+    w = base(hip=(0, 26), chest=(2, 40), head=(4, 49), hand_f=(8, 34), hand_b=(-6, 40),
+             bend_b=1, foot_f=(6, 14), foot_b=(-5, 10), toe_f=20, toe_b=-20, kbend_b=1,
+             hair=60, face='focus', glow=1)                                   # se encoge (0-2)
+    # El cuerpo se estira entero para arriba (cadera, pecho y cabeza suben) para
+    # que el puño llegue lo más alto que da el brazo; el humo cubre el resto de la caja.
+    hit = base(hip=(1, 33), chest=(3, 50), head=(4.5, 59), hand_f=(9, 76), hand_b=(-10, 46),
+               bend_b=1, foot_f=(3, 8), foot_b=(-3, 4), toe_f=-30, toe_b=-40,
+               hair=5, hair_len=1.05, face='focus', smoke=False,
+               fx_back=[fx_vstreaks(6, 12, 30)],
+               fx=[fx_puff((11, 80), 5, seed=91), fx_spark((11, 80), 6)])   # sale disparado (3-5)
+    h2 = dict(hit, fx_back=[], hand_f=(10, 75),
+              fx=[fx_puff((12, 80), 6.5, seed=92), fx_puff((4, 76), 3.5, seed=93)])   # (6-8)
+    r1 = base(hip=(0, 30), chest=(2.5, 45), head=(4, 54), hand_f=(13, 62), hand_b=(-9, 45),
+              bend_b=1, foot_f=(5, 11), foot_b=(-4, 7), toe_f=-20, toe_b=-30, hair=20,
+              fx=[fx_puff((14, 79), 4, seed=94)])                          # (9-14)
+    r2 = base(hip=(0, 29), chest=(2, 44), head=(3.5, 53), hand_f=(15, 48), hand_b=(-8, 46),
+              bend_b=1, foot_f=(7, 12), foot_b=(-5, 8), toe_f=0, toe_b=-20, hair=60)   # (15-19)
+    r3 = dict(air()[2][0])                                                 # cae (20-24)
+    poses = [(w, 0), (hit, 1), (h2, 2), (r1, 3), (r2, 4), (r3, 5)]
+    table = [0] * 3 + [1] * 3 + [2] * 3 + [3] * 6 + [4] * 5 + [5] * 5
+    return poses, table
+
+
 # ------------------------------------------------------------------ esquive (26 frames)
 # Se agacha y se esconde en su propia nube de humo. Invulnerable 3..14.
 def dodge():

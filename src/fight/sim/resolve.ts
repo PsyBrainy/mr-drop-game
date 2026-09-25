@@ -120,6 +120,9 @@ export function applyHit(hit: PendingHit, draft: MatchDraft): void {
   // soltaría un golpe apretado cuando todavía estaba en otra situación.
   victim.attackBuffer = 0
   victim.bufferedButton = null
+  // Te pegaron: te devuelven el recovery, como en Brawlhalla. Si no, un golpe
+  // que te saca después de gastarlo sería un KO seguro.
+  victim.airMovesUsed = 0
   // El hitstun crece con el empuje: si no, un golpe que te manda lejos te
   // devolvería el control enseguida y podrías volver antes de que te luzca.
   victim.hitstun = move.hitstun + Math.trunc((fxAbs(victim.vx) + fxAbs(victim.vy)) / FX_ONE / 2)

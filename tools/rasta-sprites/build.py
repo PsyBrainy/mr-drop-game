@@ -21,7 +21,7 @@ def render_all():
     A['air'] = [render(P, t) for P, t in air()]
     A['land'] = [render(P, t) for P, t in land()]
     for name, fn in [('light_ground', light_ground), ('light_air', light_air), ('heavy', heavy),
-                     ('dodge', dodge)]:
+                     ('recovery', recovery), ('dodge', dodge)]:
         poses, table = fn()
         A[name] = [render(P, t) for P, t in poses]
         T[name] = table

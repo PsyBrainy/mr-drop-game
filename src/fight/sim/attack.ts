@@ -89,6 +89,27 @@ export interface AttackData {
    * choque: se anulan los dos.
    */
   readonly priority: number
+  /**
+   * Un impulso propio del golpe: en el frame `frame` del ataque, la velocidad
+   * vertical del que pega PASA A SER `vy` (y la horizontal `vx`, espejada con
+   * `facing`, si viene). Se reemplaza y no se suma a propósito: es lo que hace
+   * que el recovery sirva cayendo. Sumarle -13 a alguien que baja a 16 px/frame
+   * lo deja bajando igual; reemplazar corta la caída en seco, igual que el salto
+   * de aire. Es un dato del reloj del ataque, como la caja: no se instancia nada.
+   */
+  readonly motion?: { readonly frame: number; readonly vx?: Fx; readonly vy: Fx }
+  /**
+   * Sólo una vez por vuelo: se recarga al tocar el piso y al recibir un golpe
+   * (como en Brawlhalla: si te pegan, te devuelven la herramienta para volver).
+   * Colgarse de la pared no lo recarga. Sin esto, repetir un golpe que impulsa
+   * sería volar para siempre.
+   */
+  readonly oncePerAirtime?: boolean
+}
+
+/** El bit de `airMovesUsed` que marca un golpe como gastado en este vuelo. */
+export function airMoveBit(key: MoveKey): number {
+  return 1 << MOVE_CODES[key]
 }
 
 export type MoveSet = Readonly<Record<MoveKey, AttackData>>

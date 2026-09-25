@@ -136,6 +136,7 @@ export function moveAndCollide(
     draft.grounded = true
     draft.airJumpsLeft = tuning.airJumps
     draft.clingLeft = tuning.wall.clingFrames
+    draft.airMovesUsed = 0
     return { landed: true, wall: 0 }
   }
 
@@ -155,6 +156,7 @@ export function moveAndCollide(
         draft.platform = index
         draft.airJumpsLeft = tuning.airJumps
         draft.clingLeft = tuning.wall.clingFrames
+        draft.airMovesUsed = 0
         return { landed: true, wall: 0 }
       }
     }

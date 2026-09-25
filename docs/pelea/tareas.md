@@ -35,7 +35,7 @@ arquitectura, con un personaje:
   el validador. Abandonar es perder, salvo que la sim diga que ya había terminado. Contra el bot
   no cuenta (es local y no pasa por el servidor).
 - **M5** — Rollback, sólo si M3 se siente mal con pings reales. No antes.
-- **M6** — Ataques con dirección y bases para combos. **En curso** (F0 ✓, F1 ✓, A0 ✓, sigue F2): fases abajo.
+- **M6** — Ataques con dirección y bases para combos. **En curso** (F0 ✓, F1 ✓, A0 ✓, F2 ✓, sigue F3): fases abajo.
   Va antes que M5.
 
 ## M6: ataques con dirección y bases para combos
@@ -64,9 +64,10 @@ sonido sí puede seguir por familia hasta que la comunidad grabe más.
   como la paga Kaplay, en páginas de atlas (`src/games/kaplay/atlas.ts`): la pelea pasó de 3
   páginas (48 MB) a 2 (32 MB), y con las hojas de los once golpes sigue en 2 (con 2x hubieran
   sido 5). No cambia la sim: `SIM_VERSION` sigue en 5.
-- [ ] **F2 — El recovery** (fuerte en el aire que impulsa), según lo decidido en `memoria.md`:
-  `motion`, `oncePerAirtime`, `airMovesUsed`. Baja la deriva y se reescribe el test de
-  recuperación. Animación: `recovery` (sube pegando para arriba).
+- [x] **F2 ✓ — El recovery** (2026-09-25). El fuerte en el aire (quieto o de costado) impulsa
+  para arriba pegando: `motion` y `oncePerAirtime` en el frame data, `airMovesUsed` en el estado.
+  La deriva bajó de 5,6 a 4,8 y hay tests de recuperación con y sin el recovery. Hoja propia
+  `recovery` para las dos pieles. `SIM_VERSION` 6 (mrdrop y psy-ws).
 - [ ] **F3 — Piso con dirección.** Datos propios para `nLight`, `sLight`, `dLight`, `nSig`,
   `sSig`, `dSig`, y `motion` en los que avanzan. Primera ruta de combo real con su test.
   Animaciones: las seis de piso (las tres de hoy se redibujan donde el golpe cambió).
@@ -86,9 +87,9 @@ sonido sí puede seguir por familia hasta que la comunidad grabe más.
 - ✓ A 100 de daño ninguna ruta de dos golpes es real: los combos meten daño, no matan
   (`combos.test.ts`, los 121 pares).
 - ✓ Ningún golpe se sigue a sí mismo con ningún daño (`combos.test.ts`).
-- Nadie se queda en el aire para siempre combinando salto, esquive y golpes.
-- Con saltos gastados y el recovery disponible se vuelve desde X px bajo el borde; gastado, no.
-- Recibir un golpe recarga el recovery; colgarse de la pared, no.
+- ✓ Nadie se queda en el aire para siempre combinando salto, esquive y golpes (`recovery.test.ts`).
+- ✓ Desde lejos y abajo del borde se vuelve con el recovery y no sin él (`recovery.test.ts`).
+- ✓ Recibir un golpe recarga el recovery; colgarse de la pared, no (`recovery.test.ts`).
 - Un spike no mata a 0 de daño a quien vuelve bien; sí desde cierto daño bajo el borde.
 - Cada golpe tiene su hoja propia: ningún `MoveKey` comparte `MOVE_ANIM` con otro, salvo los que
   son el mismo golpe (el `recovery` neutro y de costado). Hoy ese test fallaría a propósito: es la

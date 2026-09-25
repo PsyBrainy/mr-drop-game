@@ -88,6 +88,11 @@ export interface Fighter {
   readonly attackBuffer: number
   readonly bufferedButton: AttackButton | null
   readonly bufferedAim: Aim
+  /**
+   * Los golpes de una vez por vuelo (`oncePerAirtime`) que ya se gastaron, un bit
+   * por golpe (`airMoveBit`). Se limpia al aterrizar y al recibir un golpe.
+   */
+  readonly airMovesUsed: number
   /** Qué ataque está haciendo. `stateFrames` es su reloj. */
   readonly attack: MoveKey | null
   /**
@@ -159,6 +164,7 @@ function spawnFighter(world: World, index: PlayerIndex): Fighter {
     attackBuffer: 0,
     bufferedButton: null,
     bufferedAim: 'neutral',
+    airMovesUsed: 0,
     attack: null,
     hitId: 0,
     // -1 y no 0: el 0 es un `hitId` válido y marcaría el primer golpe como ya recibido.
@@ -201,6 +207,7 @@ export function respawn(draft: FighterDraft, world: World, index: PlayerIndex): 
   draft.jumpBuffer = 0
   draft.attackBuffer = 0
   draft.bufferedButton = null
+  draft.airMovesUsed = 0
   draft.attack = null
   draft.landLag = 0
   draft.clingLeft = tuning.wall.clingFrames

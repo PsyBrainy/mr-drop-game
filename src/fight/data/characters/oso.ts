@@ -69,6 +69,31 @@ const HEAVY: AttackData = {
 }
 
 /**
+ * El recovery: el fuerte en el aire, que te impulsa para arriba pegando. Es la
+ * herramienta para volver al escenario, así que lo que importa es el impulso:
+ * en el frame 3 la velocidad vertical pasa a ser -13 (el salto de piso es -13,5
+ * y el de aire -12), aunque vengas cayendo a toda velocidad. Una vez por vuelo.
+ *
+ * La caja está arriba de la cabeza, donde está el puño: pega al que te espera
+ * en el borde parado encima tuyo. Empuja para arriba y poco para adelante.
+ * El recovery largo (16) es el precio: si lo errás cerca de alguien, cae solo y
+ * vendido.
+ */
+const RECOVERY: AttackData = {
+  startup: 3,
+  active: 6,
+  recovery: 16,
+  hitbox: { dx: fx(10), dy: fx(-60), width: fx(36), height: fx(44) },
+  damage: 9,
+  knockback: { x: fxRatio(10, 10), y: fxRatio(-75, 10) },
+  scaling: 9,
+  hitstun: 16,
+  priority: 2,
+  motion: { frame: 3, vy: fx(-13) },
+  oncePerAirtime: true,
+}
+
+/**
  * F0: cada casillero de la tabla apunta a uno de los tres golpes de siempre, así
  * el juego se siente igual que antes. El `recovery` todavía no impulsa: eso es F2.
  */
@@ -82,7 +107,7 @@ const MOVES = defineMoves({
   nAir: LIGHT_AIR,
   sAir: LIGHT_AIR,
   dAir: LIGHT_AIR,
-  recovery: HEAVY,
+  recovery: RECOVERY,
   groundPound: HEAVY,
 })
 
@@ -95,13 +120,14 @@ export const OSO: FighterTuning = {
   groundFriction: fxRatio(9, 10),
 
   /**
-   * La deriva es la herramienta más fuerte del personaje, y es a propósito:
-   * mientras no haya movimiento de recuperación, los saltos y el esquive son lo
-   * único que hay para volver al escenario, y volver tiene que ser una cuestión
-   * de habilidad y no una moneda al aire. El test de recuperación marca el piso
-   * de este número: con 4,6 no se llega ni jugando bien.
+   * La deriva. Hasta M6 estaba inflada (5,6) porque sin movimiento de
+   * recuperación los saltos y el esquive eran lo único para volver. Con el
+   * recovery baja a 4,8: el test de recuperación marca que desde lejos y abajo
+   * del borde se vuelve CON el recovery y no sin él, que es lo que hace que
+   * gastarlo sea una decisión. Más abajo de 4,4 empieza a no alcanzar ni con él.
+   * Ojo que también es el piso del freno del knockback (`decayKnockback`).
    */
-  airSpeed: fxRatio(56, 10),
+  airSpeed: fxRatio(48, 10),
   airDrift: fxRatio(35, 100),
 
   gravity: fxRatio(9, 10),

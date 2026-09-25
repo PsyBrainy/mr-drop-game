@@ -110,10 +110,42 @@ Ventaja / distancia horizontal / altura del rival sobre el que pegó, cuando el 
 | rápido aéreo (`nAir`, `sAir`, `dAir`) | +0 / 75 px / 63 | +2 / 103 px / 56 | +3 / 129 px / 90 |
 | fuerte aéreo (`recovery`, `groundPound`) | +17 / 177 px / 90 | +21 / 286 px / 81 | +25 / 428 px / 69 |
 
+(Tabla de F1. Desde F2 el `recovery` tiene datos propios: ver la entrada de F2.)
+
 **Combos reales: 0 de 121 pares, a 0, 20, 40 y 100 de daño.** Con el buffer la mano ya no es el
 problema: lo que falta son golpes que dejen al rival cerca y arriba, y eso es F3. (El +1 del rápido
 contra el +2 que se midió a mano antes es la definición: ahora cuenta el primer frame en que el
 esquive del rival *arranca*.)
+
+### F2 hecha (2026-09-25) — SIM_VERSION 6
+
+- **El recovery**: startup 3, activo 6, recovery 16. En el frame 3 la velocidad vertical *pasa a
+  ser* -13 (el salto de piso es -13,5 y el de aire -12). Caja arriba de la cabeza, empuja para
+  arriba. Una vez por vuelo; se recarga al aterrizar y al recibir un golpe, no al colgarse.
+- Gastado, apretar fuerte en el aire (sin apuntar abajo) no hace nada y el botón guardado se
+  descarta; el resto del frame sigue (se puede mover y saltar).
+- **Probado y descartado: darle también velocidad horizontal al impulso.** Con 2, 3 o 4 px/frame
+  no cambió ni un caso de la grilla de recuperación: el que vuelve ya viene derivando a la
+  velocidad máxima, así que fijarle una horizontal más baja sólo lo frena. El recovery sube; la
+  distancia horizontal la pone la deriva.
+- **La deriva bajó de 5,6 a 4,8.** Grilla de recuperación (x = px afuera del borde, y = px por
+  debajo del piso; S = vuelve sin recovery, R = vuelve con):
+
+  | | x 170 | 200 | 230 | 260+ |
+  | --- | --- | --- | --- | --- |
+  | 5,6 · y 200 | S R | S R | S R | — |
+  | 5,6 · y 280 | S R | S R | R | — |
+  | **4,8 · y 200** | S R | S R | **R** | — |
+  | **4,8 · y 280** | S R | **R** | **R** | — |
+  | **4,8 · y 320** | **R** | **R** | **R** | — |
+
+  Con 4,8 aparece una franja donde sólo se vuelve con el recovery, que es lo que convierte
+  gastarlo en una decisión. De 260 px para afuera no se vuelve con nada: el fuerte sigue matando.
+  Con 4,4 empieza a faltar incluso con el recovery. Los tests de KO por daño siguen pasando.
+- El dibujo: gancho para arriba con el cuerpo estirado; el humo cubre la parte de arriba de la
+  caja, como en los otros golpes.
+- Ventaja nueva: el recovery pegando de cerca queda **-2 a 0 de daño** (castigable, a propósito:
+  es para volver, no para pegar) y hasta +2 a 100. Combos reales: siguen en 0 de 121.
 
 ### A0 hecha (2026-09-25) — sin cambio de sim
 

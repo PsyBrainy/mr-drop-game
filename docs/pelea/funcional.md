@@ -26,7 +26,7 @@ Antes del primer frame hay una cuenta: "3, 2, 1, ¡Buenos Humos!".
 
 ## Moverse
 
-- Caminar, y **tres saltos**: uno desde el piso y dos en el aire (los del aire suben un poco
+- Caminar, y **tres saltos** (y el recovery, abajo en "Pelear"): uno desde el piso y dos en el aire (los del aire suben un poco
   menos). Apretar salto justo antes de tocar el piso también cuenta.
 - En el aire se conserva la inercia: soltar la dirección no frena.
 - **Colgarse del borde**: al llegar contra el costado de la plataforma principal el personaje se
@@ -36,13 +36,14 @@ Antes del primer frame hay una cuenta: "3, 2, 1, ¡Buenos Humos!".
 - **Plataformas flotantes**: se atraviesan desde abajo y de costado, se aterriza desde arriba, y
   con abajo se baja atravesándola. Se mueven de lado a lado y te llevan encima.
 
-## Pelear (hoy: 3 golpes)
+## Pelear
 
 | Golpe | Cuándo | Sale en | Te deja vendido | Para qué |
 | --- | --- | --- | --- | --- |
 | Rápido de piso | Rápido parado | 4 frames | 10 | Meter daño |
 | Rápido aéreo | Rápido en el aire | 5 | 12 | Castigar al que salta, sacar al que vuelve |
-| Fuerte | Fuerte, piso o aire | 12 | 22 | El que mata |
+| Fuerte | Fuerte en el piso, o fuerte + abajo en el aire | 12 | 22 | El que mata |
+| Recovery | Fuerte en el aire (quieto o de costado) | 3 | 16 | Volver: te impulsa para arriba pegando, aunque vengas cayendo |
 
 - Al pegar podés apuntar para el otro lado: el personaje se da vuelta.
 - Abajo + golpe arriba de una plataforma flotante pega; abajo solo es lo que te baja.
@@ -52,6 +53,8 @@ Antes del primer frame hay una cuenta: "3, 2, 1, ¡Buenos Humos!".
   cobra y los dos rebotan.
 - Un aéreo que no terminó cuando tocás el piso te deja unos frames sin control.
 - El que recibe un golpe queda sin control un rato que crece con lo lejos que sale volando.
+- **El recovery se usa una vez por vuelo.** Se recarga al tocar el piso o si te pegan; colgarte
+  de la pared no lo recarga. Gastado, apretar fuerte en el aire no hace nada.
 
 Lo que viene (golpes con dirección, el fuerte aéreo que impulsa, combos) está en `tareas.md`, M6.
 

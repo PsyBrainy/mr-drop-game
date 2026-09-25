@@ -67,8 +67,8 @@ describe('determinismo', () => {
   it('la partida de ejemplo termina en el hash conocido', () => {
     const final = runReplay(sample, world)
 
-    expect(formatHash(hashState(final))).toBe('27a4d561')
-    expect(SIM_VERSION).toBe(5)
+    expect(formatHash(hashState(final))).toBe('32671069')
+    expect(SIM_VERSION).toBe(6)
   })
 
   it('step no toca el estado que recibe', () => {

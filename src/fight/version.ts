@@ -17,5 +17,7 @@
  *    y abajo + golpe arriba de una flotante pega en vez de bajarse.
  * 5: buffer de golpe (M6 F1). El estado suma `attackBuffer`, `bufferedButton` y
  *    `bufferedAim`: un golpe apretado antes de poder pegar sale apenas se pueda.
+ * 6: el recovery (M6 F2). El fuerte en el aire impulsa (`motion`), una vez por
+ *    vuelo (`airMovesUsed`), y la deriva baja de 5,6 a 4,8.
  */
-export const SIM_VERSION = 5
+export const SIM_VERSION = 6

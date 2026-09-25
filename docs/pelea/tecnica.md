@@ -138,11 +138,18 @@ grounded + 'light'|'heavy' ───┴──moveFor──> MoveKey ──> tuni
   de sonidos suena). Mientras un golpe no tenga dibujo ni sonido propio, usa los de su familia.
   Cuando un golpe cambie de frame data, el test de duración de `fightSprites.config.test.ts`
   pide su tabla de poses propia.
+- **Golpes con impulso** (`motion` en el frame data): en el frame `motion.frame` del ataque, en
+  la fase de input, `vy` (y `vx` espejado, si viene) *se reemplazan*. Se aplica antes de la física,
+  así que la gravedad hace el arco sola.
+- **Una vez por vuelo** (`oncePerAirtime`): al salir el golpe en el aire se prende su bit
+  (`airMoveBit`) en `airMovesUsed`. Con el bit prendido el golpe no sale (ni otro en su lugar).
+  Se limpia al aterrizar (`moveAndCollide`) y al recibir un golpe (`applyHit`).
 - **Buffer de golpe**: al empezar `applyInput` se anota cualquier golpe apretado (botón y
   dirección) con `attackBufferFrames` de vida, aunque no se pueda pegar. Donde antes se preguntaba
   "¿se apretó recién?", ahora se pregunta "¿hay un golpe guardado?", y al salir se borra.
   `applyHit` lo borra en el que recibe.
-- Tests: `__tests__/buffer.test.ts` (sale en el primer frame libre, se pierde fuera de la
+- Tests: `__tests__/recovery.test.ts` (el impulso, una vez por vuelo, recargas, volver con y sin
+  recovery, nadie flota para siempre), `__tests__/buffer.test.ts` (sale en el primer frame libre, se pierde fuera de la
   ventana, guarda la dirección, un golpe lo borra), `__tests__/moves.test.ts` (la tabla es completa, cada input da un golpe, el tick la usa)
   y en `platforms.test.ts` el caso de abajo + golpe arriba de la flotante.
 
@@ -150,6 +157,9 @@ grounded + 'light'|'heavy' ───┴──moveFor──> MoveKey ──> tuni
 
 - Las hojas del rasta salen de `tools/rasta-sprites` (poses por código, ver su README) a **1x**:
   frames de 96×96, pies en (34, 90). `build.py` escribe en `assets-src/` y se copian a `public/`.
+- Golpe con hoja propia: se agrega la función de poses en `anims.py` (con su tabla), se suma a la
+  lista de `build.py`, su caja a `preview.py`, y en `fightSprites.config.ts` la hoja (`SHEETS`),
+  la tabla de poses, `MOVE_ANIM` y el dibujo del impacto. Hoy tienen hoja propia: `recovery`.
 - `fightSprites.config.ts` dice qué hoja y qué dibujo va en cada frame; la vista agranda con el
   zoom de la cámara y Kaplay filtra con "nearest".
 - **La VRAM se mide en páginas de atlas**, no sumando PNGs: `src/games/kaplay/atlas.ts` repite el
