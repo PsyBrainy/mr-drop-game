@@ -2,7 +2,8 @@
  * Los sonidos de la pelea. Los grabó la comunidad: dos audios de WhatsApp, uno
  * por personaje, recortados en pedacitos (`public/sounds/`). El audio 1 es el
  * rasta (jugador 1) y el audio 2 el rasta de la otra paleta (jugador 2). Un
- * tercer par, de otra voz, dio sonido propio a algunos golpes (`MOVE_VOICES`).
+ * tercer par y un cuarto audio, de otras voces, dieron sonido propio a algunos
+ * golpes (`MOVE_VOICES`).
  *
  * Son de la vista, no de la simulación: se deciden comparando el estado del
  * frame anterior con el nuevo ("arrancó un golpe", "le pegaron", "perdió una
@@ -23,7 +24,7 @@ import type { MatchState, PlayerIndex } from '../../fight/sim/state'
  */
 export type SoundKind =
   | 'lightGround' | 'lightAir' | 'heavy'
-  | 'nLight' | 'nAir' | 'dAir' | 'recovery' | 'groundPound'
+  | 'nLight' | 'sLight' | 'sSig' | 'nAir' | 'dAir' | 'recovery' | 'groundPound'
   | 'dodge' | 'hurt' | 'ko'
 
 export interface SoundCue {
@@ -40,6 +41,10 @@ export interface SoundCue {
  */
 const MOVE_VOICES: Partial<Record<SoundKind, readonly string[]>> = {
   nLight: ['golpe_jab'],
+  // Del cuarto audio: la frase entera es la bocanada (el golpe que mata) y su
+  // primera sílaba, que se separa limpia, el puño de costado.
+  sLight: ['golpe_puno'],
+  sSig: ['golpe_bocanada'],
   nAir: ['golpe_patada_circulo'],
   dAir: ['golpe_pisoton'],
   recovery: ['golpe_recovery'],
@@ -89,10 +94,10 @@ export function soundUrl(name: string): string {
  */
 export const MOVE_SOUND: Record<MoveKey, readonly SoundKind[]> = {
   nLight: ['nLight', 'lightGround'],
-  sLight: ['lightGround'],
+  sLight: ['sLight', 'lightGround'],
   dLight: ['lightGround'],
   nSig: ['heavy'],
-  sSig: ['heavy'],
+  sSig: ['sSig', 'heavy'],
   dSig: ['heavy'],
   nAir: ['nAir', 'lightAir'],
   sAir: ['lightAir'],

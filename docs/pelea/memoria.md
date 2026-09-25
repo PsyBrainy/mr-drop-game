@@ -117,6 +117,22 @@ problema: lo que falta son golpes que dejen al rival cerca y arriba, y eso es F3
 contra el +2 que se midió a mano antes es la definición: ahora cuenta el primer frame en que el
 esquive del rival *arranca*.)
 
+### Cuarto audio (2026-09-25) — sin cambio de sim
+
+Un audio más de la comunidad (13:19:00, 2,45 s). Tiene un golpecito de micrófono al principio
+(0,37 s, afuera) y después una frase de tres sílabas seguidas, de 0,66 a 1,82 s: la primera se
+separa limpia (hay un valle en 0,97 s); la segunda y la tercera van pegadas. **Tampoco se pudo
+escuchar**: la asignación sale de la envolvente y el espectrograma.
+
+| Recorte | De dónde | Va en |
+| --- | --- | --- |
+| `golpe_bocanada` | 0,64–1,83 s, la frase entera | `sSig`, la bocanada: el golpe que mata merece la frase |
+| `golpe_puno` | 0,64–0,98 s, la primera sílaba | `sLight`, el puño de costado |
+
+Mismo tratamiento que los anteriores: pico a -2 dB, fundido de entrada de 4 ms y de salida
+proporcional. Los comparten los dos personajes. Con esto la bocanada deja de sonar con el
+"fuerte" de cada personaje (que sigue en el gancho y la barrida de humo).
+
 ### F6 hecha (2026-09-25) — sin cambio de sim. M6 cerrado
 
 - **`followsUp` con gravity cancel**: si el segundo golpe es de piso, prueba saltar (o no, si ya

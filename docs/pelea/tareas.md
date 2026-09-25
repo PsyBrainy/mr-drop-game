@@ -95,8 +95,10 @@ sonido sí puede seguir por familia hasta que la comunidad grabe más.
   tira el spike y vuelve con el recovery; el cartel de controles explica direcciones, recovery y
   gravity cancel; contador de combo en el HUD (`fightCombo.ts`, lo deriva la vista). Sin cambio
   de sim: `SIM_VERSION` sigue en 9.
-- [ ] **Queda para cuando lleguen más audios:** sonido propio para `sLight`, `dLight`, `nSig`,
-  `sSig`, `dSig` y `sAir` (hoy suenan por familia).
+- [x] **Cuarto audio ✓** (2026-09-25): sonido propio para `sLight` (el puño) y `sSig` (la
+  bocanada). Detalle en `memoria.md`.
+- [ ] **Queda para cuando lleguen más audios:** sonido propio para `dLight`, `nSig`, `dSig` y
+  `sAir` (hoy suenan por familia).
 
 ### Invariantes que tienen que existir al cerrar M6
 

@@ -2,7 +2,7 @@ import { existsSync } from 'node:fs'
 import { describe, expect, it } from 'vitest'
 import { fx } from '../../../fight/sim/fixed'
 import { MOVE_KEYS } from '../../../fight/sim/attack'
-import { DODGE, HEAVY, LIGHT, NONE, RIGHT, type Input } from '../../../fight/sim/input'
+import { DODGE, DOWN, HEAVY, LIGHT, NONE, RIGHT, type Input } from '../../../fight/sim/input'
 import { initialState, type MatchState } from '../../../fight/sim/state'
 import { step } from '../../../fight/sim/tick'
 import { testWorld, withFighter } from '../../../fight/__tests__/harness'
@@ -39,8 +39,14 @@ describe('cuándo suena', () => {
   })
 
   it('un golpe sin sonido propio suena como su familia', () => {
-    const cues = playCues(initialState(world, 1), [[RIGHT | LIGHT, NONE], ...idle(30)])
+    // La barrida todavía no tiene sonido propio.
+    const cues = playCues(initialState(world, 1), [[DOWN | LIGHT, NONE], ...idle(30)])
     expect(cues).toEqual([{ slot: 0, kind: 'lightGround' }])
+  })
+
+  it('el puño y la bocanada suenan con los recortes del cuarto audio', () => {
+    expect(playCues(initialState(world, 1), [[RIGHT | LIGHT, NONE], ...idle(30)])).toEqual([{ slot: 0, kind: 'sLight' }])
+    expect(playCues(initialState(world, 1), [[RIGHT | HEAVY, NONE], ...idle(45)])).toEqual([{ slot: 0, kind: 'sSig' }])
   })
 
   it('el fuerte y el esquive del otro jugador, con su sonido', () => {
