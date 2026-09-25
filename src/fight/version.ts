@@ -19,5 +19,7 @@
  *    `bufferedAim`: un golpe apretado antes de poder pegar sale apenas se pueda.
  * 6: el recovery (M6 F2). El fuerte en el aire impulsa (`motion`), una vez por
  *    vuelo (`airMovesUsed`), y la deriva baja de 5,6 a 4,8.
+ * 7: los seis golpes de piso con datos propios (M6 F3). La barrida (`dLight`)
+ *    levanta y arranca el primer combo real; `sLight` y `sSig` dan un paso.
  */
-export const SIM_VERSION = 6
+export const SIM_VERSION = 7

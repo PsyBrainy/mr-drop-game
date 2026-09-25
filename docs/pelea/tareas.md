@@ -35,7 +35,7 @@ arquitectura, con un personaje:
   el validador. Abandonar es perder, salvo que la sim diga que ya había terminado. Contra el bot
   no cuenta (es local y no pasa por el servidor).
 - **M5** — Rollback, sólo si M3 se siente mal con pings reales. No antes.
-- **M6** — Ataques con dirección y bases para combos. **En curso** (F0 ✓, F1 ✓, A0 ✓, F2 ✓, sigue F3): fases abajo.
+- **M6** — Ataques con dirección y bases para combos. **En curso** (F0 ✓, F1 ✓, A0 ✓, F2 ✓, F3 ✓, sigue F4): fases abajo.
   Va antes que M5.
 
 ## M6: ataques con dirección y bases para combos
@@ -68,11 +68,16 @@ sonido sí puede seguir por familia hasta que la comunidad grabe más.
   para arriba pegando: `motion` y `oncePerAirtime` en el frame data, `airMovesUsed` en el estado.
   La deriva bajó de 5,6 a 4,8 y hay tests de recuperación con y sin el recovery. Hoja propia
   `recovery` para las dos pieles. `SIM_VERSION` 6 (mrdrop y psy-ws).
-- [ ] **F3 — Piso con dirección.** Datos propios para `nLight`, `sLight`, `dLight`, `nSig`,
-  `sSig`, `dSig`, y `motion` en los que avanzan. Primera ruta de combo real con su test.
-  Animaciones: las seis de piso (las tres de hoy se redibujan donde el golpe cambió).
+- [x] **F3 ✓ — Piso con dirección** (2026-09-25). Datos propios para `nLight` (jab para arriba),
+  `sLight` (el puño con un paso), `dLight` (barrida que levanta), `nSig` (gancho antiaéreo),
+  `sSig` (la bocanada con un paso) y `dSig` (barrida larga de humo). **Primer combo real:
+  `dLight → sAir` de 0 a 60 de daño**, que se corta solo a 80. Hojas nuevas: `n_light`, `d_light`,
+  `n_sig`, `d_sig` (`sLight` y `sSig` se quedan con las de siempre, que eran esos golpes).
+  `SIM_VERSION` 7 (mrdrop y psy-ws).
 - [ ] **F4 — Aire con dirección.** `nAir`, `sAir`, `dAir` con spike (`knockback.y > 0`),
-  `groundPound`; tope de velocidad propio del hitstun en vez de `maxFall`. Animaciones: `nAir`,
+  `groundPound`; tope de velocidad propio del hitstun en vez de `maxFall` (hoy el gancho `nSig`
+  no puede matar por arriba por ese recorte). Al cambiar los aéreos, volver a verificar que
+  `dLight → sAir` siga siendo combo. Animaciones: `nAir`,
   `sAir`, `dAir` y `groundPound`. El spike y la caída en picada necesitan una anticipación que se
   vea venir: son los golpes que matan fuera del escenario.
 - [ ] **F5 — Esquive → golpe.** `dodge.attackCancelFrom`, después de `invulnTo`.
@@ -82,8 +87,7 @@ sonido sí puede seguir por familia hasta que la comunidad grabe más.
 
 ### Invariantes que tienen que existir al cerrar M6
 
-- Existe una ruta real a daño bajo (`dLight → sAir` entre 0 y 40). *Pendiente: `it.todo` en
-  `combos.test.ts`, llega con F3.*
+- ✓ Existe una ruta real a daño bajo: `dLight → sAir` a 0, 20 y 40, saltando (`combos.test.ts`).
 - ✓ A 100 de daño ninguna ruta de dos golpes es real: los combos meten daño, no matan
   (`combos.test.ts`, los 121 pares).
 - ✓ Ningún golpe se sigue a sí mismo con ningún daño (`combos.test.ts`).

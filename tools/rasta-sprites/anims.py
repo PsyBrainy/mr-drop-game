@@ -126,6 +126,57 @@ def light_ground():
     return poses, table
 
 
+def fx_vstreaks(x0, y0, y1, n=3, gap=3):
+    """Estelas verticales: el rastro de un golpe que sube."""
+    def f(cv_, t):
+        for k in range(n):
+            x = x0 + (k - (n - 1) / 2) * gap
+            streak(cv_, (x, y0 + abs(k - 1) * 3), (x, y1), 'fx')
+    return f
+
+
+# ------------------------------------------------------------------ rápido neutro de piso (jab para arriba)
+# startup 0-3, activo 4-6, recovery 7-16. La caja: x 3..33, y 33..67.
+def n_light():
+    a1 = base(hip=(-1, 23.5), chest=(0, 39), head=(1.5, 48), hand_f=(9, 31), hand_b=(16, 39),
+              hair=24, face='focus')                                          # carga (0-1)
+    a2 = base(hip=(0, 24), chest=(2.5, 40), head=(4, 49), hand_f=(14, 44), hand_b=(15, 39),
+              hair=28, face='focus')                                          # sale (2-3)
+    hit = base(hip=(2, 24.5), chest=(5, 41.5), head=(6.5, 50.5), hand_f=(21, 59), hand_b=(14, 38),
+               foot_f=(11, 4), hair=40, face='focus',
+               fx_back=[fx_vstreaks(17, 42, 54)],
+               fx=[fx_puff((25, 63), 4.5, seed=101), fx_spark((25, 63), 5)])   # activo (4-6)
+    r1 = base(hip=(1.5, 24.5), chest=(4.5, 41), head=(6, 50), hand_f=(19, 54), hand_b=(14.5, 38),
+              foot_f=(10.5, 4), hair=36, face='focus', fx=[fx_puff((24, 62), 3.5, seed=102)])  # (7-10)
+    r2 = base(hip=(0.5, 24), chest=(3, 40), head=(4.5, 49), hand_f=(15, 40), hand_b=(16, 38),
+              hair=32, fx=[fx_puff((22, 64), 2.5, seed=103)])                 # (11-13)
+    r3 = base(hair=30)                                                        # (14-16)
+    poses = [(a1, 0), (a2, 1), (hit, 2), (r1, 3), (r2, 4), (r3, 5)]
+    table = [0, 0, 1, 1, 2, 2, 2, 3, 3, 3, 3, 4, 4, 4, 5, 5, 5]
+    return poses, table
+
+
+# ------------------------------------------------------------------ rápido abajo de piso (barrida que levanta)
+# startup 0-4, activo 5-7, recovery 8-18. La caja: x 4..44, y 0..20.
+def d_light():
+    a1 = base(hip=(-1, 17), chest=(2, 31), head=(4.5, 39.5), hand_f=(12, 24), hand_b=(16, 30),
+              foot_f=(8, 4), foot_b=(-9, 4), hair=60, face='focus')          # se agacha (0-2)
+    a2 = base(hip=(-3, 14), chest=(-1, 28), head=(1, 36.5), hand_f=(8, 21), hand_b=(-10, 14),
+              bend_b=1, foot_f=(12, 5), foot_b=(-10, 4), hair=70, face='focus')   # (3-4)
+    hit = base(hip=(-3, 13), chest=(-3, 27), head=(-1, 35.5), hand_f=(5, 23), hand_b=(-13, 11),
+               bend_b=1, foot_f=(19, 5), foot_b=(-11, 4), toe_f=0, hair=85, face='focus',
+               fx_back=[fx_streaks(6, 6, 20)],
+               fx=[fx_cone(22, 38, 8, 3, 5, seed=111, n=4), fx_spark((40, 9), 5)])   # activo (5-7)
+    r1 = base(hip=(-3, 13.5), chest=(-2, 27.5), head=(0, 36), hand_f=(6, 22), hand_b=(-12, 12),
+              bend_b=1, foot_f=(17, 5), foot_b=(-11, 4), hair=75,
+              fx=[fx_cone(24, 36, 10, 2.5, 4, seed=112, n=3)])               # (8-11)
+    r2 = dict(a1, hair=50, fx=[fx_puff((34, 12), 2.5, seed=113)])              # (12-15)
+    r3 = base(hair=32)                                                        # (16-18)
+    poses = [(a1, 0), (a2, 1), (hit, 2), (r1, 3), (r2, 4), (r3, 5)]
+    table = [0, 0, 0, 1, 1, 2, 2, 2, 3, 3, 3, 3, 4, 4, 4, 4, 5, 5, 5]
+    return poses, table
+
+
 # ------------------------------------------------------------------ golpe rápido aéreo (patada voladora)
 # startup 0-4, activo 5-8, recovery 9-20. La caja: x 3..45, y 15..53.
 def light_air():
@@ -184,13 +235,64 @@ def heavy():
     return poses, table
 
 
-def fx_vstreaks(x0, y0, y1, n=3, gap=3):
-    """Estelas verticales: el rastro de un golpe que sube."""
-    def f(cv_, t):
-        for k in range(n):
-            x = x0 + (k - (n - 1) / 2) * gap
-            streak(cv_, (x, y0 + abs(k - 1) * 3), (x, y1), 'fx')
-    return f
+# ------------------------------------------------------------------ fuerte neutro de piso (gancho antiaéreo)
+# startup 0-10, activo 11-15, recovery 16-37. La caja: x -6..38, y 37..87.
+def n_sig():
+    # La misma pitada que el fuerte de costado, pero agachándose: se carga para arriba.
+    w1 = base(hip=(-2, 21), chest=(-2.5, 36), head=(-1, 45), hand_f=(6, 28), hand_b=(-8, 34),
+              bend_b=1, foot_f=(11, 4), foot_b=(-9, 4), hair=24, face='drag', glow=1)
+    w2 = base(hip=(-3, 18.5), chest=(-4, 33), head=(-3, 42), hand_f=(4, 22), hand_b=(-13, 31),
+              bend_b=1, foot_f=(12, 4), foot_b=(-10, 4), hair=30, face='drag', glow=1,
+              joint_ang=-4, tam_ang=18)
+    w3 = dict(w2, hip=(-3.5, 17.5), chest=(-4.5, 32), head=(-3.5, 41), hand_f=(3, 18), face='focus')
+    hit = base(hip=(3, 26), chest=(6, 43), head=(8, 52), hand_f=(15, 70), hand_b=(-7, 38),
+               bend_b=1, foot_f=(10, 4), foot_b=(-8, 4), hair=5, hair_len=1.05, face='focus',
+               smoke=False, joint_ang=-18,
+               fx_back=[fx_vstreaks(12, 40, 60, gap=4)],
+               fx=[fx_puff((16, 77), 6, seed=121), fx_puff((8, 81), 4.5, seed=122),
+                   fx_puff((25, 79), 4, seed=123), fx_spark((16, 78), 8)])
+    h2 = dict(hit, fx_back=[], fx=[fx_puff((17, 78), 7, seed=131), fx_puff((7, 82), 5, seed=132),
+                                   fx_puff((27, 80), 4.5, seed=133)])
+    r1 = base(hip=(2.5, 25.5), chest=(5.5, 42), head=(7.5, 51), hand_f=(16, 64), hand_b=(-6, 39),
+              bend_b=1, foot_f=(10, 4), foot_b=(-8, 4), hair=15, face='focus', smoke=False,
+              fx=[fx_puff((18, 80), 5, seed=141), fx_puff((10, 84), 3.5, seed=142)])
+    r2 = base(hip=(1.5, 24.5), chest=(4, 41), head=(6, 50), hand_f=(17, 52), hand_b=(4, 36),
+              bend_b=1, foot_f=(10, 4), hair=25, fx=[fx_puff((20, 84), 3, seed=143)])
+    r3 = base(hip=(1, 24), chest=(3, 39.5), head=(4.5, 48.5), hand_f=(15, 36), hand_b=(15, 37), hair=30)
+    r4 = base(hair=30)
+    poses = [(w1, 0), (w2, 1), (w3, 2), (hit, 3), (h2, 4), (r1, 5), (r2, 6), (r3, 7), (r4, 8)]
+    table = ([0] * 4 + [1] * 4 + [2] * 3 +      # startup 11
+             [3, 3, 4, 4, 4] +                  # activo 5
+             [5] * 6 + [6] * 6 + [7] * 5 + [8] * 5)  # recovery 22
+    return poses, table
+
+
+# ------------------------------------------------------------------ fuerte abajo de piso (barrida de humo)
+# startup 0-12, activo 13-17, recovery 18-38. La caja: x 10..60, y 0..18.
+def d_sig():
+    w1 = base(hip=(-2, 20), chest=(-3, 34), head=(-1.5, 43), hand_f=(6, 28), hand_b=(-8, 32),
+              bend_b=1, foot_f=(11, 4), foot_b=(-9, 4), hair=30, face='drag', glow=1)
+    w2 = base(hip=(-4, 16), chest=(-6, 29), head=(-5, 37.5), hand_f=(3, 22), hand_b=(-14, 27),
+              bend_b=1, foot_f=(12, 4), foot_b=(-11, 4), hair=40, face='drag', glow=1, tam_ang=20)
+    w3 = dict(w2, hip=(-4.5, 15), chest=(-7, 28), head=(-6, 36.5), face='focus')
+    hit = base(hip=(4, 14), chest=(11, 25), head=(14, 33), hand_f=(26, 12), hand_b=(-4, 22),
+               bend_b=1, foot_f=(16, 4), foot_b=(-12, 4), toe_b=-5, hair=80, face='focus',
+               smoke=False, joint_ang=-10,
+               fx_back=[fx_streaks(9, 10, 26, n=2, gap=4)],
+               fx=[fx_cone(30, 55, 7, 3, 6, seed=151, n=6), fx_spark((56, 8), 7)])
+    h2 = dict(hit, fx_back=[], fx=[fx_cone(30, 56, 8, 3.5, 6.5, seed=161, n=6)])
+    r1 = base(hip=(3.5, 14.5), chest=(10, 25.5), head=(13, 33.5), hand_f=(23, 13), hand_b=(-3, 22),
+              bend_b=1, foot_f=(16, 4), foot_b=(-12, 4), hair=65, smoke=False,
+              fx=[fx_cone(34, 54, 10, 3, 5, seed=171, n=4)])
+    r2 = base(hip=(1, 18), chest=(5, 31), head=(7.5, 40), hand_f=(16, 22), hand_b=(10, 28),
+              foot_f=(13, 4), foot_b=(-10, 4), hair=45, fx=[fx_puff((46, 14), 3, seed=181)])
+    r3 = base(hip=(0.5, 22), chest=(2.5, 37), head=(4, 46), hand_f=(13, 29), hand_b=(16, 36), hair=34)
+    r4 = base(hair=30)
+    poses = [(w1, 0), (w2, 1), (w3, 2), (hit, 3), (h2, 4), (r1, 5), (r2, 6), (r3, 7), (r4, 8)]
+    table = ([0] * 5 + [1] * 4 + [2] * 4 +      # startup 13
+             [3, 3, 4, 4, 4] +                  # activo 5
+             [5] * 6 + [6] * 5 + [7] * 5 + [8] * 5)  # recovery 21
+    return poses, table
 
 
 # ------------------------------------------------------------------ recovery (el fuerte en el aire)

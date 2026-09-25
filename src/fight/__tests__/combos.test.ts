@@ -72,6 +72,17 @@ describe('los combos', () => {
     expect(loops).toEqual([])
   })
 
-  // Llega en F3, cuando los golpes de piso tengan datos propios (docs/pelea/tareas.md).
-  it.todo('existe una ruta real a daño bajo (dLight → sAir entre 0 y 40)')
+  it.each([0, 20, 40])('la barrida levanta y el aéreo la agarra: dLight → sAir es combo a %i de daño', (damage) => {
+    const route = followsUp(world, 'dLight', 'sAir', damage)
+    expect(route.real).toBe(true)
+    // Se hace saltando: el aéreo no sale del piso.
+    expect(route.jumpAt).not.toBeNull()
+  })
+
+  it('a 0 de daño la barrida deja al rival fuera del alcance de los golpes de piso', () => {
+    // Si un golpe de piso también entrara, la ruta sería "barrida y lo que sea",
+    // no "barrida y salto": el salto es la parte que se aprende.
+    const ground = ['nLight', 'sLight', 'dLight', 'nSig', 'sSig', 'dSig'] as const
+    expect(ground.filter((key) => followsUp(world, 'dLight', key, 0).real)).toEqual([])
+  })
 })

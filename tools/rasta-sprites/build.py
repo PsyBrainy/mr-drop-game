@@ -20,7 +20,8 @@ def render_all():
     A['walk'] = [render(P, t) for P, t in walk()]
     A['air'] = [render(P, t) for P, t in air()]
     A['land'] = [render(P, t) for P, t in land()]
-    for name, fn in [('light_ground', light_ground), ('light_air', light_air), ('heavy', heavy),
+    for name, fn in [('light_ground', light_ground), ('n_light', n_light), ('d_light', d_light),
+                     ('light_air', light_air), ('heavy', heavy), ('n_sig', n_sig), ('d_sig', d_sig),
                      ('recovery', recovery), ('dodge', dodge)]:
         poses, table = fn()
         A[name] = [render(P, t) for P, t in poses]

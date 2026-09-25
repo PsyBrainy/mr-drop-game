@@ -2,13 +2,11 @@
  * El Oso: el personaje base. Es el que maneja la camioneta en MrDrop Run, así
  * que acá está bajado del vehículo y a los golpes.
  *
- * Tiene los once golpes de la tabla de Brawlhalla (`sim/moves.ts`), pero por
- * ahora son tres golpes distintos repetidos: un rápido de piso para meter daño,
- * uno aéreo para castigar al que salta, y uno fuerte lento que es el que mata.
- * Es la fase F0 de M6: la estructura primero, sin cambiar cómo se juega; cada
- * golpe recibe sus propios datos en las fases siguientes (docs/pelea/tareas.md).
- * Todo lo demás del personaje (velocidades, saltos) está acá abajo en el mismo
- * objeto: un personaje es un archivo de datos.
+ * Tiene los once golpes de la tabla de Brawlhalla (`sim/moves.ts`). Los seis de
+ * piso y el recovery tienen datos propios; los aéreos rápidos y la caída en
+ * picada todavía repiten datos hasta la fase F4 (docs/pelea/tareas.md). Todo lo
+ * demás del personaje (velocidades, saltos) está acá abajo en el mismo objeto:
+ * un personaje es un archivo de datos.
  */
 
 import { fx, fxRatio } from '../../sim/fixed'
@@ -17,11 +15,39 @@ import type { FighterTuning } from '../../sim/world'
 import { defineMoves } from '../schema'
 
 /**
- * Frame data. Los tres se leen comparando startup contra recovery: el rápido
- * sale en 4 frames y se recupera en 10; el fuerte tarda 12 en salir y te deja
- * vendido 22 si errás. Esa es toda la decisión que tiene que tomar el jugador.
+ * Frame data de piso. Se leen de a pares, rápido contra fuerte, y cada dirección
+ * tiene un trabajo distinto — que es lo que hace que existan rutas de combo:
+ *
+ * - Neutro: para arriba. El rápido es un jab corto hacia arriba; el fuerte, el
+ *   gancho antiaéreo.
+ * - Costado: para adelante. El rápido es el puño de siempre con un paso; el
+ *   fuerte, la bocanada que mata de costado.
+ * - Abajo: barridas. El rápido levanta al rival en diagonal (el que arranca los
+ *   combos); el fuerte llega lejos a ras del piso.
+ *
+ * El rápido sale en 4-5 frames y se recupera en 10-11; el fuerte tarda 11-13 y te
+ * deja vendido 22-24 si errás. Los números de combo (qué entra atrás de qué) no
+ * se ajustan acá a ojo: los mide `data/combos.ts` y los fija `combos.test.ts`.
  */
-const LIGHT_GROUND: AttackData = {
+
+/** Jab corto para arriba: pega al que salta encima tuyo. Empuja poco. */
+const N_LIGHT: AttackData = {
+  startup: 4,
+  active: 3,
+  recovery: 10,
+  hitbox: { dx: fx(18), dy: fx(-50), width: fx(30), height: fx(34) },
+  damage: 6,
+  knockback: { x: fxRatio(12, 10), y: fxRatio(-34, 10) },
+  scaling: 6,
+  hitstun: 12,
+  priority: 1,
+}
+
+/**
+ * El puño de siempre, con un paso adelante: en el frame 1 sale a 3 px/frame y la
+ * fricción del piso lo frena. Es el que alcanza al que se aleja caminando.
+ */
+const S_LIGHT: AttackData = {
   startup: 4,
   active: 3,
   recovery: 10,
@@ -31,6 +57,86 @@ const LIGHT_GROUND: AttackData = {
   scaling: 7,
   hitstun: 12,
   priority: 1,
+  motion: { frame: 1, vx: fx(3), vy: 0 },
+}
+
+/**
+ * La barrida que arranca los combos: levanta al rival casi derecho para arriba,
+ * cerca y con el hitstun justo para saltar y agarrarlo con un aéreo. Escala poco
+ * con el daño a propósito: con mucho daño igual sale demasiado lejos y el combo
+ * se corta solo (lo verifica `combos.test.ts`).
+ */
+const D_LIGHT: AttackData = {
+  startup: 5,
+  active: 3,
+  recovery: 11,
+  hitbox: { dx: fx(24), dy: fx(-10), width: fx(40), height: fx(20) },
+  damage: 6,
+  // Salieron de una búsqueda con `followsUp` (docs/pelea/memoria.md, F3): -14
+  // para arriba lo deja fuera del alcance de los golpes de piso cuando uno se
+  // recupera (sólo un aéreo lo agarra), y el escalado de 10 hace que a 80 de daño
+  // ya salga más rápido de lo que se puede perseguir. Con 6 seguía siendo combo
+  // a 100; con -12 se encadenaba también un golpe de piso.
+  knockback: { x: fxRatio(20, 10), y: fxRatio(-140, 10) },
+  scaling: 10,
+  hitstun: 18,
+  priority: 1,
+}
+
+/**
+ * El gancho antiaéreo: tarda en salir, pega arriba y manda para arriba. Hoy no
+ * mata por arriba porque `maxFall` recorta la velocidad vertical del empuje
+ * (se decide en F4, docs/pelea/tareas.md).
+ */
+const N_SIG: AttackData = {
+  startup: 11,
+  active: 5,
+  recovery: 22,
+  hitbox: { dx: fx(16), dy: fx(-62), width: fx(44), height: fx(50) },
+  damage: 14,
+  knockback: { x: fxRatio(15, 10), y: fxRatio(-85, 10) },
+  scaling: 12,
+  hitstun: 20,
+  priority: 2,
+}
+
+/**
+ * El que mata de costado: la pitada y el bocanazo. Tarda una eternidad en salir
+ * (12 frames se ven venir de sobra), con un paso largo en el frame 10, y errarlo
+ * te deja quieto 22 frames, más que suficiente para comerse uno de vuelta.
+ */
+const S_SIG: AttackData = {
+  startup: 12,
+  active: 4,
+  recovery: 22,
+  hitbox: { dx: fx(34), dy: fx(-34), width: fx(52), height: fx(44) },
+  damage: 15,
+  knockback: { x: fxRatio(52, 10), y: fxRatio(-62, 10) },
+  scaling: 13,
+  hitstun: 20,
+  // Más alta que los livianos: el fuerte atraviesa un golpe rápido, que es lo
+  // que evita que apretar el botón rápido a ciegas sea siempre la respuesta.
+  priority: 2,
+  motion: { frame: 10, vx: fx(4), vy: 0 },
+}
+
+/**
+ * Barrida larga a ras del piso: la que más lejos llega, para castigar un
+ * aterrizaje. Manda bajo y para afuera.
+ */
+const D_SIG: AttackData = {
+  startup: 13,
+  active: 5,
+  // 21 y no más: el golpe entero tiene que durar menos de 40 frames (combat.test.ts).
+  recovery: 21,
+  // Hasta 60 px adelante: el frame del dibujo termina a 62 del origen y la caja no
+  // puede llegar más lejos que el humo que la muestra.
+  hitbox: { dx: fx(35), dy: fx(-9), width: fx(50), height: fx(18) },
+  damage: 13,
+  knockback: { x: fxRatio(46, 10), y: fxRatio(-30, 10) },
+  scaling: 12,
+  hitstun: 18,
+  priority: 2,
 }
 
 /**
@@ -50,23 +156,10 @@ const LIGHT_AIR: AttackData = {
 }
 
 /**
- * El que mata. Tarda una eternidad en salir (12 frames se ven venir de sobra)
- * y el castigo por errarlo es quedar quieto 22 frames, que a 60 por segundo es
- * más que suficiente para comerse uno de vuelta.
+ * El fuerte aéreo apuntando abajo, hasta que la caída en picada tenga datos
+ * propios en F4: por ahora es la bocanada de costado.
  */
-const HEAVY: AttackData = {
-  startup: 12,
-  active: 4,
-  recovery: 22,
-  hitbox: { dx: fx(34), dy: fx(-34), width: fx(52), height: fx(44) },
-  damage: 15,
-  knockback: { x: fxRatio(52, 10), y: fxRatio(-62, 10) },
-  scaling: 13,
-  hitstun: 20,
-  // Más alta que los livianos: el fuerte atraviesa un golpe rápido, que es lo
-  // que evita que apretar el botón rápido a ciegas sea siempre la respuesta.
-  priority: 2,
-}
+const HEAVY = S_SIG
 
 /**
  * El recovery: el fuerte en el aire, que te impulsa para arriba pegando. Es la
@@ -93,17 +186,14 @@ const RECOVERY: AttackData = {
   oncePerAirtime: true,
 }
 
-/**
- * F0: cada casillero de la tabla apunta a uno de los tres golpes de siempre, así
- * el juego se siente igual que antes. El `recovery` todavía no impulsa: eso es F2.
- */
 const MOVES = defineMoves({
-  nLight: LIGHT_GROUND,
-  sLight: LIGHT_GROUND,
-  dLight: LIGHT_GROUND,
-  nSig: HEAVY,
-  sSig: HEAVY,
-  dSig: HEAVY,
+  nLight: N_LIGHT,
+  sLight: S_LIGHT,
+  dLight: D_LIGHT,
+  nSig: N_SIG,
+  sSig: S_SIG,
+  dSig: D_SIG,
+  // Los aéreos rápidos y la caída en picada tienen datos propios en F4.
   nAir: LIGHT_AIR,
   sAir: LIGHT_AIR,
   dAir: LIGHT_AIR,

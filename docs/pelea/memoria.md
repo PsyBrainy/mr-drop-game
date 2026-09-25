@@ -117,6 +117,32 @@ problema: lo que falta son golpes que dejen al rival cerca y arriba, y eso es F3
 contra el +2 que se midió a mano antes es la definición: ahora cuenta el primer frame en que el
 esquive del rival *arranca*.)
 
+### F3 hecha (2026-09-25) — SIM_VERSION 7
+
+- **Cada dirección tiene un trabajo**: neutro para arriba (jab `nLight`, gancho antiaéreo
+  `nSig`), costado para adelante (el puño y la bocanada de siempre, ahora con un paso: `sLight`
+  sale a 3 px/frame en el frame 1, `sSig` a 4 en el frame 10), abajo barridas (`dLight` levanta,
+  `dSig` llega lejos a ras del piso).
+- **La barrida que arranca combos salió de una búsqueda**, no a ojo: se probaron empuje
+  vertical (-10, -12, -14), horizontal (2, 3, 4), escalado (6, 10, 14) y hitstun (10, 14, 18)
+  con `followsUp`, pidiendo: combo con un aéreo a 0, 20 y 40; ninguno a 100; ningún loop.
+  Pasaron 6 de 81. Se eligió **-14 / 2 / 10 / 18** porque es la única que además deja al rival
+  **fuera del alcance de los golpes de piso** (sólo lo agarra un aéreo, o sea, hay que saltar).
+  Con -12 también entraba el puño de costado; con escalado 6 seguía siendo combo a 100.
+- **Resultado:** `dLight → nAir / sAir / dAir` es combo real de 0 a 60 de daño y se corta a 80.
+  A 0 y 20 también entra el recovery, y a 20 la caída en picada. A 100, ningún par de los 121.
+- Ventaja de los nuevos (0 / 50 / 100 de daño): `nLight` +1 / +2 / +2, `dLight` +12 / +16 / +20
+  (con el rival 70-90 px arriba: por eso sólo lo agarra un aéreo), `nSig` -2 / +1 / +4,
+  `dSig` -7 / -5 / -3 (castigable si pega de cerca, pero manda a 150-300 px).
+- **KO:** la bocanada de costado sigue matando a 120 desde el centro. La barrida larga (`dSig`)
+  a 120 te deja colgando del borde y a 150 te saca. **El gancho (`nSig`) no mata por arriba**:
+  `maxFall` recorta la velocidad vertical del empuje a 16 px/frame (el hallazgo 6 del punto de
+  partida). Se decide en F4, junto con el spike.
+- La caja de `dSig` llega hasta 60 px y no 70: el frame del dibujo termina a 62 del origen y la
+  caja no puede llegar más lejos que el humo que la muestra.
+- `sLight` y `sSig` se quedaron con las hojas de siempre (`light_ground` y `heavy`): eran esos
+  golpes. Hojas nuevas: `n_light`, `d_light`, `n_sig`, `d_sig`. Siguen entrando en 2 páginas.
+
 ### F2 hecha (2026-09-25) — SIM_VERSION 6
 
 - **El recovery**: startup 3, activo 6, recovery 16. En el frame 3 la velocidad vertical *pasa a

@@ -40,11 +40,18 @@ Antes del primer frame hay una cuenta: "3, 2, 1, ¡Buenos Humos!".
 
 | Golpe | Cuándo | Sale en | Te deja vendido | Para qué |
 | --- | --- | --- | --- | --- |
-| Rápido de piso | Rápido parado | 4 frames | 10 | Meter daño |
+| Jab para arriba | Rápido quieto (o apuntando arriba) | 4 frames | 10 | Pegarle al que salta encima tuyo |
+| Puño | Rápido + costado | 4 | 10 | Meter daño; da un paso adelante |
+| Barrida | Rápido + abajo | 5 | 11 | **Arranca combos**: levanta al rival, saltá y agarralo con un aéreo |
+| Gancho | Fuerte quieto (o apuntando arriba) | 11 | 22 | Antiaéreo: manda para arriba |
+| Bocanada | Fuerte + costado | 12 | 22 | **El que mata** de costado; da un paso largo |
+| Barrida de humo | Fuerte + abajo | 13 | 21 | Llega lejos a ras del piso; castiga aterrizajes |
 | Rápido aéreo | Rápido en el aire | 5 | 12 | Castigar al que salta, sacar al que vuelve |
-| Fuerte | Fuerte en el piso, o fuerte + abajo en el aire | 12 | 22 | El que mata |
+| Fuerte + abajo en el aire | Fuerte + abajo en el aire | 12 | 22 | Por ahora es la bocanada (la caída en picada llega en F4) |
 | Recovery | Fuerte en el aire (quieto o de costado) | 3 | 16 | Volver: te impulsa para arriba pegando, aunque vengas cayendo |
 
+- **El primer combo:** barrida (rápido + abajo), saltar hacia el rival y rápido aéreo. Entra
+  seguro hasta unos 60 de daño; con más daño el rival sale volando demasiado lejos.
 - Al pegar podés apuntar para el otro lado: el personaje se da vuelta.
 - Abajo + golpe arriba de una plataforma flotante pega; abajo solo es lo que te baja.
 - Un golpe apretado un poquito antes de poder pegar (hasta 6 frames, una décima de segundo) no

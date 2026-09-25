@@ -159,7 +159,9 @@ grounded + 'light'|'heavy' ───┴──moveFor──> MoveKey ──> tuni
   frames de 96×96, pies en (34, 90). `build.py` escribe en `assets-src/` y se copian a `public/`.
 - Golpe con hoja propia: se agrega la función de poses en `anims.py` (con su tabla), se suma a la
   lista de `build.py`, su caja a `preview.py`, y en `fightSprites.config.ts` la hoja (`SHEETS`),
-  la tabla de poses, `MOVE_ANIM` y el dibujo del impacto. Hoy tienen hoja propia: `recovery`.
+  la tabla de poses, `MOVE_ANIM` y el dibujo del impacto. Hoy tienen hoja propia los seis de piso
+  (`sLight` y `sSig` usan `light_ground` y `heavy`, que eran esos golpes) y el `recovery`; los
+  aéreos rápidos comparten `light_air` y la caída en picada usa `heavy` hasta F4.
 - `fightSprites.config.ts` dice qué hoja y qué dibujo va en cada frame; la vista agranda con el
   zoom de la cámara y Kaplay filtra con "nearest".
 - **La VRAM se mide en páginas de atlas**, no sumando PNGs: `src/games/kaplay/atlas.ts` repite el

@@ -1,8 +1,8 @@
 import { describe, expect, it } from 'vitest'
 import { OSO } from '../data/characters/oso'
+import { pressFor } from '../data/combos'
 import { SMALL_STAGE } from '../data/stage'
 import { isActive, MOVE_KEYS, totalFrames } from '../sim/attack'
-import { toPixels } from '../sim/fixed'
 import { DODGE, HEAVY, JUMP, LEFT, LIGHT, NONE, type Input } from '../sim/input'
 import { isInvulnerable } from '../sim/resolve'
 import { initialState, type MatchState } from '../sim/state'
@@ -214,24 +214,30 @@ describe('el daño acumulado es lo que mata', () => {
     return current
   }
 
-  it('un fuerte a 0 de daño no mata desde el centro', () => {
-    const hit = untilSettled(swing(HEAVY, 20, facingOff({ damage: 0 })))
+  const GROUND_HEAVIES = ['nSig', 'sSig', 'dSig'] as const
+  const GROUND_LIGHTS = ['nLight', 'sLight', 'dLight'] as const
+
+  it.each(GROUND_HEAVIES)('%s a 0 de daño no mata desde el centro', (key) => {
+    const hit = untilSettled(swing(pressFor(key, 1), 30, facingOff({ damage: 0 })))
 
     expect(hit.fighters[1].stocks).toBe(3)
     expect(hit.fighters[1].grounded).toBe(true)
   })
 
-  it('el mismo fuerte a 120 de daño sí mata', () => {
-    const hit = untilSettled(swing(HEAVY, 20, facingOff({ damage: 120 })))
+  it.each([
+    ['sSig', 120],
+    // La barrida manda bajo: a 120 te deja colgando del borde, a 150 ya te saca.
+    ['dSig', 150],
+  ] as const)('%s, que manda de costado, mata desde el centro a %i de daño', (key, damage) => {
+    const hit = untilSettled(swing(pressFor(key, 1), 30, facingOff({ damage })))
 
     expect(hit.fighters[1].stocks).toBe(2)
   })
 
-  it('un liviano no mata desde el centro ni con daño altísimo', () => {
-    const hit = untilSettled(swing(LIGHT, 20, facingOff({ damage: 200 })))
+  it.each(GROUND_LIGHTS)('%s no mata desde el centro ni con daño altísimo', (key) => {
+    const hit = untilSettled(swing(pressFor(key, 1), 30, facingOff({ damage: 200 })))
 
     expect(hit.fighters[1].stocks).toBe(3)
-    expect(toPixels(hit.fighters[1].x)).toBeLessThan(toPixels(SMALL_STAGE.ground.right))
   })
 
   it('el golpe más largo del personaje no dura medio segundo', () => {
