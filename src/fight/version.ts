@@ -21,5 +21,8 @@
  *    vuelo (`airMovesUsed`), y la deriva baja de 5,6 a 4,8.
  * 7: los seis golpes de piso con datos propios (M6 F3). La barrida (`dLight`)
  *    levanta y arranca el primer combo real; `sLight` y `sSig` dan un paso.
+ * 8: los aéreos con dirección (M6 F4): spike (`dAir`), caída en picada con
+ *    `landingLag`, tope propio del empuje en hitstun (`knockbackMaxSpeed`) y
+ *    `spiked` en el estado (un spike que te estrella contra el piso termina el hitstun).
  */
-export const SIM_VERSION = 7
+export const SIM_VERSION = 8

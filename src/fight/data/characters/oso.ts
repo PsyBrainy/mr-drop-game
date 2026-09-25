@@ -2,11 +2,10 @@
  * El Oso: el personaje base. Es el que maneja la camioneta en MrDrop Run, así
  * que acá está bajado del vehículo y a los golpes.
  *
- * Tiene los once golpes de la tabla de Brawlhalla (`sim/moves.ts`). Los seis de
- * piso y el recovery tienen datos propios; los aéreos rápidos y la caída en
- * picada todavía repiten datos hasta la fase F4 (docs/pelea/tareas.md). Todo lo
- * demás del personaje (velocidades, saltos) está acá abajo en el mismo objeto:
- * un personaje es un archivo de datos.
+ * Tiene los once golpes de la tabla de Brawlhalla (`sim/moves.ts`), cada uno con
+ * sus datos (M6, docs/pelea/tareas.md). Todo lo demás del personaje
+ * (velocidades, saltos) está acá abajo en el mismo objeto: un personaje es un
+ * archivo de datos.
  */
 
 import { fx, fxRatio } from '../../sim/fixed'
@@ -72,13 +71,14 @@ const D_LIGHT: AttackData = {
   recovery: 11,
   hitbox: { dx: fx(24), dy: fx(-10), width: fx(40), height: fx(20) },
   damage: 6,
-  // Salieron de una búsqueda con `followsUp` (docs/pelea/memoria.md, F3): -14
-  // para arriba lo deja fuera del alcance de los golpes de piso cuando uno se
-  // recupera (sólo un aéreo lo agarra), y el escalado de 10 hace que a 80 de daño
-  // ya salga más rápido de lo que se puede perseguir. Con 6 seguía siendo combo
-  // a 100; con -12 se encadenaba también un golpe de piso.
+  // Salieron de dos búsquedas con `followsUp` (docs/pelea/memoria.md, F3 y F4):
+  // -14 para arriba lo deja fuera del alcance de los golpes de piso cuando uno
+  // se recupera (sólo un aéreo lo agarra). El escalado era 10 en F3; en F4 el
+  // empuje dejó de recortarse a 16 px/frame en hitstun y con 10 el rival salía
+  // tan alto que a 40 ya no se lo alcanzaba: con 6 el combo entra hasta 40 y se
+  // corta a 60.
   knockback: { x: fxRatio(20, 10), y: fxRatio(-140, 10) },
-  scaling: 10,
+  scaling: 6,
   hitstun: 18,
   priority: 1,
 }
@@ -140,10 +140,28 @@ const D_SIG: AttackData = {
 }
 
 /**
- * El aéreo llega un poco más lejos y empuja más: es el que se usa para sacar
- * al rival del escenario cuando ya está afuera peleando por volver.
+ * Los aéreos rápidos. Cada uno con su trabajo, igual que en el piso:
+ *
+ * - Neutro: una patada en círculo alrededor del cuerpo, para malabarear arriba.
+ * - Costado: la patada voladora de siempre, el aéreo de persecución. Es el que
+ *   cierra el combo de la barrida.
+ * - Abajo: el pisotón, el SPIKE: manda para abajo. Contra el que está afuera
+ *   colgado del borde, es el que lo manda al fondo.
  */
-const LIGHT_AIR: AttackData = {
+const N_AIR: AttackData = {
+  startup: 5,
+  active: 5,
+  recovery: 12,
+  // Centrada casi en el cuerpo: pega adelante y un poco atrás.
+  hitbox: { dx: fx(6), dy: fx(-40), width: fx(56), height: fx(44) },
+  damage: 7,
+  knockback: { x: fxRatio(16, 10), y: fxRatio(-50, 10) },
+  scaling: 8,
+  hitstun: 15,
+  priority: 1,
+}
+
+const S_AIR: AttackData = {
   startup: 5,
   active: 4,
   recovery: 12,
@@ -156,10 +174,48 @@ const LIGHT_AIR: AttackData = {
 }
 
 /**
- * El fuerte aéreo apuntando abajo, hasta que la caída en picada tenga datos
- * propios en F4: por ahora es la bocanada de costado.
+ * El spike: `knockback.y` positivo es para abajo. A poco daño te baja un poco y
+ * con los saltos volvés; con daño, te hunde más rápido de lo que podés subir.
+ * Es el golpe para el que está afuera colgando del borde.
+ * La caja está debajo de los pies. Contra alguien parado en el piso no rebota:
+ * aterriza en el acto y se queda en hitstun ahí (el piso se detecta por cruce,
+ * así que no hay forma de atravesarlo).
  */
-const HEAVY = S_SIG
+const D_AIR: AttackData = {
+  startup: 6,
+  active: 4,
+  recovery: 14,
+  hitbox: { dx: fx(10), dy: fx(-6), width: fx(34), height: fx(28) },
+  damage: 9,
+  // Salió de una búsqueda (docs/pelea/memoria.md, F4) contra un rival afuera
+  // del escenario que vuelve jugando bien, con saltos, pared y recovery: con
+  // estos números sobrevive hasta 60 de daño y muere desde 80-100. Empuja poco
+  // y aturde poco al principio; lo que lo vuelve mortal es el escalado (26, el
+  // más alto del personaje). Con 7 de empuje y 14 de hitstun mataba a 0.
+  knockback: { x: fxRatio(10, 10), y: fxRatio(40, 10) },
+  scaling: 26,
+  hitstun: 10,
+  priority: 1,
+}
+
+/**
+ * La caída en picada (fuerte + abajo en el aire): en el frame 4 baja a 14
+ * px/frame y pega abajo mientras cae. Levanta al que agarra. Errarla sale caro:
+ * si tocás el piso con el golpe andando quedás 18 frames sin control.
+ */
+const GROUND_POUND: AttackData = {
+  startup: 8,
+  active: 12,
+  recovery: 14,
+  hitbox: { dx: fx(6), dy: fx(-10), width: fx(44), height: fx(30) },
+  damage: 13,
+  knockback: { x: fxRatio(35, 10), y: fxRatio(-50, 10) },
+  scaling: 11,
+  hitstun: 18,
+  priority: 2,
+  motion: { frame: 4, vx: 0, vy: fx(14) },
+  landingLag: 18,
+}
 
 /**
  * El recovery: el fuerte en el aire, que te impulsa para arriba pegando. Es la
@@ -193,12 +249,11 @@ const MOVES = defineMoves({
   nSig: N_SIG,
   sSig: S_SIG,
   dSig: D_SIG,
-  // Los aéreos rápidos y la caída en picada tienen datos propios en F4.
-  nAir: LIGHT_AIR,
-  sAir: LIGHT_AIR,
-  dAir: LIGHT_AIR,
+  nAir: N_AIR,
+  sAir: S_AIR,
+  dAir: D_AIR,
   recovery: RECOVERY,
-  groundPound: HEAVY,
+  groundPound: GROUND_POUND,
 })
 
 export const OSO: FighterTuning = {
@@ -222,6 +277,13 @@ export const OSO: FighterTuning = {
 
   gravity: fxRatio(9, 10),
   maxFall: fx(16),
+  /**
+   * El techo del empuje en hitstun. 24: un golpe fuerte con mucho daño manda
+   * más rápido que la caída normal (16), y el spike hunde más rápido de lo que se
+   * cae solo. Por arriba no alcanza para matar (la zona de muerte está a ~820
+   * px sobre el piso y haría falta ~37): ver docs/pelea/memoria.md, F4.
+   */
+  knockbackMaxSpeed: fx(24),
   jumpVelocity: fx(-13.5),
   airJumpVelocity: fx(-12),
   airJumps: 2,

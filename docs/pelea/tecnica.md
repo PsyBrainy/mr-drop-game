@@ -144,12 +144,20 @@ grounded + 'light'|'heavy' ───┴──moveFor──> MoveKey ──> tuni
 - **Una vez por vuelo** (`oncePerAirtime`): al salir el golpe en el aire se prende su bit
   (`airMoveBit`) en `airMovesUsed`. Con el bit prendido el golpe no sale (ni otro en su lugar).
   Se limpia al aterrizar (`moveAndCollide`) y al recibir un golpe (`applyHit`).
+- **Aterrizar en medio de un golpe**: `landLag` vale el `landingLag` del golpe si lo tiene, y si
+  no, `landFrames` del personaje.
+- **Empuje en hitstun**: `applyGravity` usa `knockbackMaxSpeed` como techo mientras hay hitstun, y
+  `maxFall` el resto del tiempo.
+- **Spike**: `applyHit` marca `spiked` si el empuje del golpe es para abajo. `land` (en
+  `physics.ts`, lo que pasa al tocar el piso o una flotante) termina el hitstun si llega `spiked`
+  todavía aturdido, y lo limpia siempre.
 - **Buffer de golpe**: al empezar `applyInput` se anota cualquier golpe apretado (botón y
   dirección) con `attackBufferFrames` de vida, aunque no se pueda pegar. Donde antes se preguntaba
   "¿se apretó recién?", ahora se pregunta "¿hay un golpe guardado?", y al salir se borra.
   `applyHit` lo borra en el que recibe.
 - Tests: `__tests__/recovery.test.ts` (el impulso, una vez por vuelo, recargas, volver con y sin
-  recovery, nadie flota para siempre), `__tests__/buffer.test.ts` (sale en el primer frame libre, se pierde fuera de la
+  recovery, nadie flota para siempre), `__tests__/aerials.test.ts` (el spike afuera y adentro
+  del escenario, la caída en picada, el techo del empuje), `__tests__/buffer.test.ts` (sale en el primer frame libre, se pierde fuera de la
   ventana, guarda la dirección, un golpe lo borra), `__tests__/moves.test.ts` (la tabla es completa, cada input da un golpe, el tick la usa)
   y en `platforms.test.ts` el caso de abajo + golpe arriba de la flotante.
 
@@ -159,9 +167,9 @@ grounded + 'light'|'heavy' ───┴──moveFor──> MoveKey ──> tuni
   frames de 96×96, pies en (34, 90). `build.py` escribe en `assets-src/` y se copian a `public/`.
 - Golpe con hoja propia: se agrega la función de poses en `anims.py` (con su tabla), se suma a la
   lista de `build.py`, su caja a `preview.py`, y en `fightSprites.config.ts` la hoja (`SHEETS`),
-  la tabla de poses, `MOVE_ANIM` y el dibujo del impacto. Hoy tienen hoja propia los seis de piso
-  (`sLight` y `sSig` usan `light_ground` y `heavy`, que eran esos golpes) y el `recovery`; los
-  aéreos rápidos comparten `light_air` y la caída en picada usa `heavy` hasta F4.
+  la tabla de poses, `MOVE_ANIM` y el dibujo del impacto. **Los once golpes tienen hoja propia**
+  (`sLight`, `sSig` y `sAir` usan `light_ground`, `heavy` y `light_air`, que eran esos golpes), y
+  `fightSprites.config.test.ts` exige que ninguno comparta.
 - `fightSprites.config.ts` dice qué hoja y qué dibujo va en cada frame; la vista agranda con el
   zoom de la cámara y Kaplay filtra con "nearest".
 - **La VRAM se mide en páginas de atlas**, no sumando PNGs: `src/games/kaplay/atlas.ts` repite el
@@ -176,6 +184,8 @@ de un aterrizaje o de la fricción):
 
 - `standoff(world, key, damage)`: el 0 a punto de tirar `key` contra el 1, parado en el centro
   de la caja del golpe, en el medio del escenario (en el aire, para los aéreos).
+- `opening(world, key, damage)`: `standoff`, y si desde ahí el golpe no pega (uno que baja en
+  picada), el rival parado en el piso y el que pega arriba, a la menor altura que entra.
 - `frameAdvantage(world, key, damage)`: ventaja en frames, distancia y altura cuando el rival
   recupera el control.
 - `followsUp(world, first, second, damage)`: si `second` entra como combo real atrás de `first`

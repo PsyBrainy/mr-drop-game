@@ -56,7 +56,12 @@ export function applyGravity(draft: FighterDraft, tuning: FighterTuning): void {
   if (draft.grounded) return
   // Colgado de la pared no cae: resbala a su propio ritmo.
   if (draft.state === 'cling') return
-  draft.vy = fxClamp(draft.vy + tuning.gravity, -tuning.maxFall, tuning.maxFall)
+  // En hitstun el tope es otro: `maxFall` es la caída de un personaje que se
+  // maneja, y usarlo para un golpe recortaba el empuje vertical a 16 px/frame
+  // para los dos lados (el spike no podía bajar más rápido que una caída normal
+  // y el gancho no escalaba con el daño). El empuje tiene su propio techo.
+  const limit = draft.hitstun > 0 ? tuning.knockbackMaxSpeed : tuning.maxFall
+  draft.vy = fxClamp(draft.vy + tuning.gravity, -limit, limit)
 }
 
 /**
@@ -131,12 +136,7 @@ export function moveAndCollide(
 
   const crossedFloor = previousY <= stage.ground.top && draft.y >= stage.ground.top
   if (draft.vy >= 0 && crossedFloor && overGround) {
-    draft.y = stage.ground.top
-    draft.vy = FX_ZERO
-    draft.grounded = true
-    draft.airJumpsLeft = tuning.airJumps
-    draft.clingLeft = tuning.wall.clingFrames
-    draft.airMovesUsed = 0
+    land(draft, tuning, stage.ground.top, -1)
     return { landed: true, wall: 0 }
   }
 
@@ -150,19 +150,37 @@ export function moveAndCollide(
       const after = platformAt(platform, tick + 1)
       const crossed = previousY <= before.top && draft.y >= after.top
       if (crossed && isOverPlatform(draft.x, tuning.halfWidth, after)) {
-        draft.y = after.top
-        draft.vy = FX_ZERO
-        draft.grounded = true
-        draft.platform = index
-        draft.airJumpsLeft = tuning.airJumps
-        draft.clingLeft = tuning.wall.clingFrames
-        draft.airMovesUsed = 0
+        land(draft, tuning, after.top, index)
         return { landed: true, wall: 0 }
       }
     }
   }
 
   return { landed: false, wall: hitWall(draft, tuning, stage, previousX) }
+}
+
+/**
+ * Tocar el piso: se recargan los saltos, la pared y los golpes de una vez por
+ * vuelo. Y si un spike te estrella contra el piso (`spiked`, todavía en
+ * hitstun), el hitstun se termina: te estrellás y te levantás. Sin esto, un
+ * spike sobre el escenario dejaba al rival tirado y aturdido, y cualquier golpe
+ * de piso le entraba gratis (era combo real hasta con 100 de daño, que es justo
+ * lo que las invariantes prohíben).
+ *
+ * Se mira de dónde vino el golpe y no la velocidad de llegada: un golpe bajo que
+ * te levanta un poco también te hace aterrizar rápido con mucho daño, y ése no
+ * tiene que perder el hitstun (la barrida de humo dejaba de matar).
+ */
+function land(draft: FighterDraft, tuning: FighterTuning, top: Fx, platform: number): void {
+  if (draft.hitstun > 0 && draft.spiked) draft.hitstun = 0
+  draft.spiked = false
+  draft.y = top
+  draft.vy = FX_ZERO
+  draft.grounded = true
+  draft.platform = platform
+  draft.airJumpsLeft = tuning.airJumps
+  draft.clingLeft = tuning.wall.clingFrames
+  draft.airMovesUsed = 0
 }
 
 /**

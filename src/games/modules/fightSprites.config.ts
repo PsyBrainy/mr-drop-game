@@ -47,7 +47,7 @@ export function skinOf(index: PlayerIndex): Skin {
 
 export type AnimName =
   | 'idle' | 'walk' | 'air' | 'land'
-  | 'lightGround' | 'nLight' | 'dLight' | 'lightAir' | 'heavy' | 'nSig' | 'dSig' | 'recovery'
+  | 'lightGround' | 'nLight' | 'dLight' | 'lightAir' | 'nAir' | 'dAir' | 'groundPound' | 'heavy' | 'nSig' | 'dSig' | 'recovery'
   | 'dodge' | 'wall' | 'hurt' | 'ko'
 
 /** Cuántos dibujos tiene cada hoja y cómo se llama el archivo (sin la piel adelante). */
@@ -60,6 +60,9 @@ export const SHEETS: Record<AnimName, { readonly file: string; readonly frames: 
   nLight: { file: 'n_light_6x1_96', frames: 6 },
   dLight: { file: 'd_light_6x1_96', frames: 6 },
   lightAir: { file: 'light_air_6x1_96', frames: 6 },
+  nAir: { file: 'n_air_6x1_96', frames: 6 },
+  dAir: { file: 'd_air_6x1_96', frames: 6 },
+  groundPound: { file: 'ground_pound_6x1_96', frames: 6 },
   heavy: { file: 'heavy_9x1_96', frames: 9 },
   nSig: { file: 'n_sig_9x1_96', frames: 9 },
   dSig: { file: 'd_sig_9x1_96', frames: 9 },
@@ -114,14 +117,24 @@ const D_SIG_POSES = [
   3, 3, 4, 4, 4,
   5, 5, 5, 5, 5, 5, 6, 6, 6, 6, 6, 7, 7, 7, 7, 7, 8, 8, 8, 8, 8,
 ]
+// startup 5 | activo 5 (adelante y atrás) | recovery 12
+const N_AIR_POSES = [0, 0, 0, 1, 1, 2, 2, 2, 3, 3, 4, 4, 4, 4, 4, 4, 5, 5, 5, 5, 5, 5]
+// startup 6 (sube las rodillas) | activo 4 (el pisotón) | recovery 14
+const D_AIR_POSES = [0, 0, 0, 1, 1, 1, 2, 2, 3, 3, 4, 4, 4, 4, 4, 4, 4, 5, 5, 5, 5, 5, 5, 5]
+// startup 8 (puños arriba; en el 4 empieza a caer) | activo 12 | recovery 14
+const GROUND_POUND_POSES = [
+  0, 0, 0, 0, 1, 1, 1, 1,
+  2, 2, 2, 2, 2, 2, 3, 3, 3, 3, 3, 3,
+  4, 4, 4, 4, 4, 4, 4, 5, 5, 5, 5, 5, 5, 5,
+]
 // startup 3 (se encoge) | activo 6 (sube pegando) | recovery 16
 const RECOVERY_POSES = [0, 0, 0, 1, 1, 1, 2, 2, 2, 3, 3, 3, 3, 3, 3, 4, 4, 4, 4, 4, 5, 5, 5, 5, 5]
 
 /**
- * Hay once golpes y ocho hojas dibujadas: mientras un golpe no tenga su dibujo,
- * usa el de su familia (rápido de piso, rápido aéreo, fuerte). Cuando un golpe
- * cambie de frame data en la sim, necesita su tabla propia acá — el test de
- * duración lo avisa — y más adelante su hoja propia.
+ * Qué dibujo va en cada frame de cada golpe. Cada golpe tiene su hoja (M6): los
+ * que comparten tabla es porque tienen el mismo timing, no el mismo dibujo. Si
+ * un golpe cambia de frame data en la sim, el test de duración pide su tabla
+ * nueva acá.
  */
 export const POSE_BY_FRAME: Record<MoveKey | 'dodge', readonly number[]> = {
   // El jab para arriba tiene el mismo timing que el puño de costado (4 | 3 | 10).
@@ -131,11 +144,11 @@ export const POSE_BY_FRAME: Record<MoveKey | 'dodge', readonly number[]> = {
   nSig: N_SIG_POSES,
   sSig: HEAVY_POSES,
   dSig: D_SIG_POSES,
-  nAir: LIGHT_AIR_POSES,
+  nAir: N_AIR_POSES,
   sAir: LIGHT_AIR_POSES,
-  dAir: LIGHT_AIR_POSES,
+  dAir: D_AIR_POSES,
   recovery: RECOVERY_POSES,
-  groundPound: HEAVY_POSES,
+  groundPound: GROUND_POUND_POSES,
   // 26 frames: se agacha y se esconde en su nube
   dodge: [0, 0, 0, 1, 1, 1, 1, 2, 2, 2, 2, 2, 3, 3, 3, 4, 4, 4, 4, 4, 4, 5, 5, 5, 5, 5],
 }
@@ -148,11 +161,11 @@ export const MOVE_ANIM: Record<MoveKey, AnimName> = {
   nSig: 'nSig',
   sSig: 'heavy',
   dSig: 'dSig',
-  nAir: 'lightAir',
+  nAir: 'nAir',
   sAir: 'lightAir',
-  dAir: 'lightAir',
+  dAir: 'dAir',
   recovery: 'recovery',
-  groundPound: 'heavy',
+  groundPound: 'groundPound',
 }
 
 /** El dibujo del golpe estirado en cada hoja: tiene que coincidir con el primer frame activo. */
@@ -161,6 +174,9 @@ const IMPACT_BY_ANIM: Partial<Record<AnimName, number>> = {
   nLight: 2,
   dLight: 2,
   lightAir: 2,
+  nAir: 2,
+  dAir: 2,
+  groundPound: 2,
   heavy: 3,
   nSig: 3,
   dSig: 3,

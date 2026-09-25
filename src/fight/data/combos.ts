@@ -74,6 +74,34 @@ export function standoff(world: World, key: MoveKey, damage: number): MatchState
   return { ...base, fighters: [attacker, victim] }
 }
 
+/**
+ * Desde dónde se mide un golpe: `standoff`, y si desde ahí no pega (un golpe que
+ * baja en picada se aleja del rival que está a su altura), el rival parado en el
+ * piso y el que pega arriba, a la altura más baja desde la que el golpe entra.
+ * Es la situación para la que existe ese golpe.
+ */
+export function opening(world: World, key: MoveKey, damage: number): MatchState | null {
+  const press = pressFor(key, 1)
+  const hits = (start: MatchState) => firstHit(play(start, world, LIMIT, (t) => [t < 2 ? press : NONE, NONE])) >= 0
+  const beside = standoff(world, key, damage)
+  if (hits(beside)) return beside
+  if (!inputOf(key).aerial) return null
+
+  const [attacker, victim] = beside.fighters
+  const floor = world.stage.ground.top
+  for (let height = 24; height <= 320; height += 8) {
+    const above: MatchState = {
+      ...beside,
+      fighters: [
+        { ...attacker, y: floor - fx(height) },
+        { ...victim, y: floor, grounded: true, state: 'idle' },
+      ],
+    }
+    if (hits(above)) return above
+  }
+  return null
+}
+
 export interface Advantage {
   /** Frames que el que pegó puede actuar antes que el rival. Negativo: el rival actúa antes. */
   readonly advantage: number
@@ -108,7 +136,8 @@ function firstHit(states: readonly MatchState[]): number {
  * llega a pegar desde `standoff` (sería un error del frame data).
  */
 export function frameAdvantage(world: World, key: MoveKey, damage: number): Advantage | null {
-  const start = standoff(world, key, damage)
+  const start = opening(world, key, damage)
+  if (!start) return null
   const press = pressFor(key, 1)
   const base = play(start, world, LIMIT, (t) => [t < 2 ? press : NONE, NONE])
   const hit = firstHit(base)
@@ -157,13 +186,14 @@ const NO_FOLLOW_UP: FollowUp = { real: false, jumpAt: null, pressAt: null }
  * lo que se mide.
  */
 export function followsUp(world: World, first: MoveKey, second: MoveKey, damage: number): FollowUp {
-  const start = standoff(world, first, damage)
+  const start = opening(world, first, damage)
+  if (!start) return NO_FOLLOW_UP
   const firstPress = pressFor(first, 1)
-  const opening = play(start, world, LIMIT, (t) => [t < 2 ? firstPress : NONE, NONE])
-  const hit = firstHit(opening)
+  const played = play(start, world, LIMIT, (t) => [t < 2 ? firstPress : NONE, NONE])
+  const hit = firstHit(played)
   if (hit < 0) return NO_FOLLOW_UP
 
-  const hitstunEnds = hit + opening[hit]!.fighters[1].hitstun
+  const hitstunEnds = hit + played[hit]!.fighters[1].hitstun
   const aerial = inputOf(second).aerial
   const jumps: readonly (number | null)[] = aerial ? range(hit + 1, hitstunEnds) : [null]
 

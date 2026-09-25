@@ -39,6 +39,7 @@ const attackSchema = z.object({
   // eligiendo, y aplicarlo ahí saltearía el orden del tick.
   motion: z.object({ frame: positive, vx: whole.optional(), vy: whole }).optional(),
   oncePerAirtime: z.boolean().optional(),
+  landingLag: positive.optional(),
 }).refine((move) => !move.motion || move.motion.frame < move.startup + move.active + move.recovery, {
   message: 'el impulso tiene que caer adentro del golpe',
 })

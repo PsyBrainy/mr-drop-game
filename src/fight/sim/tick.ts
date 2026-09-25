@@ -329,7 +329,8 @@ function integrate(draft: FighterDraft, tuning: FighterTuning, world: World, tic
 
   if (wasAirborne && draft.grounded) {
     if (draft.state === 'attack') {
-      draft.landLag = tuning.landFrames
+      const move = draft.attack === null ? null : tuning.moves[draft.attack]
+      draft.landLag = move?.landingLag ?? tuning.landFrames
       draft.attack = null
     }
     enter(draft, 'land')

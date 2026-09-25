@@ -46,12 +46,14 @@ Antes del primer frame hay una cuenta: "3, 2, 1, ¡Buenos Humos!".
 | Gancho | Fuerte quieto (o apuntando arriba) | 11 | 22 | Antiaéreo: manda para arriba |
 | Bocanada | Fuerte + costado | 12 | 22 | **El que mata** de costado; da un paso largo |
 | Barrida de humo | Fuerte + abajo | 13 | 21 | Llega lejos a ras del piso; castiga aterrizajes |
-| Rápido aéreo | Rápido en el aire | 5 | 12 | Castigar al que salta, sacar al que vuelve |
-| Fuerte + abajo en el aire | Fuerte + abajo en el aire | 12 | 22 | Por ahora es la bocanada (la caída en picada llega en F4) |
+| Patada en círculo | Rápido en el aire, quieto (o apuntando arriba) | 5 | 12 | Malabarear: pega adelante y atrás, manda para arriba |
+| Patada voladora | Rápido + costado en el aire | 5 | 12 | Perseguir; es la que cierra el combo de la barrida |
+| **Pisotón (spike)** | Rápido + abajo en el aire | 6 | 14 | **Mandar para abajo al que está afuera colgando del borde.** Con poco daño vuelve; desde unos 80-100 lo hundís |
+| Caída en picada | Fuerte + abajo en el aire | 8 | 14 | Bajar de golpe pegando abajo. Si la errás y tocás el piso, quedás 18 frames vendido |
 | Recovery | Fuerte en el aire (quieto o de costado) | 3 | 16 | Volver: te impulsa para arriba pegando, aunque vengas cayendo |
 
 - **El primer combo:** barrida (rápido + abajo), saltar hacia el rival y rápido aéreo. Entra
-  seguro hasta unos 60 de daño; con más daño el rival sale volando demasiado lejos.
+  seguro hasta unos 40 de daño; con más daño el rival sale volando demasiado alto y lejos.
 - Al pegar podés apuntar para el otro lado: el personaje se da vuelta.
 - Abajo + golpe arriba de una plataforma flotante pega; abajo solo es lo que te baja.
 - Un golpe apretado un poquito antes de poder pegar (hasta 6 frames, una décima de segundo) no
@@ -60,6 +62,10 @@ Antes del primer frame hay una cuenta: "3, 2, 1, ¡Buenos Humos!".
   cobra y los dos rebotan.
 - Un aéreo que no terminó cuando tocás el piso te deja unos frames sin control.
 - El que recibe un golpe queda sin control un rato que crece con lo lejos que sale volando.
+- **El pisotón sobre el escenario no deja a nadie tirado:** si te estrella contra el piso, te
+  levantás en el acto. Es para usarlo afuera.
+- **Por arriba no se muere:** la zona de muerte de arriba está muy lejos. Se mata de costado y
+  por abajo.
 - **El recovery se usa una vez por vuelo.** Se recarga al tocar el piso o si te pegan; colgarte
   de la pared no lo recarga. Gastado, apretar fuerte en el aire no hace nada.
 

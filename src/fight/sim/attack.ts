@@ -105,6 +105,12 @@ export interface AttackData {
    * sería volar para siempre.
    */
   readonly oncePerAirtime?: boolean
+  /**
+   * Frames sin control si se toca el piso con el golpe todavía andando. Sin el
+   * dato vale `landFrames` del personaje. Es el castigo de tirar un aéreo tarde:
+   * la caída en picada lo tiene largo porque errarla tiene que costar.
+   */
+  readonly landingLag?: number
 }
 
 /** El bit de `airMovesUsed` que marca un golpe como gastado en este vuelo. */

@@ -117,6 +117,39 @@ problema: lo que falta son golpes que dejen al rival cerca y arriba, y eso es F3
 contra el +2 que se midió a mano antes es la definición: ahora cuenta el primer frame en que el
 esquive del rival *arranca*.)
 
+### F4 hecha (2026-09-25) — SIM_VERSION 8
+
+- **El spike (`dAir`)**, el pedido original: pegarle para abajo en el aire al que está por caerse
+  en el borde. Salió de una búsqueda contra un rival afuera del escenario que vuelve jugando bien
+  (saltos espaciados, pared, recovery), desde tres lugares (30 px afuera a la altura del piso,
+  30 afuera y 60 abajo, 60 afuera y 40 abajo). Con empuje 7 y hitstun 14 **mataba a 0 de daño**:
+  inaceptable. Elegido **empuje 4, hitstun 10, escalado 26** (el más alto del personaje): se
+  sobrevive hasta 60 y se muere desde 80-100. De las 36 combinaciones probadas, las de escalado
+  bajo nunca mataban y las de empuje 5 mataban desde 60.
+- **El techo del empuje** (hallazgo 6): `maxFall` recortaba la velocidad vertical en hitstun a 16
+  px/frame. Ahora hay `knockbackMaxSpeed` = 24. Efecto colateral: la barrida levantaba tanto que
+  el combo se cortaba a 20; se rehízo la búsqueda de F3 y el escalado de `dLight` bajó de 10 a 6
+  (24 de 144 combinaciones cumplían todo; se eligió la que menos cambiaba). El combo entra de 0 a
+  40 y se corta a 60.
+- **El spike sobre el escenario regalaba combos**: el rival caía al piso todavía aturdido y
+  cualquier golpe de piso le entraba (combo real hasta con 100 de daño). Primero se probó
+  terminar el hitstun al aterrizar rápido (`slamSpeed`), pero también le sacaba el hitstun a la
+  barrida de humo con mucho daño, que dejó de matar. Decidido: **`spiked` en el estado**, que
+  marca que el último golpe empujaba para abajo; si ese golpe te estrella contra el piso, te
+  levantás. No rebota (la pregunta 3).
+- **La caída en picada**: en el frame 4 baja a 14 px/frame, pega abajo 12 frames, y tocar el piso
+  con el golpe andando son 18 frames sin control (`landingLag`, nuevo en el frame data: el resto
+  de los golpes siguen con los 3 de `landFrames`).
+- La herramienta de combos aprendió a medir un golpe que baja (`opening`): si no pega al rival que
+  está a su altura, lo prueba con el rival parado en el piso y el que pega arriba.
+- **Hallazgo: por arriba no se puede matar.** La zona de muerte está a ~820 px del piso; haría
+  falta salir a ~37 px/frame y el techo es 24. Queda como pregunta abierta en `tareas.md`.
+- Ventaja con los datos de F4 (0 / 50 / 100 de daño): `nAir` +2 / +3 / +5 (el rival 80-130 px
+  arriba), `sAir` +0 / +2 / +3, `dAir` -2 / -4 / -6 (castigable si pega en el escenario: es para
+  afuera), `groundPound` +3 / +6 / +8 (manda a 90-190 px), `dLight` +12 / +14 / +17.
+- **Los once golpes tienen hoja propia** (`n_air`, `d_air`, `ground_pound` nuevas; `sAir` se queda
+  con `light_air`, que era esa patada). Hay un test que lo exige. Siguen entrando en 2 páginas.
+
 ### F3 hecha (2026-09-25) — SIM_VERSION 7
 
 - **Cada dirección tiene un trabajo**: neutro para arriba (jab `nLight`, gancho antiaéreo

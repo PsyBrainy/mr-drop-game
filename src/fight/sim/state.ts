@@ -93,6 +93,11 @@ export interface Fighter {
    * por golpe (`airMoveBit`). Se limpia al aterrizar y al recibir un golpe.
    */
   readonly airMovesUsed: number
+  /**
+   * El último golpe que recibió empujaba para abajo (un spike). Si toca el piso
+   * todavía en hitstun, se estrella y se levanta: ver `land` en `physics.ts`.
+   */
+  readonly spiked: boolean
   /** Qué ataque está haciendo. `stateFrames` es su reloj. */
   readonly attack: MoveKey | null
   /**
@@ -165,6 +170,7 @@ function spawnFighter(world: World, index: PlayerIndex): Fighter {
     bufferedButton: null,
     bufferedAim: 'neutral',
     airMovesUsed: 0,
+    spiked: false,
     attack: null,
     hitId: 0,
     // -1 y no 0: el 0 es un `hitId` válido y marcaría el primer golpe como ya recibido.
@@ -208,6 +214,7 @@ export function respawn(draft: FighterDraft, world: World, index: PlayerIndex): 
   draft.attackBuffer = 0
   draft.bufferedButton = null
   draft.airMovesUsed = 0
+  draft.spiked = false
   draft.attack = null
   draft.landLag = 0
   draft.clingLeft = tuning.wall.clingFrames

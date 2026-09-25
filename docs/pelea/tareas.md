@@ -35,7 +35,7 @@ arquitectura, con un personaje:
   el validador. Abandonar es perder, salvo que la sim diga que ya había terminado. Contra el bot
   no cuenta (es local y no pasa por el servidor).
 - **M5** — Rollback, sólo si M3 se siente mal con pings reales. No antes.
-- **M6** — Ataques con dirección y bases para combos. **En curso** (F0 ✓, F1 ✓, A0 ✓, F2 ✓, F3 ✓, sigue F4): fases abajo.
+- **M6** — Ataques con dirección y bases para combos. **En curso** (F0 ✓, F1 ✓, A0 ✓, F2 ✓, F3 ✓, F4 ✓, sigue F5): fases abajo.
   Va antes que M5.
 
 ## M6: ataques con dirección y bases para combos
@@ -74,12 +74,12 @@ sonido sí puede seguir por familia hasta que la comunidad grabe más.
   `dLight → sAir` de 0 a 60 de daño**, que se corta solo a 80. Hojas nuevas: `n_light`, `d_light`,
   `n_sig`, `d_sig` (`sLight` y `sSig` se quedan con las de siempre, que eran esos golpes).
   `SIM_VERSION` 7 (mrdrop y psy-ws).
-- [ ] **F4 — Aire con dirección.** `nAir`, `sAir`, `dAir` con spike (`knockback.y > 0`),
-  `groundPound`; tope de velocidad propio del hitstun en vez de `maxFall` (hoy el gancho `nSig`
-  no puede matar por arriba por ese recorte). Al cambiar los aéreos, volver a verificar que
-  `dLight → sAir` siga siendo combo. Animaciones: `nAir`,
-  `sAir`, `dAir` y `groundPound`. El spike y la caída en picada necesitan una anticipación que se
-  vea venir: son los golpes que matan fuera del escenario.
+- [x] **F4 ✓ — Aire con dirección** (2026-09-25). `nAir` (patada en círculo), `sAir` (la patada
+  voladora de siempre), `dAir` (**el spike**) y `groundPound` (caída en picada con `landingLag`).
+  Tope propio del empuje en hitstun (`knockbackMaxSpeed`, 24) en vez de `maxFall`, y `spiked`: un
+  spike que te estrella contra el piso termina el hitstun. `dLight → sAir` sigue siendo combo
+  (de 0 a 40). Hojas nuevas: `n_air`, `d_air`, `ground_pound`: **los once golpes tienen dibujo
+  propio**. `SIM_VERSION` 8 (mrdrop y psy-ws).
 - [ ] **F5 — Esquive → golpe.** `dodge.attackCancelFrom`, después de `invulnTo`.
 - [ ] **F6 — Terminaciones.** Sonidos por golpe (si hay grabaciones nuevas), el bot usando la
   dirección y el recovery, `fightHelp.ts` y el contador de combo en el HUD (lo deriva la vista, no
@@ -94,10 +94,10 @@ sonido sí puede seguir por familia hasta que la comunidad grabe más.
 - ✓ Nadie se queda en el aire para siempre combinando salto, esquive y golpes (`recovery.test.ts`).
 - ✓ Desde lejos y abajo del borde se vuelve con el recovery y no sin él (`recovery.test.ts`).
 - ✓ Recibir un golpe recarga el recovery; colgarse de la pared, no (`recovery.test.ts`).
-- Un spike no mata a 0 de daño a quien vuelve bien; sí desde cierto daño bajo el borde.
-- Cada golpe tiene su hoja propia: ningún `MoveKey` comparte `MOVE_ANIM` con otro, salvo los que
-  son el mismo golpe (el `recovery` neutro y de costado). Hoy ese test fallaría a propósito: es la
-  lista de lo que falta dibujar.
+- ✓ Un spike no mata a 0 ni a 40 de daño a quien vuelve bien; a 130 sí, desde tres lugares
+  afuera del borde (`aerials.test.ts`).
+- ✓ Cada golpe tiene su hoja propia: ningún `MoveKey` comparte `MOVE_ANIM` con otro
+  (`fightSprites.config.test.ts`).
 
 ### Preguntas abiertas
 
@@ -105,4 +105,9 @@ sonido sí puede seguir por familia hasta que la comunidad grabe más.
    pasar a cuatro después es sumar una columna a `moveFor`, no rehacer.
 2. "Esquivo y ataco en el aire": ¿cortar el esquive con un golpe (F5), o el gravity cancel de
    Brawlhalla (esquive quieto en el aire → golpe de piso)?
-3. ¿El spike rebota contra el piso o sólo deja al rival en hitstun? (se decide en F4)
+3. ~~¿El spike rebota contra el piso?~~ No rebota: te estrella y **te levantás** (se termina el
+   hitstun). Decidido en F4 porque dejarlo aturdido en el piso regalaba combos; ver `memoria.md`.
+4. **¿Tiene que poder matarse por arriba?** Hoy no se puede: la zona de muerte de arriba está a
+   ~820 px del piso y haría falta salir a ~37 px/frame; el techo del empuje es 24 (el gancho a
+   150 de daño sube ~320 px). Las salidas son bajar `blastTop` del escenario, subir el techo, o
+   dejarlo así (se mata de costado y por abajo). Es una decisión de diseño del escenario.

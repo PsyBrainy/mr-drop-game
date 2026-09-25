@@ -58,6 +58,13 @@ describe('el timing de los dibujos', () => {
     }
   })
 
+  it('cada golpe tiene su propia hoja: ninguno se ve como otro', () => {
+    // El golpe del rival se lee por el dibujo; dos golpes con el mismo dibujo
+    // engañan. (El recovery neutro y de costado son un solo golpe, `recovery`.)
+    const sheets = MOVES.map((key) => MOVE_ANIM[key])
+    expect(new Set(sheets).size).toBe(MOVES.length)
+  })
+
   it('toda pose pedida existe en su hoja', () => {
     for (const key of MOVES) {
       for (const pose of POSE_BY_FRAME[key]) expect(pose).toBeLessThan(SHEETS[MOVE_ANIM[key]].frames)
@@ -139,9 +146,10 @@ describe('las hojas del rasta', () => {
     expect(worstAtlasUse(images).pages).toBeLessThanOrEqual(2)
   })
 
-  it('hay lugar para las hojas de los once golpes sin abrir otra página', () => {
-    // Las ocho hojas que faltan dibujar (docs/pelea/tareas.md), por piel, del
-    // tamaño de la más larga de hoy: 9 dibujos.
+  it('queda lugar para ocho hojas más por piel sin abrir otra página', () => {
+    // Los once golpes ya están dibujados. Este margen es para lo que venga
+    // (burlas, un arma, otro personaje con otra paleta), del tamaño de la hoja
+    // más larga de hoy: 9 dibujos.
     const missing = SKINS.length * 8
     const longest = { width: SHEETS.heavy.frames * FRAME_PX, height: FRAME_PX }
     const future = [...images, ...Array.from({ length: missing }, () => longest)]

@@ -82,6 +82,13 @@ export interface FighterTuning {
 
   readonly gravity: Fx
   readonly maxFall: Fx
+  /**
+   * Techo de la velocidad vertical mientras un golpe te tiene en hitstun. Más
+   * alto que `maxFall`: si fuera el mismo, un golpe no podría mandarte para
+   * arriba o para abajo más rápido de lo que caés solo, y el daño acumulado
+   * dejaría de importar en vertical.
+   */
+  readonly knockbackMaxSpeed: Fx
   readonly jumpVelocity: Fx
   /** Los saltos en el aire suben menos: el primero tiene que valer más que los otros. */
   readonly airJumpVelocity: Fx

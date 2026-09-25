@@ -200,6 +200,85 @@ def light_air():
     return poses, table
 
 
+# ------------------------------------------------------------------ rápido neutro aéreo (patada en círculo)
+# startup 0-4, activo 5-9, recovery 10-21. La caja: x -22..34, y 18..62.
+def n_air():
+    a1 = base(hip=(0, 29), chest=(1, 44), head=(3, 53), hand_f=(12, 42), hand_b=(-6, 46),
+              bend_b=1, foot_f=(10, 16), foot_b=(-4, 10), toe_f=20, toe_b=-10, kbend_b=1,
+              hair=60, face='focus')                                          # se encoge (0-2)
+    a2 = base(hip=(0, 30), chest=(-1, 45), head=(0.5, 54), hand_f=(10, 46), hand_b=(-9, 44),
+              bend_b=1, foot_f=(14, 22), foot_b=(-6, 12), toe_f=10, toe_b=-10, hair=80,
+              face='focus')                                                   # (3-4)
+    hit = base(hip=(0, 31), chest=(-2, 46), head=(-1, 55), hand_f=(8, 50), hand_b=(-12, 42),
+               bend_b=1, foot_f=(24, 40), foot_b=(-14, 20), toe_f=5, toe_b=-5, kbend_b=1,
+               hair=100, face='focus',
+               fx_back=[fx_puff((-18, 34), 4, seed=201)],
+               fx=[fx_puff((29, 46), 5, seed=202), fx_spark((29, 46), 5)])      # patada adelante (5-7)
+    h2 = base(hip=(0, 31), chest=(2, 46), head=(4, 55), hand_f=(12, 48), hand_b=(-6, 50),
+              bend_b=1, foot_f=(-18, 38), foot_b=(8, 16), toe_f=-5, toe_b=10, kbend_f=1,
+              hair=130, face='focus',
+              fx_back=[fx_puff((-24, 44), 5, seed=203), fx_spark((-24, 44), 4)],
+              fx=[fx_puff((26, 52), 3.5, seed=204)])                           # y atrás (8-9)
+    r1 = base(hip=(0, 30), chest=(1, 45), head=(3, 54), hand_f=(12, 44), hand_b=(-7, 46),
+              bend_b=1, foot_f=(8, 18), foot_b=(-6, 12), toe_f=10, toe_b=-15, hair=110,
+              fx=[fx_puff((-20, 46), 3, seed=205)])                           # (10-15)
+    r2 = dict(air()[2][0])                                                    # (16-21)
+    poses = [(a1, 0), (a2, 1), (hit, 2), (h2, 3), (r1, 4), (r2, 5)]
+    table = [0, 0, 0, 1, 1, 2, 2, 2, 3, 3] + [4] * 6 + [5] * 6
+    return poses, table
+
+
+# ------------------------------------------------------------------ rápido abajo aéreo (el pisotón: spike)
+# startup 0-5, activo 6-9, recovery 10-23. La caja: x -7..27, y -8..20 (debajo de los pies).
+def d_air():
+    a1 = base(hip=(0, 32), chest=(1, 47), head=(3, 56), hand_f=(12, 48), hand_b=(-6, 50),
+              bend_b=1, foot_f=(10, 22), foot_b=(-3, 18), toe_f=20, toe_b=0, kbend_f=1, kbend_b=1,
+              hair=20, face='focus')                                          # sube las rodillas (0-2)
+    a2 = dict(a1, hip=(0, 33), chest=(0.5, 48), head=(2.5, 57), foot_f=(9, 26), foot_b=(-3, 20),
+              hand_f=(14, 52), hair=15)                                       # (3-5)
+    hit = base(hip=(1, 26), chest=(-1, 41), head=(0.5, 50), hand_f=(10, 46), hand_b=(-10, 48),
+               bend_b=1, foot_f=(9, -2), foot_b=(-5, 12), toe_f=-60, toe_b=-20, kbend_b=1,
+               hair=5, face='focus',
+               fx_back=[fx_vstreaks(8, 8, 24)],
+               fx=[fx_puff((10, -2), 4.5, seed=211), fx_puff((18, 0), 3, seed=212),
+                   fx_spark((10, -1), 6)])                                    # pisotón (6-7)
+    h2 = dict(hit, fx_back=[], fx=[fx_puff((10, -1), 5, seed=213), fx_puff((1, 1), 3, seed=214),
+                                   fx_puff((20, 1), 3.5, seed=215)])           # (8-9)
+    r1 = base(hip=(0, 28), chest=(0, 43), head=(2, 52), hand_f=(12, 44), hand_b=(-8, 48),
+              bend_b=1, foot_f=(8, 6), foot_b=(-5, 12), toe_f=-30, toe_b=-20, hair=40,
+              fx=[fx_puff((12, 2), 3, seed=216)])                             # (10-16)
+    r2 = dict(air()[2][0])                                                    # (17-23)
+    poses = [(a1, 0), (a2, 1), (hit, 2), (h2, 3), (r1, 4), (r2, 5)]
+    table = [0, 0, 0, 1, 1, 1, 2, 2, 3, 3] + [4] * 7 + [5] * 7
+    return poses, table
+
+
+# ------------------------------------------------------------------ fuerte abajo aéreo (caída en picada)
+# startup 0-7 (en el 4 empieza a caer), activo 8-19, recovery 20-33. La caja: x -16..28, y -5..25.
+def ground_pound():
+    w1 = base(hip=(0, 32), chest=(-1, 47), head=(1, 56), hand_f=(4, 66), hand_b=(-8, 64),
+              bend_b=1, bend_f=1, foot_f=(8, 18), foot_b=(-4, 14), toe_f=10, toe_b=-10, kbend_b=1,
+              hair=30, face='drag', glow=1)                                   # puños arriba (0-3)
+    w2 = dict(w1, hand_f=(6, 68), hand_b=(-6, 67), head=(1.5, 56.5), face='focus', hair=160,
+              fx_back=[fx_vstreaks(0, 60, 80)])                               # empieza a caer (4-7)
+    hit = base(hip=(0, 30), chest=(1, 45), head=(3, 54), hand_f=(10, 6), hand_b=(-4, 8),
+               bend_b=1, foot_f=(10, 12), foot_b=(-6, 10), toe_f=10, toe_b=-10, kbend_b=1,
+               hair=170, hair_len=1.05, face='focus', smoke=False,
+               fx_back=[fx_vstreaks(2, 58, 82, gap=4)],
+               fx=[fx_puff((8, 2), 5.5, seed=221), fx_puff((-6, 4), 4, seed=222),
+                   fx_puff((20, 4), 4, seed=223), fx_spark((8, 3), 7)])       # martillazo (8-13)
+    h2 = dict(hit, fx_back=[fx_vstreaks(2, 60, 84, gap=4)],
+              fx=[fx_puff((8, 3), 6, seed=224), fx_puff((-8, 5), 4.5, seed=225),
+                  fx_puff((22, 5), 4.5, seed=226)])                            # (14-19)
+    r1 = base(hip=(0, 28), chest=(2, 43), head=(4, 52), hand_f=(12, 20), hand_b=(-2, 24),
+              bend_b=1, foot_f=(9, 8), foot_b=(-6, 6), hair=90,
+              fx=[fx_puff((0, 4), 4, seed=227), fx_puff((18, 6), 3, seed=228)])   # (20-26)
+    r2 = base(hip=(0, 24), chest=(2, 39), head=(4, 48), hand_f=(13, 30), hand_b=(16, 36), hair=40)  # (27-33)
+    poses = [(w1, 0), (w2, 1), (hit, 2), (h2, 3), (r1, 4), (r2, 5)]
+    table = [0] * 4 + [1] * 4 + [2] * 6 + [3] * 6 + [4] * 7 + [5] * 7
+    return poses, table
+
+
 # ------------------------------------------------------------------ golpe fuerte (la pitada y el bocanazo)
 # startup 0-11, activo 12-15, recovery 16-37. La caja: x 8..60, y 12..56.
 def heavy():
