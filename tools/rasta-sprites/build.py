@@ -3,7 +3,7 @@ from anims import *
 
 OUT = os.path.join(os.path.dirname(__file__), '..', '..', 'assets-src')
 os.makedirs(OUT, exist_ok=True)
-F = W * SCALE  # 192
+F = W * SCALE  # 96
 
 
 def ko_frame(P, t, ang):

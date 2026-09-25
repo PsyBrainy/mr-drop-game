@@ -14,11 +14,20 @@ import type { FighterTuning } from '../../fight/sim/world'
  * que la pelea es pareja; la ropa sólo sirve para saber quién es quién.
  */
 
-/** Lado de un frame en la hoja. Es 2x del tamaño en pantalla, lo que pide una retina. */
-export const FRAME_PX = 192
+/**
+ * Lado de un frame en la hoja: 1 px de hoja = 1 px de arte = 1 px de mundo.
+ *
+ * Hasta A0 las hojas venían escaladas 2x "para retina", pero Kaplay dibuja con
+ * filtro "nearest" (es su default y `createKaplayGame` no lo cambia), así que
+ * agrandar en la GPU da exactamente los mismos píxeles — se verificó hoja por
+ * hoja — con un cuarto del lugar en el atlas. Si alguien pasa `texFilter:
+ * 'linear'`, el pixel art se ve borroso: ahí está la razón. Ver
+ * docs/pelea/memoria.md, A0.
+ */
+export const FRAME_PX = 96
 
-/** Píxeles de mundo por píxel de hoja. El arte se hizo a 2x. */
-export const ART_SCALE = 0.5
+/** Píxeles de mundo por píxel de hoja. */
+export const ART_SCALE = 1
 
 /**
  * Dónde están los pies (el origen del personaje) dentro de cada frame, en px de
@@ -26,8 +35,8 @@ export const ART_SCALE = 0.5
  * centrado a propósito: el golpe fuerte llega 60 px adelante y atrás sólo hay
  * rastas. Con este punto el personaje apoya igual sea cual sea la hoja.
  */
-export const ORIGIN_X = 68
-export const FEET_Y = 180
+export const ORIGIN_X = 34
+export const FEET_Y = 90
 
 export const SKINS = ['rasta', 'rasta2'] as const
 export type Skin = (typeof SKINS)[number]
@@ -43,17 +52,17 @@ export type AnimName =
 
 /** Cuántos dibujos tiene cada hoja y cómo se llama el archivo (sin la piel adelante). */
 export const SHEETS: Record<AnimName, { readonly file: string; readonly frames: number }> = {
-  idle: { file: 'idle_6x1_192', frames: 6 },
-  walk: { file: 'walk_8x1_192', frames: 8 },
-  air: { file: 'air_4x1_192', frames: 4 },
-  land: { file: 'land_3x1_192', frames: 3 },
-  lightGround: { file: 'light_ground_6x1_192', frames: 6 },
-  lightAir: { file: 'light_air_6x1_192', frames: 6 },
-  heavy: { file: 'heavy_9x1_192', frames: 9 },
-  dodge: { file: 'dodge_6x1_192', frames: 6 },
-  wall: { file: 'wall_4x1_192', frames: 4 },
-  hurt: { file: 'hurt_2x1_192', frames: 2 },
-  ko: { file: 'ko_6x1_192', frames: 6 },
+  idle: { file: 'idle_6x1_96', frames: 6 },
+  walk: { file: 'walk_8x1_96', frames: 8 },
+  air: { file: 'air_4x1_96', frames: 4 },
+  land: { file: 'land_3x1_96', frames: 3 },
+  lightGround: { file: 'light_ground_6x1_96', frames: 6 },
+  lightAir: { file: 'light_air_6x1_96', frames: 6 },
+  heavy: { file: 'heavy_9x1_96', frames: 9 },
+  dodge: { file: 'dodge_6x1_96', frames: 6 },
+  wall: { file: 'wall_4x1_96', frames: 4 },
+  hurt: { file: 'hurt_2x1_96', frames: 2 },
+  ko: { file: 'ko_6x1_96', frames: 6 },
 }
 
 export const ANIMS = Object.keys(SHEETS) as AnimName[]

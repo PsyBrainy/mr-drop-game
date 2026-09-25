@@ -11,7 +11,11 @@ from PIL import Image, ImageDraw
 
 W = H = 96          # frame nativo (192 al escalar 2x)
 OX, OY = 34, 90     # origen (pies) dentro del frame nativo
-SCALE = 2
+# Se exporta a 1 px de arte = 1 px de hoja. Antes se escalaba 2x acá, y eso
+# cuadruplicaba la VRAM sin sumar un solo detalle: el juego dibuja con filtro
+# "nearest" (`crisp: true`), así que agrandar en la GPU da los mismos píxeles.
+# Ver docs/pelea/memoria.md, fase A0.
+SCALE = 1
 
 THIGH, SHIN = 11.0, 10.5
 UARM, FARM = 8.5, 8.5

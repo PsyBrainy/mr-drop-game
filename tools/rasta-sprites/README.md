@@ -8,17 +8,21 @@ tatuajes y el porro con humo. Para retocar una pose se cambian números en
 ```
 pip install pillow numpy
 python3 tools/rasta-sprites/build.py      # regenera assets-src/rasta_*.png y rasta.manifest.json
-python3 tools/rasta-sprites/preview.py /tmp/cajas.png idle,light_ground,heavy   # con hurtbox y hitbox
+python3 tools/rasta-sprites/preview.py /tmp/cajas.png idle,light_ground,heavy   # con hurtbox y hitbox, agrandado 4x
 ```
 
 ## Escala y origen
 
-- Se dibuja a 1 px de arte = 1 px de juego y se escala 2x (vecino más cercano):
-  frames de **192×192**, cuerpo de 56 px de juego = 112 px de hoja.
-- El origen (pies, centro del cuerpo) está en **x = 68, y = 180** de cada frame, igual
-  en todas las hojas. No está centrado a propósito: el golpe fuerte llega 60 px
-  adelante y del lado de atrás sólo hay rastas.
+- Se dibuja y se exporta a **1 px de arte = 1 px de hoja = 1 px de juego**: frames de
+  **96×96**, cuerpo de 56 px. El juego agranda en la GPU con filtro "nearest" (el default de
+  Kaplay), que da los mismos píxeles que exportar a 2x con un cuarto del lugar en el atlas.
+  Hasta la fase A0 de la pelea se exportaba a 2x (192×192); se verificó que las hojas nuevas,
+  agrandadas 2x, son idénticas píxel a píxel a las viejas.
+- El origen (pies, centro del cuerpo) está en **x = 34, y = 90** de cada frame, igual en todas
+  las hojas. No está centrado a propósito: el golpe fuerte llega 60 px adelante y del lado de
+  atrás sólo hay rastas.
 - Todo mira a la derecha.
+- `build.py` escribe en `assets-src/`; las hojas se copian a mano a `public/`.
 
 ## Hojas
 

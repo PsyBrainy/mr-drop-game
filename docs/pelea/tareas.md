@@ -35,7 +35,7 @@ arquitectura, con un personaje:
   el validador. Abandonar es perder, salvo que la sim diga que ya había terminado. Contra el bot
   no cuenta (es local y no pasa por el servidor).
 - **M5** — Rollback, sólo si M3 se siente mal con pings reales. No antes.
-- **M6** — Ataques con dirección y bases para combos. **En curso** (F0 ✓, F1 ✓, sigue A0): fases abajo.
+- **M6** — Ataques con dirección y bases para combos. **En curso** (F0 ✓, F1 ✓, A0 ✓, sigue F2): fases abajo.
   Va antes que M5.
 
 ## M6: ataques con dirección y bases para combos
@@ -59,11 +59,11 @@ sonido sí puede seguir por familia hasta que la comunidad grabe más.
 - [x] **F1 ✓ — Buffer de golpe y medición** (2026-09-25). `attackBuffer` (6 frames) +
   `bufferedButton` + `bufferedAim` en el estado; `data/combos.ts` con `frameAdvantage` y
   `followsUp`; tabla regenerada en `memoria.md`. `SIM_VERSION` 5 (mrdrop y psy-ws).
-- [ ] **A0 — Lugar para las animaciones.** Hoy las hojas se sirven ya escaladas 2x: 120 dibujos
-  de 192×192 son ~17 MB de VRAM contra un techo de 20 (`fightSprites.config.test.ts`). Las ~8
-  hojas nuevas por piel no entran. Se sirven a 1x (96×96, el arte ya se dibuja a 1 px = 1 px) y
-  la vista escala 2x con filtro "nearest": el mismo pixel art nítido con un cuarto de la VRAM
-  (~4 MB hoy, ~8 MB con los once golpes). Va antes de F2, que es la primera hoja nueva.
+- [x] **A0 ✓ — Lugar para las animaciones** (2026-09-25). Las hojas del rasta se exportan a 1x
+  (96×96) y el juego agranda con "nearest": píxel a píxel iguales a las de antes. La VRAM se mide
+  como la paga Kaplay, en páginas de atlas (`src/games/kaplay/atlas.ts`): la pelea pasó de 3
+  páginas (48 MB) a 2 (32 MB), y con las hojas de los once golpes sigue en 2 (con 2x hubieran
+  sido 5). No cambia la sim: `SIM_VERSION` sigue en 5.
 - [ ] **F2 — El recovery** (fuerte en el aire que impulsa), según lo decidido en `memoria.md`:
   `motion`, `oncePerAirtime`, `airMovesUsed`. Baja la deriva y se reescribe el test de
   recuperación. Animación: `recovery` (sube pegando para arriba).

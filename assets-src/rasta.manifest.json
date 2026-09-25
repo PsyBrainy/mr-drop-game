@@ -1,238 +1,238 @@
 {
  "idle": {
-  "file": "rasta_idle_6x1_192.png",
+  "file": "rasta_idle_6x1_96.png",
   "frames": 6,
   "cols": 6,
   "rows": 1,
-  "frameSize": 192,
-  "contentLeft": 32,
-  "contentTop": 54,
-  "contentWidth": 78,
-  "contentHeight": 130,
-  "feetY": 180,
-  "originX": 68,
+  "frameSize": 96,
+  "contentLeft": 16,
+  "contentTop": 27,
+  "contentWidth": 39,
+  "contentHeight": 65,
+  "feetY": 90,
+  "originX": 34,
   "perFrame": [
    [
-    36,
-    58,
-    110,
-    184
+    18,
+    29,
+    55,
+    92
    ],
    [
-    34,
-    54,
-    110,
-    184
+    17,
+    27,
+    55,
+    92
    ],
    [
-    32,
-    58,
-    110,
-    184
+    16,
+    29,
+    55,
+    92
    ],
    [
-    36,
-    62,
-    110,
-    184
+    18,
+    31,
+    55,
+    92
    ],
    [
-    34,
-    58,
-    110,
-    184
+    17,
+    29,
+    55,
+    92
    ],
    [
-    32,
-    58,
-    110,
-    184
+    16,
+    29,
+    55,
+    92
    ]
   ]
  },
  "walk": {
-  "file": "rasta_walk_8x1_192.png",
+  "file": "rasta_walk_8x1_96.png",
   "frames": 8,
   "cols": 8,
   "rows": 1,
-  "frameSize": 192,
-  "contentLeft": 32,
-  "contentTop": 54,
-  "contentWidth": 80,
-  "contentHeight": 130,
-  "feetY": 180,
-  "originX": 68,
+  "frameSize": 96,
+  "contentLeft": 16,
+  "contentTop": 27,
+  "contentWidth": 40,
+  "contentHeight": 65,
+  "feetY": 90,
+  "originX": 34,
   "perFrame": [
    [
-    34,
-    58,
-    112,
-    184
-   ],
-   [
-    32,
+    17,
+    29,
     56,
-    112,
-    184
+    92
    ],
    [
-    34,
-    58,
-    112,
-    184
-   ],
-   [
-    36,
-    60,
-    112,
-    184
-   ],
-   [
-    34,
-    54,
-    112,
-    184
-   ],
-   [
-    32,
-    58,
-    112,
-    184
-   ],
-   [
-    34,
-    60,
-    112,
-    184
-   ],
-   [
-    36,
+    16,
+    28,
     56,
-    112,
-    184
+    92
+   ],
+   [
+    17,
+    29,
+    56,
+    92
+   ],
+   [
+    18,
+    30,
+    56,
+    92
+   ],
+   [
+    17,
+    27,
+    56,
+    92
+   ],
+   [
+    16,
+    29,
+    56,
+    92
+   ],
+   [
+    17,
+    30,
+    56,
+    92
+   ],
+   [
+    18,
+    28,
+    56,
+    92
    ]
   ]
  },
  "air": {
-  "file": "rasta_air_4x1_192.png",
+  "file": "rasta_air_4x1_96.png",
   "frames": 4,
   "cols": 4,
   "rows": 1,
-  "frameSize": 192,
-  "contentLeft": 30,
-  "contentTop": 44,
-  "contentWidth": 86,
-  "contentHeight": 136,
-  "feetY": 180,
-  "originX": 68,
+  "frameSize": 96,
+  "contentLeft": 15,
+  "contentTop": 22,
+  "contentWidth": 43,
+  "contentHeight": 68,
+  "feetY": 90,
+  "originX": 34,
   "perFrame": [
    [
-    48,
-    48,
-    108,
-    176
+    24,
+    24,
+    54,
+    88
    ],
    [
-    50,
-    46,
-    108,
-    174
+    25,
+    23,
+    54,
+    87
    ],
    [
-    30,
-    48,
-    116,
-    180
+    15,
+    24,
+    58,
+    90
    ],
    [
-    34,
-    44,
-    114,
-    180
+    17,
+    22,
+    57,
+    90
    ]
   ]
  },
  "land": {
-  "file": "rasta_land_3x1_192.png",
+  "file": "rasta_land_3x1_96.png",
   "frames": 3,
   "cols": 3,
   "rows": 1,
-  "frameSize": 192,
-  "contentLeft": 28,
-  "contentTop": 58,
-  "contentWidth": 86,
-  "contentHeight": 126,
-  "feetY": 180,
-  "originX": 68,
+  "frameSize": 96,
+  "contentLeft": 14,
+  "contentTop": 29,
+  "contentWidth": 43,
+  "contentHeight": 63,
+  "feetY": 90,
+  "originX": 34,
   "perFrame": [
    [
-    28,
-    76,
-    114,
-    184
+    14,
+    38,
+    57,
+    92
    ],
    [
-    30,
-    62,
-    112,
-    184
+    15,
+    31,
+    56,
+    92
    ],
    [
-    34,
-    58,
-    110,
-    184
+    17,
+    29,
+    55,
+    92
    ]
   ]
  },
  "light_ground": {
-  "file": "rasta_light_ground_6x1_192.png",
+  "file": "rasta_light_ground_6x1_96.png",
   "frames": 6,
   "cols": 6,
   "rows": 1,
-  "frameSize": 192,
-  "contentLeft": 34,
-  "contentTop": 56,
-  "contentWidth": 130,
-  "contentHeight": 128,
-  "feetY": 180,
-  "originX": 68,
+  "frameSize": 96,
+  "contentLeft": 17,
+  "contentTop": 28,
+  "contentWidth": 65,
+  "contentHeight": 64,
+  "feetY": 90,
+  "originX": 34,
   "perFrame": [
    [
-    34,
-    60,
-    106,
-    184
+    17,
+    30,
+    53,
+    92
    ],
    [
-    38,
-    58,
-    110,
-    184
+    19,
+    29,
+    55,
+    92
    ],
    [
-    40,
-    62,
-    164,
-    184
+    20,
+    31,
+    82,
+    92
    ],
    [
-    40,
-    62,
-    152,
-    184
+    20,
+    31,
+    76,
+    92
    ],
    [
-    36,
-    56,
-    146,
-    184
+    18,
+    28,
+    73,
+    92
    ],
    [
-    34,
-    56,
-    110,
-    184
+    17,
+    28,
+    55,
+    92
    ]
   ],
   "poseByFrame": [
@@ -256,53 +256,53 @@
   ]
  },
  "light_air": {
-  "file": "rasta_light_air_6x1_192.png",
+  "file": "rasta_light_air_6x1_96.png",
   "frames": 6,
   "cols": 6,
   "rows": 1,
-  "frameSize": 192,
+  "frameSize": 96,
   "contentLeft": 0,
-  "contentTop": 46,
-  "contentWidth": 162,
-  "contentHeight": 134,
-  "feetY": 180,
-  "originX": 68,
+  "contentTop": 23,
+  "contentWidth": 81,
+  "contentHeight": 67,
+  "feetY": 90,
+  "originX": 34,
   "perFrame": [
    [
-    16,
-    50,
-    108,
-    168
+    8,
+    25,
+    54,
+    84
    ],
    [
-    6,
-    46,
-    116,
-    164
+    3,
+    23,
+    58,
+    82
    ],
    [
     0,
-    46,
-    162,
-    158
+    23,
+    81,
+    79
    ],
    [
-    6,
-    48,
-    148,
-    160
+    3,
+    24,
+    74,
+    80
    ],
    [
-    18,
-    46,
-    104,
-    176
+    9,
+    23,
+    52,
+    88
    ],
    [
-    30,
-    48,
-    116,
-    180
+    15,
+    24,
+    58,
+    90
    ]
   ],
   "poseByFrame": [
@@ -330,71 +330,71 @@
   ]
  },
  "heavy": {
-  "file": "rasta_heavy_9x1_192.png",
+  "file": "rasta_heavy_9x1_96.png",
   "frames": 9,
   "cols": 9,
   "rows": 1,
-  "frameSize": 192,
-  "contentLeft": 24,
-  "contentTop": 56,
-  "contentWidth": 168,
-  "contentHeight": 128,
-  "feetY": 180,
-  "originX": 68,
+  "frameSize": 96,
+  "contentLeft": 12,
+  "contentTop": 28,
+  "contentWidth": 84,
+  "contentHeight": 64,
+  "feetY": 90,
+  "originX": 34,
   "perFrame": [
    [
+    15,
     30,
-    60,
-    104,
-    184
+    52,
+    92
    ],
    [
-    26,
-    58,
-    104,
-    184
+    13,
+    29,
+    52,
+    92
    ],
    [
-    24,
-    60,
-    104,
-    184
+    12,
+    30,
+    52,
+    92
    ],
    [
-    44,
-    74,
-    190,
-    184
+    22,
+    37,
+    95,
+    92
    ],
    [
-    44,
-    74,
-    192,
-    184
+    22,
+    37,
+    96,
+    92
    ],
    [
-    42,
-    74,
-    190,
-    184
+    21,
+    37,
+    95,
+    92
    ],
    [
-    42,
-    66,
-    176,
-    184
+    21,
+    33,
+    88,
+    92
    ],
    [
-    40,
+    20,
+    28,
     56,
-    112,
-    184
+    92
    ],
    [
-    34,
-    56,
-    110,
-    184
+    17,
+    28,
+    55,
+    92
    ]
   ],
   "poseByFrame": [
@@ -439,53 +439,53 @@
   ]
  },
  "dodge": {
-  "file": "rasta_dodge_6x1_192.png",
+  "file": "rasta_dodge_6x1_96.png",
   "frames": 6,
   "cols": 6,
   "rows": 1,
-  "frameSize": 192,
-  "contentLeft": 26,
-  "contentTop": 56,
-  "contentWidth": 86,
-  "contentHeight": 128,
-  "feetY": 180,
-  "originX": 68,
+  "frameSize": 96,
+  "contentLeft": 13,
+  "contentTop": 28,
+  "contentWidth": 43,
+  "contentHeight": 64,
+  "feetY": 90,
+  "originX": 34,
   "perFrame": [
    [
-    30,
-    74,
-    110,
-    184
+    15,
+    37,
+    55,
+    92
    ],
    [
-    28,
-    88,
-    112,
-    184
+    14,
+    44,
+    56,
+    92
    ],
    [
-    26,
-    90,
-    112,
-    184
+    13,
+    45,
+    56,
+    92
    ],
    [
-    26,
-    92,
-    112,
-    184
+    13,
+    46,
+    56,
+    92
    ],
    [
-    28,
-    64,
-    112,
-    184
-   ],
-   [
+    14,
     32,
     56,
-    110,
-    184
+    92
+   ],
+   [
+    16,
+    28,
+    55,
+    92
    ]
   ],
   "poseByFrame": [
@@ -518,119 +518,119 @@
   ]
  },
  "wall": {
-  "file": "rasta_wall_4x1_192.png",
+  "file": "rasta_wall_4x1_96.png",
   "frames": 4,
   "cols": 4,
   "rows": 1,
-  "frameSize": 192,
-  "contentLeft": 38,
-  "contentTop": 58,
-  "contentWidth": 74,
-  "contentHeight": 124,
-  "feetY": 180,
-  "originX": 68,
+  "frameSize": 96,
+  "contentLeft": 19,
+  "contentTop": 29,
+  "contentWidth": 37,
+  "contentHeight": 62,
+  "feetY": 90,
+  "originX": 34,
   "perFrame": [
    [
-    42,
-    60,
-    110,
-    182
+    21,
+    30,
+    55,
+    91
    ],
    [
-    40,
-    60,
-    110,
-    182
+    20,
+    30,
+    55,
+    91
    ],
    [
-    40,
-    58,
-    110,
-    182
+    20,
+    29,
+    55,
+    91
    ],
    [
-    38,
-    62,
-    112,
-    182
+    19,
+    31,
+    56,
+    91
    ]
   ]
  },
  "hurt": {
-  "file": "rasta_hurt_2x1_192.png",
+  "file": "rasta_hurt_2x1_96.png",
   "frames": 2,
   "cols": 2,
   "rows": 1,
-  "frameSize": 192,
-  "contentLeft": 22,
-  "contentTop": 64,
-  "contentWidth": 78,
-  "contentHeight": 120,
-  "feetY": 180,
-  "originX": 68,
+  "frameSize": 96,
+  "contentLeft": 11,
+  "contentTop": 32,
+  "contentWidth": 39,
+  "contentHeight": 60,
+  "feetY": 90,
+  "originX": 34,
   "perFrame": [
    [
-    24,
-    66,
-    100,
-    184
+    12,
+    33,
+    50,
+    92
    ],
    [
-    22,
-    64,
-    100,
-    184
+    11,
+    32,
+    50,
+    92
    ]
   ]
  },
  "ko": {
-  "file": "rasta_ko_6x1_192.png",
+  "file": "rasta_ko_6x1_96.png",
   "frames": 6,
   "cols": 6,
   "rows": 1,
-  "frameSize": 192,
-  "contentLeft": 6,
-  "contentTop": 58,
-  "contentWidth": 124,
-  "contentHeight": 124,
-  "feetY": 180,
-  "originX": 68,
+  "frameSize": 96,
+  "contentLeft": 3,
+  "contentTop": 29,
+  "contentWidth": 62,
+  "contentHeight": 62,
+  "feetY": 90,
+  "originX": 34,
   "perFrame": [
    [
-    30,
+    15,
+    29,
+    54,
+    84
+   ],
+   [
+    10,
+    41,
+    65,
+    80
+   ],
+   [
+    14,
+    36,
+    53,
+    91
+   ],
+   [
+    3,
+    40,
     58,
-    108,
-    168
+    79
    ],
    [
-    20,
-    82,
-    130,
-    160
+    15,
+    29,
+    54,
+    84
    ],
    [
-    28,
-    72,
-    106,
-    182
-   ],
-   [
-    6,
-    80,
-    116,
-    158
-   ],
-   [
-    30,
-    58,
-    108,
-    168
-   ],
-   [
-    20,
-    82,
-    130,
-    160
+    10,
+    41,
+    65,
+    80
    ]
   ]
  }

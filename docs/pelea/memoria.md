@@ -115,6 +115,24 @@ problema: lo que falta son golpes que dejen al rival cerca y arriba, y eso es F3
 contra el +2 que se midió a mano antes es la definición: ahora cuenta el primer frame en que el
 esquive del rival *arranca*.)
 
+### A0 hecha (2026-09-25) — sin cambio de sim
+
+- **El test de VRAM medía mal.** Sumaba ancho × alto × 4 de cada PNG (daba 17 MB), pero Kaplay
+  mete todo lo que entra en un atlas de páginas de 2048×2048 y **cada página son 16 MB enteros**.
+  Con las hojas a 2x la pelea abría **3 páginas: 48 MB**, más 16 del atlas de la fuente. Con los
+  once golpes a 2x hubieran sido **5 páginas (80 MB)**: cerca de los 119 MB que ya habían tirado
+  la pestaña en MrDrop Run.
+- `src/games/kaplay/atlas.ts` repite el empaquetado de Kaplay 3001 (estantes, padding 0) y los
+  tests lo usan con el peor de varios órdenes, porque el orden real es el de llegada de las
+  imágenes por la red.
+- **Hojas a 1x.** El arte ya se dibujaba a 1 px y se escalaba 2x al exportar; Kaplay dibuja con
+  filtro "nearest" (su default), así que agrandar en la GPU da lo mismo. Verificado: las 22 hojas
+  nuevas agrandadas 2x son idénticas píxel a píxel a las viejas. Resultado: **2 páginas (32 MB)**
+  hoy, y **2 con los once golpes**.
+- Si alguien cambia a `texFilter: 'linear'`, el pixel art se ve borroso: está escrito en
+  `fightSprites.config.ts`.
+- Queda lugar para ahorrar más: la azotea del escenario también está a 2x (`textureScale`).
+
 ### Cada golpe con su animación (2026-09-25)
 
 Pedido de Martín: cada ataque tiene su propia animación. Decidido que el dibujo entra **en la

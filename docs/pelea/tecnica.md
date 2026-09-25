@@ -146,6 +146,17 @@ grounded + 'light'|'heavy' ───┴──moveFor──> MoveKey ──> tuni
   ventana, guarda la dirección, un golpe lo borra), `__tests__/moves.test.ts` (la tabla es completa, cada input da un golpe, el tick la usa)
   y en `platforms.test.ts` el caso de abajo + golpe arriba de la flotante.
 
+## Sprites y VRAM
+
+- Las hojas del rasta salen de `tools/rasta-sprites` (poses por código, ver su README) a **1x**:
+  frames de 96×96, pies en (34, 90). `build.py` escribe en `assets-src/` y se copian a `public/`.
+- `fightSprites.config.ts` dice qué hoja y qué dibujo va en cada frame; la vista agranda con el
+  zoom de la cámara y Kaplay filtra con "nearest".
+- **La VRAM se mide en páginas de atlas**, no sumando PNGs: `src/games/kaplay/atlas.ts` repite el
+  empaquetado de Kaplay (páginas de 2048×2048 = 16 MB cada una). `fightSprites.config.test.ts`
+  exige que escenario + dos pieles entren en 2 páginas, hoy y con las hojas de los once golpes.
+  Aparte, cada instancia de Kaplay tiene 16 MB de atlas de fuente.
+
 ## Medir combos: `data/combos.ts`
 
 Herramientas de análisis, no del tick. Juegan la sim de verdad (no hay fórmulas que se olviden

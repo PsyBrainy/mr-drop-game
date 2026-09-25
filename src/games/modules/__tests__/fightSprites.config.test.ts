@@ -20,6 +20,8 @@ import {
   spriteFrame,
   spriteSrc,
 } from '../fightSprites.config'
+import { STAGE_SPRITES } from '../fightStage.config'
+import { worstAtlasUse } from '../../kaplay/atlas'
 
 /**
  * Los sprites no deciden nada, pero pueden mentir: un golpe que pega antes de
@@ -126,12 +128,23 @@ describe('las hojas del rasta', () => {
     expect(FEET_Y).toBeLessThanOrEqual(FRAME_PX)
   })
 
-  it('las dos pieles juntas no se comen la VRAM de un teléfono', () => {
-    const bytes = all.reduce((total, { src }) => {
-      const { width, height } = pngSize(src)
-      return total + width * height * 4
-    }, 0)
-    // 2 pieles x 55 frames de 192x192 son ~16 MB; el techo deja lugar al escenario.
-    expect(bytes / 1024 / 1024).toBeLessThan(20)
+  /**
+   * Lo que se paga es páginas de atlas enteras (`kaplay/atlas.ts`), no la suma
+   * de los PNG. La pelea carga en la misma instancia el escenario y las dos
+   * pieles; con las hojas a 2x eran 3 páginas (48 MB, más 16 de la fuente).
+   */
+  const images = [...STAGE_SPRITES.map((sprite) => sprite.src), ...all.map(({ src }) => src)].map(pngSize)
+
+  it('escenario y las dos pieles entran en dos páginas del atlas', () => {
+    expect(worstAtlasUse(images).pages).toBeLessThanOrEqual(2)
+  })
+
+  it('hay lugar para las hojas de los once golpes sin abrir otra página', () => {
+    // Las ocho hojas que faltan dibujar (docs/pelea/tareas.md), por piel, del
+    // tamaño de la más larga de hoy: 9 dibujos.
+    const missing = SKINS.length * 8
+    const longest = { width: SHEETS.heavy.frames * FRAME_PX, height: FRAME_PX }
+    const future = [...images, ...Array.from({ length: missing }, () => longest)]
+    expect(worstAtlasUse(future).pages).toBeLessThanOrEqual(2)
   })
 })
