@@ -18,6 +18,13 @@ describe('el cartel de controles', () => {
     }
   })
 
+  it('cada forma de jugar explica los golpes con dirección, el recovery y el gravity cancel', () => {
+    for (const rows of Object.values(CONTROL_HELP)) {
+      const text = rows.map((row) => `${row.keys.join(' ')} ${row.action}`).join(' ').toLowerCase()
+      for (const word of ['dirección', 'recovery', 'gravity cancel', 'pisotón']) expect(text).toContain(word)
+    }
+  })
+
   it('las teclas se muestran legibles', () => {
     expect(keyLabel('ArrowLeft')).toBe('←')
     expect(keyLabel('KeyZ')).toBe('Z')

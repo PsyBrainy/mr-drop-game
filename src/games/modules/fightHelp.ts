@@ -40,14 +40,26 @@ export const CONTROL_HELP: Record<ControlScheme, readonly HelpRow[]> = {
     { keys: [keyLabel(P1_KEYS.DOWN)], action: 'Bajarse de una plataforma' },
     { keys: [keyLabel(P1_KEYS.LIGHT)], action: 'Golpe rápido' },
     { keys: [keyLabel(P1_KEYS.HEAVY)], action: 'Golpe fuerte' },
+    {
+      keys: [`${keyLabel(P1_KEYS.LIGHT)}/${keyLabel(P1_KEYS.HEAVY)}`, `+ ${keyLabel(P1_KEYS.LEFT)}${keyLabel(P1_KEYS.RIGHT)} ${keyLabel(P1_KEYS.DOWN)}`],
+      action: 'Cada dirección es otro golpe (abajo en el aire: pisotón)',
+    },
+    { keys: [`${keyLabel(P1_KEYS.HEAVY)} en el aire`], action: 'Recovery: te impulsa para arriba' },
     { keys: [keyLabel(P1_KEYS.DODGE)], action: 'Esquive' },
+    {
+      keys: [`${keyLabel(P1_KEYS.DODGE)} quieto en el aire`, `+ ${keyLabel(P1_KEYS.LIGHT)}/${keyLabel(P1_KEYS.HEAVY)}`],
+      action: 'Gravity cancel: golpe de piso en el aire',
+    },
   ],
   touch: [
     { keys: ['Stick'], action: 'Tocá y arrastrá a la izquierda para moverte' },
     { keys: ['Stick ↓'], action: 'Bajarse de una plataforma' },
     { keys: ['Salto'], action: 'Saltar (dos veces en el aire)' },
     { keys: ['Rápido', 'Fuerte'], action: 'Los golpes' },
+    { keys: ['Stick', '+ golpe'], action: 'Cada dirección es otro golpe (abajo en el aire: pisotón)' },
+    { keys: ['Fuerte en el aire'], action: 'Recovery: te impulsa para arriba' },
     { keys: ['Esquive'], action: 'Esquivar un golpe' },
+    { keys: ['Esquive quieto en el aire', '+ golpe'], action: 'Gravity cancel: golpe de piso en el aire' },
   ],
   gamepad: [
     { keys: ['Stick', 'Cruz'], action: 'Moverse' },
@@ -55,12 +67,16 @@ export const CONTROL_HELP: Record<ControlScheme, readonly HelpRow[]> = {
     { keys: ['↓'], action: 'Bajarse de una plataforma' },
     { keys: ['X / ▢'], action: 'Golpe rápido' },
     { keys: ['Y / △', 'B / ◯'], action: 'Golpe fuerte' },
+    { keys: ['Stick', '+ golpe'], action: 'Cada dirección es otro golpe (abajo en el aire: pisotón)' },
+    { keys: ['Fuerte en el aire'], action: 'Recovery: te impulsa para arriba' },
     { keys: ['LB / RB'], action: 'Esquive' },
+    { keys: ['LB / RB quieto en el aire', '+ golpe'], action: 'Gravity cancel: golpe de piso en el aire' },
   ],
 }
 
 /** Consejo de abajo del cartel: lo que no es un botón pero hay que saber. */
-export const HELP_TIP = 'Al costado de la plataforma te podés colgar y saltar de nuevo.'
+export const HELP_TIP =
+  'Combo: barrida (rápido + abajo), saltá hacia el rival y rápido de costado. Al costado de la plataforma te podés colgar.'
 
 /** ¿Pantalla táctil sin mouse? Es lo mismo que decide el CSS para mostrar los controles. */
 export function isTouchScreen(): boolean {

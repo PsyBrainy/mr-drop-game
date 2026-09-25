@@ -46,6 +46,12 @@ export interface BotProfile {
   /** Probabilidad de hacer algo que no tiene sentido. */
   readonly mistakes: number
   /**
+   * Probabilidad de arrancar el combo (barrida abajo, y después salto y patada)
+   * cuando el rival está en el piso a tiro y con poco daño. El resto de la ruta
+   * sale de las reglas de siempre: ir a buscarlo al aire y pegarle ahí.
+   */
+  readonly combo: number
+  /**
    * Pelea mirando para adelante: prueba cada opción con la sim y elige la
    * mejor, en vez de seguir reglas. Es lo que hace al difícil.
    */
@@ -63,9 +69,9 @@ export interface BotProfile {
  * un bot roto.
  */
 export const BOT_LEVELS: Record<BotLevel, BotProfile> = {
-  easy: { reaction: 12, aggression: 0.7, dodge: 0.18, mistakes: 0.12, lookahead: false },
-  medium: { reaction: 6, aggression: 0.92, dodge: 0.4, mistakes: 0.03, lookahead: false },
-  hard: { reaction: 3, aggression: 1, dodge: 1, mistakes: 0.02, lookahead: true },
+  easy: { reaction: 12, aggression: 0.7, dodge: 0.18, mistakes: 0.12, combo: 0.15, lookahead: false },
+  medium: { reaction: 6, aggression: 0.92, dodge: 0.4, mistakes: 0.03, combo: 0.4, lookahead: false },
+  hard: { reaction: 3, aggression: 1, dodge: 1, mistakes: 0.02, combo: 0, lookahead: true },
 }
 
 
@@ -219,13 +225,24 @@ export function botStep(
     return out({ ...back, rng, cooldown, move: NONE }, self.grounded ? DODGE : DODGE | home)
   }
 
-  // A tiro: pegar. El fuerte cuando al rival le queda poca resistencia, que es
-  // cuando manda afuera; el rápido el resto del tiempo.
+  // En el aire, arriba del rival que está abajo y cerca: el pisotón (spike).
+  if (!self.grounded && dy > 15 && dy < 70 && dist < 30 && next() < profile.aggression) {
+    return out({ ...back, rng, cooldown, move: NONE }, DOWN | LIGHT)
+  }
+
+  // A tiro: pegar, con la dirección que corresponde a dónde está el rival.
   if (dist <= STRIKE_RANGE && Math.abs(dy) <= STRIKE_HEIGHT && next() < profile.aggression) {
     const weak = resistanceOf(rival, world.rules) < world.rules.maxResistance * 0.4
     const heavyChance = weak ? 0.5 : 0.15
-    const button = self.grounded && next() < heavyChance ? HEAVY : LIGHT
-    return out({ ...back, rng, cooldown, move: NONE }, toward | button)
+    const heavy = self.grounded && next() < heavyChance
+    // Arriba: el golpe neutro, que pega para arriba (jab o gancho).
+    if (dy < -25) return out({ ...back, rng, cooldown, move: NONE }, heavy ? HEAVY : LIGHT)
+    // En el piso, los dos parados y con poco daño: la barrida que arranca el combo.
+    const fresh = rival.damage < 40
+    if (!heavy && self.grounded && rival.grounded && fresh && next() < profile.combo) {
+      return out({ ...back, rng, cooldown: Math.min(cooldown, 8), move: NONE }, DOWN | LIGHT)
+    }
+    return out({ ...back, rng, cooldown, move: NONE }, toward | (heavy ? HEAVY : LIGHT))
   }
 
   // Parado en una flotante y el rival abajo: bajarse a buscarlo.
@@ -233,8 +250,9 @@ export function botStep(
     return out({ ...back, rng, cooldown, move: NONE }, DOWN)
   }
 
-  // El rival saltó y está arriba cerca: ir a buscarlo al aire.
-  if (self.grounded && dy < -50 && dist < 90 && next() < 0.5) {
+  // El rival está arriba cerca (saltó, o lo levantó la barrida): ir a buscarlo
+  // al aire. Si está aturdido es el combo, y se va siempre.
+  if (self.grounded && dy < -50 && dist < 90 && (rival.hitstun > 0 || next() < 0.5)) {
     return out({ ...back, rng, cooldown, move: toward }, toward | JUMP)
   }
 

@@ -85,6 +85,20 @@ La única defensa. Unos frames de invulnerabilidad (arranca un poquito después 
 hay que adelantarse) y después un rato vendido si erraste el momento. Sin dirección es en el
 lugar; con dirección te desplaza para ese lado. En el aire **gasta un salto**.
 
+## Combos
+
+Un combo es encadenar golpes sin que el rival pueda hacer nada en el medio. Cuando pasa, arriba,
+debajo de tu panel, aparece la cuenta ("2 golpes", "3 golpes"…). El primero que existe:
+barrida (rápido + abajo), saltá hacia el rival y patada voladora (rápido + costado). Entra hasta
+unos 40 de daño.
+
+## Contra el bot
+
+Los tres niveles usan las mismas reglas que una persona. El fácil pega casi siempre de costado;
+el medio ya tira barridas para arrancar el combo y pisotones si te caés cerca; el difícil prueba
+cada opción con la simulación y usa todo, gravity cancel incluido. Los tres vuelven al escenario
+usando el recovery.
+
 ## Controles
 
 | Acción | Teclado (jugador 1) | Teclado (jugador 2, sólo local) | Mando | Pantalla táctil |
@@ -95,6 +109,9 @@ lugar; con dirección te desplaza para ese lado. En el aire **gasta un salto**.
 | Rápido | Z | F | X / ▢ | Rápido |
 | Fuerte | X | G | Y / △ o B / ◯ | Fuerte |
 | Esquive | C | H | LB / RB | Esquive |
+
+Con cualquier control: **rápido o fuerte + dirección** es otro golpe (ver "Pelear"), **fuerte
+en el aire** es el recovery, y **esquive quieto en el aire + golpe** es el gravity cancel.
 
 El cartel de controles del juego sale de `fightHelp.ts` con las mismas teclas.
 

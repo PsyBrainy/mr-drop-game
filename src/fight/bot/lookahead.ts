@@ -15,6 +15,7 @@
  */
 
 import { fx, toPixels } from '../sim/fixed'
+import { airMoveBit } from '../sim/attack'
 import { DODGE, DOWN, HEAVY, JUMP, LEFT, LIGHT, NONE, RIGHT, type Input } from '../sim/input'
 import type { Fighter, MatchState, PlayerIndex } from '../sim/state'
 import { step } from '../sim/tick'
@@ -71,6 +72,12 @@ export interface RecoveryPolicy {
   readonly dodgeHome: boolean
   /** Si está más abajo que el piso, no se mete debajo: primero sube. */
   readonly climbFirst: boolean
+  /**
+   * Sin saltos de aire y cayendo, tira el recovery (fuerte hacia el escenario)
+   * al pasar `jumpBelow`. Es la última herramienta, así que va después de los
+   * saltos.
+   */
+  readonly useRecovery: boolean
 }
 
 const JUMP_GAP = 10
@@ -99,6 +106,18 @@ export function recoveryInput(policy: RecoveryPolicy, self: Fighter, sinceJump: 
   }
   const falling = self.vy >= 0
   if (canAirMove && falling && y >= policy.jumpBelow && sinceJump >= JUMP_GAP) return home | JUMP
+  const recoveryLeft = (self.airMovesUsed & airMoveBit('recovery')) === 0
+  if (
+    policy.useRecovery &&
+    recoveryLeft &&
+    self.airJumpsLeft === 0 &&
+    self.state === 'air' &&
+    self.hitstun === 0 &&
+    falling &&
+    y >= policy.jumpBelow
+  ) {
+    return home | HEAVY
+  }
   return home
 }
 
@@ -110,7 +129,9 @@ function recoveryPolicies(world: World): RecoveryPolicy[] {
   // Primero la que suele andar mejor: saltar recién a la altura del piso.
   for (const jumpBelow of [top + 10, top - 40, top + 60, top - 90, top + 110, top - 150]) {
     for (const dodgeHome of [false, true]) {
-      for (const climbFirst of [false, true]) out.push({ jumpBelow, dodgeHome, climbFirst })
+      for (const climbFirst of [false, true]) {
+        for (const useRecovery of [true, false]) out.push({ jumpBelow, dodgeHome, climbFirst, useRecovery })
+      }
     }
   }
   return out
@@ -134,7 +155,7 @@ function scoreRecovery(
   for (let frame = 0; frame < horizon; frame += 1) {
     const self = s.fighters[me]
     const raw = recoveryInput(policy, self, since, world)
-    const input = raw & ~(previous & (JUMP | DODGE))
+    const input = raw & ~(previous & (JUMP | DODGE | HEAVY))
     since = input & JUMP ? 0 : since + 1
     previous = input
     s = stepAs(s, me, input, theirs, world)
@@ -206,7 +227,24 @@ export function fightCandidates(self: Fighter, rival: Fighter, world: World, cur
     plans.push({ steps: [JUMP | toward, ...repeat(toward, k - 1), toward | LIGHT], hold: toward })
   }
   plans.push({ steps: [JUMP, ...repeat(NONE, 7), toward | LIGHT], hold: NONE })
-  if (!self.grounded) plans.push({ steps: [JUMP | toward, ...repeat(toward, 5), toward | LIGHT], hold: home })
+
+  // Los golpes con dirección (M6): neutro para arriba, abajo las barridas.
+  plans.push({ steps: [LIGHT], hold: NONE }, { steps: [HEAVY], hold: NONE })
+  plans.push({ steps: [DOWN | LIGHT], hold: NONE }, { steps: [DOWN | HEAVY], hold: NONE })
+  // La ruta de combo: barrida, esperar a salir del recovery, saltar hacia el
+  // rival y la patada voladora. Cabe entera en el horizonte (28 frames).
+  if (self.grounded) {
+    for (const k of [3, 6]) {
+      plans.push({ steps: [DOWN | LIGHT, ...repeat(NONE, 13), JUMP | toward, ...repeat(toward, k), toward | LIGHT], hold: toward })
+    }
+  }
+  if (!self.grounded) {
+    plans.push({ steps: [JUMP | toward, ...repeat(toward, 5), toward | LIGHT], hold: home })
+    // El spike, el aéreo neutro y el gravity cancel (esquive quieto y el golpe de piso).
+    plans.push({ steps: [DOWN | LIGHT], hold: home }, { steps: [LIGHT], hold: home })
+    plans.push({ steps: [DODGE, ...repeat(NONE, 15), toward | LIGHT], hold: home })
+    plans.push({ steps: [DODGE, ...repeat(NONE, 15), DOWN | LIGHT], hold: home })
+  }
   if (self.grounded && self.platform >= 0) plans.push({ steps: [DOWN], hold: NONE })
   if (current) plans.push(current)
   return plans
@@ -281,13 +319,18 @@ function canLandFrom(state: MatchState, me: PlayerIndex, world: World): boolean 
   let previous = s.fighters[me].prevInput
   const stocks = s.fighters[me].stocks
   // Salta recién a la altura del piso: es la forma de volver que más lejos llega.
-  const policy: RecoveryPolicy = { jumpBelow: toPixels(world.stage.ground.top) + 10, dodgeHome: false, climbFirst: false }
+  const policy: RecoveryPolicy = {
+    jumpBelow: toPixels(world.stage.ground.top) + 10,
+    dodgeHome: false,
+    climbFirst: false,
+    useRecovery: true,
+  }
   for (let frame = 0; frame < SAFE_HORIZON; frame += 1) {
     const self = s.fighters[me]
     if (self.grounded) return true
     // En un golpe o en hitstun no se maneja: se deja correr.
     const raw = self.state === 'attack' ? NONE : recoveryInput(policy, self, since, world)
-    const input = raw & ~(previous & (JUMP | DODGE))
+    const input = raw & ~(previous & (JUMP | DODGE | HEAVY))
     since = input & JUMP ? 0 : since + 1
     previous = input
     s = stepAs(s, me, input, NONE, world)

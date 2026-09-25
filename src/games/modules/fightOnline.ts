@@ -24,6 +24,7 @@ import {
 } from '../../infrastructure/ws/WebSocketTransport'
 import { listenKeyboard } from './fightControls'
 import { COLORS, drawMatch, loadFightAssets, tagAnchors, VIEW } from './fightView'
+import { comboLabels, comboStep, NO_COMBO, type ComboState } from './fightCombo'
 import { createFightHud, panelOf } from './fightHud'
 import { createFightDevices } from './fightDevices'
 import { createFightSoundPlayer } from './fightSounds'
@@ -132,6 +133,7 @@ function start(k: KAPLAYCtx, context: GameContext): () => void {
   const devices = createFightDevices(context.mountPoint)
   // Los sonidos de la comunidad: cada personaje con los suyos.
   const sounds = createFightSoundPlayer()
+  let combo: ComboState = NO_COMBO
   overlay.setNames(['…', '…'])
 
   // "3, 2, 1, ¡Buenos Humos!" antes del tick 0, contra una persona o contra la
@@ -245,6 +247,7 @@ function start(k: KAPLAYCtx, context: GameContext): () => void {
     const seed = (Math.random() * 0x7fffffff) | 0
     const state = initialState(world, seed)
     vsBot = { state, previous: state, bot: createBot(seed, level), level }
+    combo = NO_COMBO
     camera = initialCamera(world, VIEW)
     previousCamera = camera
 
@@ -264,6 +267,8 @@ function start(k: KAPLAYCtx, context: GameContext): () => void {
     const decided = botStep(vsBot.bot, vsBot.state, 1, world)
     const next = step(vsBot.state, [pressed[0] | devices.primary(), decided.input], world)
     sounds.update(vsBot.state, next)
+    combo = comboStep(combo, vsBot.state, next)
+    overlay.combo(comboLabels(combo, next))
     vsBot = { ...vsBot, state: next, previous: vsBot.state, bot: decided.bot }
 
     previousCamera = camera
@@ -319,7 +324,11 @@ function start(k: KAPLAYCtx, context: GameContext): () => void {
     const snapshot = session.snapshot()
     const state = snapshot.state
     if (!state) return
-    if (advanced && snapshot.previous) sounds.update(snapshot.previous, state)
+    if (advanced && snapshot.previous) {
+      sounds.update(snapshot.previous, state)
+      combo = comboStep(combo, snapshot.previous, state)
+      overlay.combo(comboLabels(combo, state))
+    }
 
     // La cámara sólo se mueve cuando la simulación se movió: si siguiera
     // suavizando mientras la partida está trabada esperando al rival, parecería

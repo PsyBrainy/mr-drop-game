@@ -117,6 +117,36 @@ problema: lo que falta son golpes que dejen al rival cerca y arriba, y eso es F3
 contra el +2 que se midió a mano antes es la definición: ahora cuenta el primer frame en que el
 esquive del rival *arranca*.)
 
+### F6 hecha (2026-09-25) — sin cambio de sim. M6 cerrado
+
+- **`followsUp` con gravity cancel**: si el segundo golpe es de piso, prueba saltar (o no, si ya
+  está en el aire), esquivar quieto y tirarlo en el frame 16 del esquive. Resultado con el Oso:
+  **ningún combo real nuevo** a ningún daño; el gravity cancel tarda 16 frames en habilitarse y
+  ningún golpe aturde tanto. Sirve para pegar arriba y para mezclar, no para combos, y las
+  invariantes ahora lo cubren. Tiene su control positivo (dos personajes flotando con gravedad
+  0,1 y un aéreo que aturde 50 frames: sólo se llega con gravity cancel, y la herramienta lo ve).
+- **El bot**:
+  - Volver: las formas de volver tienen una variante que tira el recovery (fuerte hacia el
+    escenario) cuando se quedó sin saltos. Los tres niveles vuelven desde 230 px afuera y 200 por
+    debajo del piso, donde sin recovery no se vuelve.
+  - Fácil y medio (reglas): pegan con la dirección de dónde está el rival (neutro si está
+    arriba), arrancan el combo con la barrida (15 % el fácil, 40 % el medio, cuando el rival está
+    en el piso y con menos de 40 de daño), van a buscarlo al aire siempre que esté aturdido, y
+    tiran el spike si caen encima.
+  - Difícil (mira para adelante): suma a sus opciones los neutros, las barridas, la ruta de combo
+    entera (barrida, salto, patada), el spike, el aéreo neutro y el gravity cancel, y elige con la
+    sim como siempre.
+  - Golpes que tiró cada uno en dos partidas de 2 minutos: fácil 5 distintos (casi todo puño y
+    bocanada), medio 5 (con barridas y spikes), difícil 11 de 11. Los tests de siempre siguen
+    pasando: cada nivel le gana al anterior y ninguno se cae solo.
+- **El cartel de controles** explica que cada dirección es otro golpe, el recovery y el gravity
+  cancel, y el consejo de abajo es la ruta del combo. Se probó en el navegador: entra sin tapar
+  el HUD de arriba.
+- **Contador de combo**: "3 golpes" debajo del panel del que los mete, en amarillo y con un
+  saltito por golpe. Lo deriva la vista comparando un tick con el siguiente (`fightCombo.ts`),
+  con la misma definición de combo real que `data/combos.ts`; queda 40 ticks a la vista después
+  de cortarse. No entra a la sim ni al hash.
+
 ### F5 hecha (2026-09-25) — SIM_VERSION 9: gravity cancel
 
 Martín eligió el gravity cancel de Brawlhalla para "esquivo y ataco en el aire" (y no cortar

@@ -35,8 +35,9 @@ arquitectura, con un personaje:
   el validador. Abandonar es perder, salvo que la sim diga que ya había terminado. Contra el bot
   no cuenta (es local y no pasa por el servidor).
 - **M5** — Rollback, sólo si M3 se siente mal con pings reales. No antes.
-- **M6** — Ataques con dirección y bases para combos. **En curso** (F0 ✓, F1 ✓, A0 ✓, F2 ✓, F3 ✓, F4 ✓, F5 ✓, sigue F6): fases abajo.
-  Va antes que M5.
+- **M6 ✓** — Ataques con dirección y bases para combos (F0–F6, 2026-09-25): once golpes con
+  datos, dibujo y sonido, buffer, recovery, spike, gravity cancel, el primer combo real medido
+  y el bot que los usa. Quedan dos preguntas de diseño abiertas (abajo).
 
 ## M6: ataques con dirección y bases para combos
 
@@ -89,11 +90,13 @@ sonido sí puede seguir por familia hasta que la comunidad grabe más.
   nuevos: los golpes de piso se ven igual en el aire. `SIM_VERSION` 9 (mrdrop y psy-ws).
   **Pendiente:** `followsUp` todavía no prueba rutas con gravity cancel, así que las invariantes
   de combo no las cubren.
-- [ ] **F6 — Terminaciones.** Sonido propio para los golpes que todavía suenan por familia
-  (`sLight`, `dLight`, `nSig`, `sSig`, `dSig`, `sAir`), si llegan más audios; `followsUp`
-  probando rutas con gravity cancel (y las invariantes de combo con eso); el bot usando la
-  dirección y el recovery, `fightHelp.ts` y el contador de combo en el HUD (lo deriva la vista, no
-  la sim).
+- [x] **F6 ✓ — Terminaciones** (2026-09-25). `followsUp` prueba rutas con gravity cancel (y
+  tiene su control positivo); el bot usa los golpes con dirección, arranca el combo de la barrida,
+  tira el spike y vuelve con el recovery; el cartel de controles explica direcciones, recovery y
+  gravity cancel; contador de combo en el HUD (`fightCombo.ts`, lo deriva la vista). Sin cambio
+  de sim: `SIM_VERSION` sigue en 9.
+- [ ] **Queda para cuando lleguen más audios:** sonido propio para `sLight`, `dLight`, `nSig`,
+  `sSig`, `dSig` y `sAir` (hoy suenan por familia).
 
 ### Invariantes que tienen que existir al cerrar M6
 
@@ -108,6 +111,9 @@ sonido sí puede seguir por familia hasta que la comunidad grabe más.
   afuera del borde (`aerials.test.ts`).
 - ✓ Cada golpe tiene su hoja propia: ningún `MoveKey` comparte `MOVE_ANIM` con otro
   (`fightSprites.config.test.ts`).
+- ✓ Las invariantes de combo incluyen rutas con gravity cancel (`combos.test.ts`).
+- ✓ Los tres niveles del bot vuelven desde donde sólo se vuelve con el recovery, y el medio y el
+  difícil pelean con los golpes con dirección, barrida incluida (`bot.test.ts`).
 
 ### Preguntas abiertas
 

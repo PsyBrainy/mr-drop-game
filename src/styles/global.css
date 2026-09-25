@@ -603,6 +603,28 @@ body.is-immersive { overflow: hidden; }
 /* Sin estado, la columna del medio igual existe y mantiene a los paneles en sus lados. */
 .fight-hud__status[hidden] { display: block; visibility: hidden; padding: 0; border: 0; }
 
+/* --- contador de combo (fightCombo.ts), debajo del panel del que pega ------- */
+.fight-panel__combo {
+  margin-top: 0.5cqw;
+  font-size: clamp(11px, 1.7cqw, 20px); font-weight: 900; line-height: 1;
+  letter-spacing: 0.01em; white-space: nowrap;
+  color: #ffd43b;
+  -webkit-text-stroke: 0.12cqw rgba(10, 8, 24, 0.85);
+  text-shadow: 0 0.3cqw 0.8cqw rgba(0, 0, 0, 0.5);
+}
+.fight-panel__combo[hidden] { display: none; }
+.fight-panel--p2 .fight-panel__combo { text-align: right; }
+.fight-panel__combo.is-bump { animation: fight-combo-bump 0.22s ease-out; }
+@keyframes fight-combo-bump {
+  0% { transform: scale(1.35); }
+  100% { transform: scale(1); }
+}
+.fight-panel--p2 .fight-panel__combo.is-bump { transform-origin: right center; }
+.fight-panel--p1 .fight-panel__combo.is-bump { transform-origin: left center; }
+@media (prefers-reduced-motion: reduce) {
+  .fight-panel__combo.is-bump { animation: none; }
+}
+
 /* --- cuenta regresiva del arranque (fightCountdown.ts) ------------------- */
 .fight-countdown {
   position: absolute; left: 50%; top: 32%;

@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { botStep, createBot, type Bot, type BotLevel } from '../bot/bot'
 import { SMALL_STAGE } from '../data/stage'
+import type { MoveKey } from '../sim/attack'
 import { fx } from '../sim/fixed'
 import { NONE, type Input } from '../sim/input'
 import { initialState, type MatchState } from '../sim/state'
@@ -122,6 +123,42 @@ describe('el bot', () => {
     }
   })
 
+  it.each<BotLevel>(['easy', 'medium', 'hard'])('en %s vuelve desde donde sólo se vuelve con el recovery', (level) => {
+    // 230 px afuera y 200 por debajo del piso: con saltos y pared solos no se
+    // llega (recovery.test.ts lo verifica). El bot tiene que usar el recovery.
+    const start = withFighter(initialState(world, 1), 1, {
+      x: SMALL_STAGE.ground.right + fx(230),
+      y: SMALL_STAGE.ground.top + fx(200),
+      vx: 0,
+      vy: fx(3),
+      grounded: false,
+      state: 'air',
+    })
+    let state = start
+    let bot = createBot(3, level)
+    let usedRecovery = false
+    for (let frame = 0; frame < 360 && !state.fighters[1].grounded; frame += 1) {
+      const decided = botStep(bot, state, 1, world)
+      bot = decided.bot
+      state = step(state, [NONE, decided.input], world)
+      if (state.fighters[1].attack === 'recovery') usedRecovery = true
+    }
+    expect(state.fighters[1].stocks).toBe(3)
+    expect(state.fighters[1].grounded).toBe(true)
+    expect(usedRecovery).toBe(true)
+  })
+
+  it.each([
+    ['medium', 'easy', 4],
+    ['hard', 'medium', 5],
+  ] as const)('%s pelea con los golpes con dirección', (level, rival, atLeast) => {
+    // Un bot que sólo tira el puño de costado no enseña los golpes nuevos: el
+    // jugador aprende mirando lo que le hacen.
+    const used = movesUsed(level, rival)
+    expect(used.size).toBeGreaterThanOrEqual(atLeast)
+    expect(used.has('dLight')).toBe(true)
+  })
+
   it('cada nivel le gana al anterior la mayoría de las veces', () => {
     // Bot contra bot: la forma más directa de medir que "más difícil" es de
     // verdad más difícil, y no sólo más rápido contra un muñeco quieto.
@@ -159,4 +196,24 @@ function duel(first: BotLevel, second: BotLevel, rounds: number): { wins: number
     if (state.winner === 0) wins += 1
   }
   return { wins, selfKnockouts }
+}
+
+/** Qué golpes tiró el primero en dos partidas contra el segundo. */
+function movesUsed(first: BotLevel, second: BotLevel): Set<MoveKey> {
+  const used = new Set<MoveKey>()
+  for (let seed = 1; seed <= 2; seed += 1) {
+    let state = initialState(world, seed)
+    let a = createBot(seed * 7, first)
+    let b = createBot(seed * 13 + 1, second)
+    for (let frame = 0; frame < TICKS_PER_SECOND * 120 && !state.over; frame += 1) {
+      const da = botStep(a, state, 0, world)
+      const db = botStep(b, state, 1, world)
+      a = da.bot
+      b = db.bot
+      state = step(state, [da.input, db.input], world)
+      const attack = state.fighters[0].attack
+      if (attack) used.add(attack)
+    }
+  }
+  return used
 }

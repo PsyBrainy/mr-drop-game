@@ -80,6 +80,8 @@ export interface FightHud {
    */
   offerBot(onAccept: ((level: BotLevel) => void) | null): void
   update(panels: readonly [PlayerPanel, PlayerPanel]): void
+  /** El contador de combo debajo del panel de cada uno ("3 golpes"), o nada. Sale de `fightCombo.ts`. */
+  combo(labels: readonly [string | null, string | null]): void
   setStatus(text: string | null): void
   /** El cartel grande del arranque ("3, 2, 1, ¡Buenos Humos!"). `null` lo saca. */
   countdown(frame: CountdownFrame | null): void
@@ -104,6 +106,8 @@ interface PanelNodes {
   fill: HTMLDivElement
   trail: HTMLDivElement
   value: HTMLSpanElement
+  combo: HTMLDivElement
+  comboText: string | null
   last: PlayerPanel | null
 }
 
@@ -128,7 +132,9 @@ export function createFightHud(mount: HTMLElement, view: { width: number; height
     const fill = el('div', 'fight-bar__fill', bar)
     el('div', 'fight-bar__ticks', bar)
     const value = el('span', 'fight-panel__value', barRow)
-    return { root: panelRoot, name, hearts, fill, trail, value, last: null } as PanelNodes
+    const combo = el('div', 'fight-panel__combo', panelRoot)
+    combo.hidden = true
+    return { root: panelRoot, name, hearts, fill, trail, value, combo, comboText: null, last: null } as PanelNodes
   })
   // El estado va entre los dos paneles (buscando rival, esperando...).
   const status = el('div', 'fight-hud__status')
@@ -266,6 +272,21 @@ export function createFightHud(mount: HTMLElement, view: { width: number; height
     update(data) {
       paintPanel(panels[0]!, data[0])
       paintPanel(panels[1]!, data[1])
+    },
+    combo(labels) {
+      labels.forEach((text, index) => {
+        const panel = panels[index]!
+        if (text === panel.comboText) return
+        panel.comboText = text
+        panel.combo.hidden = text === null
+        panel.combo.textContent = text ?? ''
+        // Cada golpe nuevo del combo hace saltar el número (como el temblor del panel).
+        if (text !== null) {
+          panel.combo.classList.remove('is-bump')
+          void panel.combo.offsetWidth
+          panel.combo.classList.add('is-bump')
+        }
+      })
     },
     setStatus(text) {
       status.hidden = text === null

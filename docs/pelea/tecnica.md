@@ -60,6 +60,7 @@ src/fight/
     session.ts  ✓ delay-based: retrasa el input propio y se frena si falta el del rival
   bot/
     bot.ts      ✓ el rival de la máquina: input a partir del estado, con semilla. Fuera de la sim
+    lookahead.ts ✓ lo que el bot se imagina con la sim: cómo volver y (el difícil) qué hacer
   replay/
     format.ts   ✓ log de inputs serializable + re-simulación y traza
 
@@ -71,6 +72,7 @@ tools/fight-stage/                   ✓ generador del escenario: cielo, dos cap
 src/games/modules/fightControls.ts   ✓ el teclado, compartido por las dos vistas
 src/games/modules/fightLocal.ts      ✓ vista local: dos jugadores en un teclado, sin red
 src/games/modules/fightOnline.ts     ✓ vista online: 1v1 contra otra persona por psy-ws
+src/games/modules/fightCombo.ts      ✓ el contador de combo del HUD, derivado tick a tick (no entra a la sim)
 src/games/modules/fightCountdown.ts  ✓ "3, 2, 1, ¡Buenos Humos!" antes del tick 0 (online y bot)
 src/infrastructure/ws/               ✓ el adaptador WebSocket y el token de Supabase
 ```
@@ -201,9 +203,22 @@ de un aterrizaje o de la fricción):
   (rival todavía en hitstun), probando ir hacia el rival y apretar en cada tick, y saltar antes
   para los aéreos.
 - `inputOf` / `pressFor`: el casillero y el byte de input de cada golpe.
+- Si el segundo golpe es de piso, `followsUp` también prueba llegar con **gravity cancel**
+  (saltar, esquivar quieto, golpe en `dodge.attackCancelFrom`) y lo marca en `gravityCancel`.
 
 `__tests__/combos.test.ts` tiene el control positivo de la herramienta y las invariantes de combo.
 La tabla de resultados vive en `memoria.md` y se regenera en cada fase que cambia golpes.
+
+## El bot y M6
+
+- `RecoveryPolicy.useRecovery`: sin saltos de aire y cayendo, tira `HEAVY` hacia el escenario (el
+  recovery) al pasar la altura de la política. `chooseRecovery` prueba las dos variantes.
+- El bot de reglas elige la dirección por la posición del rival (neutro si está arriba, barrida
+  con probabilidad `combo` del perfil, spike si está encima) y va al aire si el rival está
+  aturdido arriba. El difícil tiene los golpes con dirección, la ruta de combo, el spike y el
+  gravity cancel entre sus planes (`fightCandidates`).
+- Tests en `bot.test.ts`: vuelve con el recovery (los tres niveles) y el medio y el difícil usan
+  golpes con dirección.
 
 ## Versión de la sim
 

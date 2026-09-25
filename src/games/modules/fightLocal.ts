@@ -9,6 +9,7 @@ import {
 } from '../../fight/camera'
 import { listenKeyboard } from './fightControls'
 import { COLORS, drawMatch, loadFightAssets, tagAnchors, VIEW } from './fightView'
+import { comboLabels, comboStep, NO_COMBO, type ComboState } from './fightCombo'
 import { createFightHud, panelOf } from './fightHud'
 import { createFightDevices } from './fightDevices'
 import { createFightSoundPlayer } from './fightSounds'
@@ -66,6 +67,7 @@ function start(k: KAPLAYCtx, context: GameContext): () => void {
   // Dedos y el primer mando manejan al jugador 1; un segundo mando, al 2.
   const devices = createFightDevices(context.mountPoint)
   const sounds = createFightSoundPlayer()
+  let combo: ComboState = NO_COMBO
   devices.help.hideIn(8000)
   overlay.setNames(['Jugador 1', 'Jugador 2'])
 
@@ -80,6 +82,8 @@ function start(k: KAPLAYCtx, context: GameContext): () => void {
     previous = current
     current = step(current, [inputs[0] | devices.primary(), inputs[1] | devices.secondPad()], world)
     sounds.update(previous, current)
+    combo = comboStep(combo, previous, current)
+    overlay.combo(comboLabels(combo, current))
 
     previousCamera = camera
     camera = approachCamera(camera, targetCamera(current, world, VIEW))

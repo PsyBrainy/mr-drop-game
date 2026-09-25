@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { OSO } from '../data/characters/oso'
 import { followsUp, frameAdvantage, inputOf, pressFor } from '../data/combos'
 import { MOVE_KEYS } from '../sim/attack'
+import { fxRatio } from '../sim/fixed'
 import { DOWN, HEAVY, LEFT, LIGHT, RIGHT } from '../sim/input'
 import { moveFor } from '../sim/moves'
 import type { World } from '../sim/world'
@@ -47,6 +48,19 @@ describe('la herramienta de medición', () => {
     expect(followsUp(sticky, 'nLight', 'nAir', 0).real).toBe(true)
   })
 
+  it('encuentra el combo con gravity cancel cuando lo hay (control positivo)', () => {
+    // Los dos en el aire, cayendo muy despacio (gravedad 0,1): el primer aéreo
+    // aturde 50 frames sin empujar y nadie llega al piso antes de que termine.
+    // Un golpe de piso sólo puede salir con gravity cancel, y la herramienta lo
+    // tiene que ver.
+    const sticky = { ...OSO.moves.nAir, hitstun: 50, knockback: { x: 0, y: 0 } }
+    const tuning = { ...OSO, gravity: fxRatio(1, 10), moves: { ...OSO.moves, nAir: sticky } }
+    const floaty: World = { ...world, tuning: [tuning, tuning] }
+    const route = followsUp(floaty, 'nAir', 'sLight', 0)
+    expect(route.real).toBe(true)
+    expect(route.gravityCancel).toBe(true)
+  })
+
   it('más daño, más ventaja y más distancia: el empuje escala', () => {
     const low = frameAdvantage(world, 'nSig', 0)!
     const high = frameAdvantage(world, 'nSig', 100)!
@@ -55,6 +69,8 @@ describe('la herramienta de medición', () => {
 })
 
 describe('los combos', () => {
+  // Las dos que siguen incluyen rutas con gravity cancel: `followsUp` las prueba
+  // cuando el segundo golpe es de piso.
   it('a 100 de daño ninguna ruta de dos golpes es real: los combos meten daño, no matan', () => {
     const real = MOVE_KEYS.flatMap((first) =>
       MOVE_KEYS.filter((second) => followsUp(world, first, second, 100).real).map((second) => `${first} → ${second}`),

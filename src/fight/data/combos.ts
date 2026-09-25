@@ -174,16 +174,22 @@ export interface FollowUp {
   /** Cómo se hizo, si se pudo: ticks después del primer impacto en que se saltó y se apretó. */
   readonly jumpAt: number | null
   readonly pressAt: number | null
+  /** Se hizo con gravity cancel: saltar, esquivar quieto en el aire y tirar el golpe de piso. */
+  readonly gravityCancel: boolean
+  /** Si fue con gravity cancel, cuándo se esquivó. */
+  readonly dodgeAt: number | null
 }
 
-const NO_FOLLOW_UP: FollowUp = { real: false, jumpAt: null, pressAt: null }
+const NO_FOLLOW_UP: FollowUp = { real: false, jumpAt: null, pressAt: null, gravityCancel: false, dodgeAt: null }
 
 /**
  * ¿`second` entra atrás de `first` como combo real a este daño? Prueba las
  * formas simples de llegar: ir caminando (o derivando) hacia el rival y
  * apretar en cada tick posible, y para los aéreos además saltar antes en cada
- * tick posible. El rival no hace nada: en hitstun no puede, que es justamente
- * lo que se mide.
+ * tick posible. Si `second` es un golpe de piso, prueba también llegar con
+ * gravity cancel: saltar (o no, si ya está en el aire), esquivar quieto y tirar
+ * el golpe en el primer frame permitido. El rival no hace nada: en hitstun no
+ * puede, que es justamente lo que se mide.
  */
 export function followsUp(world: World, first: MoveKey, second: MoveKey, damage: number): FollowUp {
   const start = opening(world, first, damage)
@@ -199,8 +205,27 @@ export function followsUp(world: World, first: MoveKey, second: MoveKey, damage:
 
   for (const jumpAt of jumps) {
     for (let pressAt = (jumpAt ?? hit) + 1; pressAt < hitstunEnds; pressAt += 1) {
-      const result = tryRoute(world, start, firstPress, second, jumpAt, pressAt, hitstunEnds)
-      if (result) return { real: true, jumpAt: jumpAt === null ? null : jumpAt - hit, pressAt: pressAt - hit }
+      const result = tryRoute(world, start, firstPress, second, jumpAt, pressAt, hitstunEnds, null)
+      if (result) {
+        return { real: true, jumpAt: jumpAt === null ? null : jumpAt - hit, pressAt: pressAt - hit, gravityCancel: false, dodgeAt: null }
+      }
+    }
+  }
+
+  if (aerial) return NO_FOLLOW_UP
+  const cancel = world.tuning[0].dodge.attackCancelFrom
+  for (const jumpAt of [null, ...range(hit + 1, hitstunEnds)]) {
+    for (const dodgeAt of range((jumpAt ?? hit) + 1, hitstunEnds - cancel)) {
+      const pressAt = dodgeAt + cancel
+      if (tryRoute(world, start, firstPress, second, jumpAt, pressAt, hitstunEnds, dodgeAt)) {
+        return {
+          real: true,
+          jumpAt: jumpAt === null ? null : jumpAt - hit,
+          pressAt: pressAt - hit,
+          gravityCancel: true,
+          dodgeAt: dodgeAt - hit,
+        }
+      }
     }
   }
   return NO_FOLLOW_UP
@@ -218,6 +243,7 @@ function tryRoute(
   jumpAt: number | null,
   pressAt: number,
   until: number,
+  dodgeAt: number | null,
 ): boolean {
   let state = start
   for (let tick = 0; tick <= until; tick += 1) {
@@ -228,6 +254,8 @@ function tryRoute(
     if (tick < 2) input = firstPress
     else if (tick === pressAt) input = pressFor(second, toward)
     else if (tick === jumpAt) input = JUMP | move
+    // Esquive quieto (sin dirección): el que habilita el gravity cancel.
+    else if (tick === dodgeAt) input = DODGE
     else input = move
 
     const before = state.fighters[1].hitstun
