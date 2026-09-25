@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { OSO } from '../data/characters/oso'
 import { SMALL_STAGE } from '../data/stage'
 import { fx, toPixels } from '../sim/fixed'
-import { DOWN, JUMP, LEFT, NONE, RIGHT, type Input } from '../sim/input'
+import { DOWN, JUMP, LEFT, LIGHT, NONE, RIGHT, type Input } from '../sim/input'
 import { platformAt } from '../sim/platforms'
 import { initialState, type MatchState } from '../sim/state'
 import { step, TICKS_PER_SECOND } from '../sim/tick'
@@ -103,6 +103,17 @@ describe('jugando', () => {
     expect(me.grounded).toBe(true)
     expect(me.platform).toBe(-1)
     expect(me.y).toBe(SMALL_STAGE.ground.top)
+  })
+
+  it('abajo + golpe arriba de la flotante pega el golpe bajo, no se baja', () => {
+    // Si bajarse le ganara al golpe, el dLight no se podría tirar nunca arriba
+    // de una flotante, que es justo donde más se pelea.
+    const onTop = run(underLeftPlatform(), TICKS_PER_SECOND, (frame) => (frame === 0 ? JUMP : NONE))
+    const swung = run(onTop, 1, () => DOWN | LIGHT)
+    const me = swung.fighters[0]
+    expect(me.state).toBe('attack')
+    expect(me.attack).toBe('dLight')
+    expect(me.platform).toBe(0)
   })
 
   it('caminando más allá del borde de la flotante, se cae', () => {

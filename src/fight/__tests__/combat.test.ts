@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { OSO } from '../data/characters/oso'
 import { SMALL_STAGE } from '../data/stage'
-import { isActive, totalFrames, type MoveKey } from '../sim/attack'
+import { isActive, MOVE_KEYS, totalFrames } from '../sim/attack'
 import { toPixels } from '../sim/fixed'
 import { DODGE, HEAVY, JUMP, LEFT, LIGHT, NONE, type Input } from '../sim/input'
 import { isInvulnerable } from '../sim/resolve'
@@ -34,7 +34,7 @@ function swing(button: Input, frames: number, state: MatchState, other: Input = 
 }
 
 describe('frame data', () => {
-  const moves: MoveKey[] = ['lightGround', 'lightAir', 'heavy']
+  const moves = MOVE_KEYS
 
   it.each(moves)('%s tiene las tres fases y pega en las activas', (key) => {
     const move = OSO.moves[key]
@@ -56,7 +56,7 @@ describe('frame data', () => {
   })
 
   it('el fuerte es más lento, pega más y se castiga más que los livianos', () => {
-    const { heavy, lightGround } = OSO.moves
+    const { nSig: heavy, nLight: lightGround } = OSO.moves
 
     expect(heavy.startup).toBeGreaterThan(lightGround.startup)
     expect(heavy.recovery).toBeGreaterThan(lightGround.recovery)
@@ -75,13 +75,13 @@ describe('frame data', () => {
 describe('un golpe', () => {
   it('conecta recién en los frames activos, no al apretar', () => {
     const start = facingOff()
-    const startup = OSO.moves.lightGround.startup
+    const startup = OSO.moves.nLight.startup
 
     const justBefore = swing(LIGHT, startup, start)
     expect(justBefore.fighters[1].damage).toBe(0)
 
     const connected = swing(LIGHT, startup + 1, start)
-    expect(connected.fighters[1].damage).toBe(OSO.moves.lightGround.damage)
+    expect(connected.fighters[1].damage).toBe(OSO.moves.nLight.damage)
   })
 
   it('deja al rival sin control y lo despega del piso', () => {
@@ -98,7 +98,7 @@ describe('un golpe', () => {
     // La caja del liviano vive 3 frames: sin el hitId pegaría tres veces.
     const hit = swing(LIGHT, 12, facingOff())
 
-    expect(hit.fighters[1].damage).toBe(OSO.moves.lightGround.damage)
+    expect(hit.fighters[1].damage).toBe(OSO.moves.nLight.damage)
   })
 
   it('no toca a quien acaba de reaparecer', () => {
@@ -136,7 +136,7 @@ describe('cuando los dos pegan en el mismo frame', () => {
       state = step(state, [p0, p1], world)
     }
 
-    expect(state.fighters[1].damage).toBe(OSO.moves.heavy.damage)
+    expect(state.fighters[1].damage).toBe(OSO.moves.nSig.damage)
     expect(state.fighters[0].damage).toBe(0)
   })
 })
@@ -237,7 +237,7 @@ describe('el daño acumulado es lo que mata', () => {
   it('el golpe más largo del personaje no dura medio segundo', () => {
     // Un ataque que dure más que eso se ve venir desde la otra punta y no lo
     // usaría nadie.
-    for (const key of ['lightGround', 'lightAir', 'heavy'] as MoveKey[]) {
+    for (const key of MOVE_KEYS) {
       expect(totalFrames(OSO.moves[key])).toBeLessThan(40)
     }
   })

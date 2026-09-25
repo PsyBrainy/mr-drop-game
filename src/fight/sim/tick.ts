@@ -21,6 +21,7 @@ import {
   moveAndCollide,
   slidOffWall,
 } from './physics'
+import { aimOf, moveFor } from './moves'
 import { applyClash, applyHit, detectExchange } from './resolve'
 import {
   cloneState,
@@ -154,6 +155,17 @@ function applyInput(draft: FighterDraft, input: Input, tuning: FighterTuning): v
     return
   }
 
+  // Los golpes van antes que bajarse de la flotante: abajo + golpe arriba de una
+  // es el golpe bajo (`dLight`), no bajarse. Bajarse queda para abajo solo.
+  if (pressed(draft.prevInput, input, LIGHT)) {
+    startAttack(draft, moveFor(draft.grounded, 'light', aimOf(input)), axis(input))
+    return
+  }
+  if (pressed(draft.prevInput, input, HEAVY)) {
+    startAttack(draft, moveFor(draft.grounded, 'heavy', aimOf(input)), axis(input))
+    return
+  }
+
   // Abajo sobre una plataforma flotante: bajarse atravesándola.
   if (held(input, DOWN) && draft.grounded && draft.platform >= 0) {
     draft.grounded = false
@@ -164,14 +176,6 @@ function applyInput(draft: FighterDraft, input: Input, tuning: FighterTuning): v
     return
   }
 
-  if (pressed(draft.prevInput, input, LIGHT)) {
-    startAttack(draft, draft.grounded ? 'lightGround' : 'lightAir', axis(input))
-    return
-  }
-  if (pressed(draft.prevInput, input, HEAVY)) {
-    startAttack(draft, 'heavy', axis(input))
-    return
-  }
   if (pressed(draft.prevInput, input, DODGE) && startDodge(draft, tuning, axis(input))) return
 
   const direction = axis(input)
@@ -184,8 +188,8 @@ function applyInput(draft: FighterDraft, input: Input, tuning: FighterTuning): v
 }
 
 /**
- * Arranca un golpe. El ataque elegido depende de si está en el piso o en el
- * aire, que es toda la "máquina de estados" que hace falta con tres ataques.
+ * Arranca un golpe. Cuál golpe lo decide `moveFor` (botón × dirección ×
+ * piso/aire); acá sólo se entra al estado.
  */
 function startAttack(draft: FighterDraft, key: MoveKey, direction: -1 | 0 | 1): void {
   // Se puede pegar para el otro lado: girar al atacar es lo que evita que

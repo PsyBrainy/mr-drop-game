@@ -9,13 +9,45 @@
 
 import type { Fx } from './fixed'
 
-export type MoveKey = 'lightGround' | 'lightAir' | 'heavy'
+/**
+ * Los golpes, como en Brawlhalla: botón × dirección × piso/aire. Los nombres son
+ * los de la comunidad de Brawlhalla (n/s/d = neutro, costado, abajo; "sig" es el
+ * fuerte de piso) para que se pueda buscar cómo lo resuelve ese juego.
+ *
+ * Arriba cuenta como neutro: con tres direcciones `W` puede seguir siendo salto y
+ * no hay que separar apuntar de saltar en ningún control. Cuál sale con cada input
+ * lo decide `moves.ts`, no el tick.
+ */
+export type MoveKey =
+  | 'nLight' | 'sLight' | 'dLight'
+  | 'nSig' | 'sSig' | 'dSig'
+  | 'nAir' | 'sAir' | 'dAir'
+  | 'recovery' | 'groundPound'
 
-/** Códigos explícitos para el hash del estado. El 0 es "no está atacando". */
+/** Todos, en un orden escrito: el que recorren el schema, los tests y la vista. */
+export const MOVE_KEYS: readonly MoveKey[] = [
+  'nLight', 'sLight', 'dLight',
+  'nSig', 'sSig', 'dSig',
+  'nAir', 'sAir', 'dAir',
+  'recovery', 'groundPound',
+]
+
+/**
+ * Códigos explícitos para el hash. El 0 es "no está atacando". Un código no se
+ * reusa ni se renumera: si un golpe desaparece, su número queda vacío.
+ */
 export const MOVE_CODES: Record<MoveKey, number> = {
-  lightGround: 1,
-  lightAir: 2,
-  heavy: 3,
+  nLight: 1,
+  sLight: 2,
+  dLight: 3,
+  nSig: 4,
+  sSig: 5,
+  dSig: 6,
+  nAir: 7,
+  sAir: 8,
+  dAir: 9,
+  recovery: 10,
+  groundPound: 11,
 }
 
 /**

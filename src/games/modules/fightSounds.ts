@@ -12,6 +12,7 @@
  * entrar a la pelea muchas veces terminaría sin sonido.
  */
 
+import type { MoveKey } from '../../fight/sim/attack'
 import type { MatchState, PlayerIndex } from '../../fight/sim/state'
 
 export type SoundKind = 'lightGround' | 'lightAir' | 'heavy' | 'dodge' | 'hurt' | 'ko'
@@ -54,6 +55,24 @@ export function soundUrl(name: string): string {
   return `/sounds/${name}.mp3`
 }
 
+/**
+ * Qué familia de sonido lleva cada golpe. Hay once golpes y tres familias de
+ * sonidos grabados; un golpe nuevo suena como el de su familia hasta tener los suyos.
+ */
+export const MOVE_SOUND: Record<MoveKey, SoundKind> = {
+  nLight: 'lightGround',
+  sLight: 'lightGround',
+  dLight: 'lightGround',
+  nSig: 'heavy',
+  sSig: 'heavy',
+  dSig: 'heavy',
+  nAir: 'lightAir',
+  sAir: 'lightAir',
+  dAir: 'lightAir',
+  recovery: 'heavy',
+  groundPound: 'heavy',
+}
+
 /** Lo que pasó entre un frame y el siguiente que tiene que sonar. */
 export function soundCues(previous: MatchState, state: MatchState): SoundCue[] {
   const cues: SoundCue[] = []
@@ -62,7 +81,7 @@ export function soundCues(previous: MatchState, state: MatchState): SoundCue[] {
     const now = state.fighters[slot]
     // Un golpe nuevo: entró al estado de ataque, o encadenó otro (cambia el id).
     if (now.state === 'attack' && now.attack && (before.state !== 'attack' || before.hitId !== now.hitId)) {
-      cues.push({ slot, kind: now.attack })
+      cues.push({ slot, kind: MOVE_SOUND[now.attack] })
     }
     if (now.state === 'dodge' && before.state !== 'dodge') cues.push({ slot, kind: 'dodge' })
     if (now.stocks < before.stocks) cues.push({ slot, kind: 'ko' })

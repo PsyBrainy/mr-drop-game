@@ -172,8 +172,8 @@ describe('la vista de la pelea', () => {
 
   it('el fuerte muestra la pitada mientras carga y el puño recién cuando pega', () => {
     const state = initialState(world, 1)
-    const charging = withFighter(state, 0, { state: 'attack', attack: 'heavy', stateFrames: 0 })
-    const hitting = withFighter(state, 0, { state: 'attack', attack: 'heavy', stateFrames: OSO.moves.heavy.startup })
+    const charging = withFighter(state, 0, { state: 'attack', attack: 'nSig', stateFrames: 0 })
+    const hitting = withFighter(state, 0, { state: 'attack', attack: 'nSig', stateFrames: OSO.moves.nSig.startup })
 
     const a = stubKaplay()
     drawMatch(a.k, FLAT, charging, charging, 0)
@@ -191,8 +191,8 @@ describe('la vista de la pelea', () => {
 
     const active = withFighter(state, 0, {
       state: 'attack',
-      attack: 'heavy',
-      stateFrames: OSO.moves.heavy.startup,
+      attack: 'nSig',
+      stateFrames: OSO.moves.nSig.startup,
     })
     const swinging = stubKaplay()
     drawMatch(swinging.k, FLAT, active, active, 0)
@@ -202,11 +202,11 @@ describe('la vista de la pelea', () => {
 
   it('con las cajas prendidas, dibuja la del golpe sólo en los frames activos', () => {
     const state = initialState(world, 1)
-    const startup = withFighter(state, 0, { state: 'attack', attack: 'heavy', stateFrames: 0 })
+    const startup = withFighter(state, 0, { state: 'attack', attack: 'nSig', stateFrames: 0 })
     const active = withFighter(state, 0, {
       state: 'attack',
-      attack: 'heavy',
-      stateFrames: OSO.moves.heavy.startup,
+      attack: 'nSig',
+      stateFrames: OSO.moves.nSig.startup,
     })
 
     const quiet = stubKaplay()

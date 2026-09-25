@@ -3,7 +3,7 @@ import { posix } from 'node:path'
 import { describe, expect, it } from 'vitest'
 
 /**
- * Las reglas de determinismo de CLAUDE.md, verificadas a máquina.
+ * Las reglas de determinismo de docs/pelea/reglas.md, verificadas a máquina.
  *
  * La sim de pelea tiene que producir el MISMO estado bit a bit en dos
  * navegadores distintos y en Node (que es donde se re-simula el log de inputs
@@ -12,7 +12,7 @@ import { describe, expect, it } from 'vitest'
  * anda, y lo que aparece semanas después son desyncs que no se pueden
  * reproducir. Por eso es un test y no un párrafo en un README.
  *
- * Si se agrega una regla a CLAUDE.md, se agrega acá. Si algo la tiene que
+ * Si se agrega una regla a docs/pelea/reglas.md, se agrega acá. Si algo la tiene que
  * violar, se cambia la regla en el documento — no se hace la excepción suelta.
  */
 

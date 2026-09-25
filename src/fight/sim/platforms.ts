@@ -6,7 +6,7 @@
  * el mismo tick la ven exactamente en el mismo lugar.
  *
  * Ida y vuelta en triángulo, con enteros: un seno se vería más suave pero está
- * prohibido en la sim (ver CLAUDE.md, presupuesto de determinismo), y a la
+ * prohibido en la sim (ver docs/pelea/reglas.md, presupuesto de determinismo), y a la
  * velocidad a la que se mueven la diferencia no se nota.
  */
 

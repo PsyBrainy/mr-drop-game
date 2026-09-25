@@ -11,8 +11,8 @@ import type { GameModule } from './GameModule'
  * - `match`: 1v1 contra otra persona. No tiene puntaje, tiene un ganador, y el
  *   resultado lo archiva psy-ws en `fight_matches`. La app NO abre sesión ni
  *   guarda nada: meter una pelea en `finish_game_session(score)` para que "entre"
- *   al ranking está prohibido (ver CLAUDE.md). Hasta que exista la validación de
- *   resultados (M4), una pelea se juega pero no rankea.
+ *   al ranking está prohibido (ver docs/pelea/reglas.md, regla 8). El ranking de
+ *   peleas es aparte: lo arma el validador (M4) en `fight_leaderboard`.
  */
 export type GameKind = 'score' | 'match'
 

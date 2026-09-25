@@ -1,7 +1,7 @@
 import { readFileSync } from 'node:fs'
 import { describe, expect, it } from 'vitest'
 import { OSO } from '../../../fight/data/characters/oso'
-import type { MoveKey } from '../../../fight/sim/attack'
+import { MOVE_KEYS, type MoveKey } from '../../../fight/sim/attack'
 import { fx } from '../../../fight/sim/fixed'
 import { initialState, type FighterStateName } from '../../../fight/sim/state'
 import { DEFAULT_RULES, type World } from '../../../fight/sim/world'
@@ -12,6 +12,7 @@ import {
   FEET_Y,
   FRAME_PX,
   IMPACT_POSE,
+  MOVE_ANIM,
   ORIGIN_X,
   POSE_BY_FRAME,
   SHEETS,
@@ -28,7 +29,7 @@ import {
  */
 
 const world: World = { stage: SMALL_STAGE, tuning: [OSO, OSO], rules: DEFAULT_RULES }
-const MOVES: MoveKey[] = ['lightGround', 'lightAir', 'heavy']
+const MOVES: readonly MoveKey[] = MOVE_KEYS
 
 describe('el timing de los dibujos', () => {
   it.each([...MOVES, 'dodge' as const])('la tabla de %s dura lo mismo que el movimiento', (key) => {
@@ -57,7 +58,7 @@ describe('el timing de los dibujos', () => {
 
   it('toda pose pedida existe en su hoja', () => {
     for (const key of MOVES) {
-      for (const pose of POSE_BY_FRAME[key]) expect(pose).toBeLessThan(SHEETS[key].frames)
+      for (const pose of POSE_BY_FRAME[key]) expect(pose).toBeLessThan(SHEETS[MOVE_ANIM[key]].frames)
     }
     for (const pose of POSE_BY_FRAME.dodge) expect(pose).toBeLessThan(SHEETS.dodge.frames)
   })

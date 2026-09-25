@@ -37,10 +37,23 @@ const attackSchema = z.object({
   priority: whole.nonnegative(),
 })
 
+/**
+ * Los once, todos obligatorios. Un personaje a medio hacer no carga: si le
+ * faltara el `dAir`, apretar abajo + rápido en el aire no haría nada y nadie
+ * sabría por qué. Dos golpes pueden ser el mismo dato, pero se escriben los dos.
+ */
 const moveSetSchema = z.object({
-  lightGround: attackSchema,
-  lightAir: attackSchema,
-  heavy: attackSchema,
+  nLight: attackSchema,
+  sLight: attackSchema,
+  dLight: attackSchema,
+  nSig: attackSchema,
+  sSig: attackSchema,
+  dSig: attackSchema,
+  nAir: attackSchema,
+  sAir: attackSchema,
+  dAir: attackSchema,
+  recovery: attackSchema,
+  groundPound: attackSchema,
 })
 
 /**

@@ -1,4 +1,4 @@
-import { totalFrames, type MoveKey } from '../../fight/sim/attack'
+import { MOVE_KEYS, totalFrames, type MoveKey } from '../../fight/sim/attack'
 import { toPixels } from '../../fight/sim/fixed'
 import type { Fighter, PlayerIndex } from '../../fight/sim/state'
 import type { FighterTuning } from '../../fight/sim/world'
@@ -75,29 +75,60 @@ export function spriteSrc(skin: Skin, anim: AnimName): string {
  * dibujo del impacto aparezca en el primer frame activo, ni uno antes ni uno
  * después: si el juego pega antes de que se vea, el golpe se siente injusto.
  */
+// startup 4 | activo 3 | recovery 10
+const LIGHT_GROUND_POSES = [0, 0, 1, 1, 2, 2, 2, 3, 3, 3, 3, 4, 4, 4, 5, 5, 5]
+// startup 5 | activo 4 | recovery 12
+const LIGHT_AIR_POSES = [0, 0, 0, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3, 4, 4, 4, 4, 5, 5, 5, 5]
+// startup 12 (la pitada: se ve venir) | activo 4 | recovery 22
+const HEAVY_POSES = [
+  0, 0, 0, 0, 1, 1, 1, 1, 2, 2, 2, 2,
+  3, 3, 4, 4,
+  5, 5, 5, 5, 5, 5, 6, 6, 6, 6, 6, 6, 7, 7, 7, 7, 7, 8, 8, 8, 8, 8,
+]
+
+/**
+ * Hay once golpes y tres hojas dibujadas: mientras un golpe no tenga su dibujo,
+ * usa el de su familia (rápido de piso, rápido aéreo, fuerte). Cuando un golpe
+ * cambie de frame data en la sim, necesita su tabla propia acá — el test de
+ * duración lo avisa — y más adelante su hoja propia.
+ */
 export const POSE_BY_FRAME: Record<MoveKey | 'dodge', readonly number[]> = {
-  // startup 4 | activo 3 | recovery 10
-  lightGround: [0, 0, 1, 1, 2, 2, 2, 3, 3, 3, 3, 4, 4, 4, 5, 5, 5],
-  // startup 5 | activo 4 | recovery 12
-  lightAir: [0, 0, 0, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3, 4, 4, 4, 4, 5, 5, 5, 5],
-  // startup 12 (la pitada: se ve venir) | activo 4 | recovery 22
-  heavy: [
-    0, 0, 0, 0, 1, 1, 1, 1, 2, 2, 2, 2,
-    3, 3, 4, 4,
-    5, 5, 5, 5, 5, 5, 6, 6, 6, 6, 6, 6, 7, 7, 7, 7, 7, 8, 8, 8, 8, 8,
-  ],
+  nLight: LIGHT_GROUND_POSES,
+  sLight: LIGHT_GROUND_POSES,
+  dLight: LIGHT_GROUND_POSES,
+  nSig: HEAVY_POSES,
+  sSig: HEAVY_POSES,
+  dSig: HEAVY_POSES,
+  nAir: LIGHT_AIR_POSES,
+  sAir: LIGHT_AIR_POSES,
+  dAir: LIGHT_AIR_POSES,
+  recovery: HEAVY_POSES,
+  groundPound: HEAVY_POSES,
   // 26 frames: se agacha y se esconde en su nube
   dodge: [0, 0, 0, 1, 1, 1, 1, 2, 2, 2, 2, 2, 3, 3, 3, 4, 4, 4, 4, 4, 4, 5, 5, 5, 5, 5],
 }
 
-/** El dibujo del golpe estirado en cada ataque: tiene que coincidir con el primer frame activo. */
-export const IMPACT_POSE: Record<MoveKey, number> = { lightGround: 2, lightAir: 2, heavy: 3 }
-
-const MOVE_ANIM: Record<MoveKey, AnimName> = {
-  lightGround: 'lightGround',
-  lightAir: 'lightAir',
-  heavy: 'heavy',
+/** Qué hoja dibuja cada golpe. */
+export const MOVE_ANIM: Record<MoveKey, AnimName> = {
+  nLight: 'lightGround',
+  sLight: 'lightGround',
+  dLight: 'lightGround',
+  nSig: 'heavy',
+  sSig: 'heavy',
+  dSig: 'heavy',
+  nAir: 'lightAir',
+  sAir: 'lightAir',
+  dAir: 'lightAir',
+  recovery: 'heavy',
+  groundPound: 'heavy',
 }
+
+/** El dibujo del golpe estirado en cada hoja: tiene que coincidir con el primer frame activo. */
+const IMPACT_BY_ANIM: Partial<Record<AnimName, number>> = { lightGround: 2, lightAir: 2, heavy: 3 }
+
+export const IMPACT_POSE: Record<MoveKey, number> = Object.fromEntries(
+  MOVE_KEYS.map((key) => [key, IMPACT_BY_ANIM[MOVE_ANIM[key]] ?? 0]),
+) as Record<MoveKey, number>
 
 /** Ticks que se sostiene cada dibujo en las animaciones en loop. */
 export const LOOP_TICKS = { idle: 8, walk: 6, air: 6, wall: 8, ko: 4 } as const
