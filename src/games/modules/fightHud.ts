@@ -1,6 +1,7 @@
 import { resistanceOf, type Fighter, type PlayerIndex } from '../../fight/sim/state'
 import type { MatchRules } from '../../fight/sim/world'
 import { BOT_LEVEL_LABELS, BOT_LEVEL_ORDER, type BotLevel } from '../../fight/bot/bot'
+import type { CountdownFrame } from './fightCountdown'
 
 /**
  * El HUD de la pelea, en HTML encima del canvas (la regla del atlas de fuente de
@@ -80,6 +81,8 @@ export interface FightHud {
   offerBot(onAccept: ((level: BotLevel) => void) | null): void
   update(panels: readonly [PlayerPanel, PlayerPanel]): void
   setStatus(text: string | null): void
+  /** El cartel grande del arranque ("3, 2, 1, ¡Buenos Humos!"). `null` lo saca. */
+  countdown(frame: CountdownFrame | null): void
   placeTags(anchors: readonly [TagAnchor, TagAnchor]): void
   destroy(): void
 }
@@ -185,6 +188,11 @@ export function createFightHud(mount: HTMLElement, view: { width: number; height
   offerButton.addEventListener('click', acceptOffer)
   let names: readonly [string, string] = ['Jugador 1', 'Jugador 2']
 
+  // La cuenta del arranque, al medio y arriba: más abajo la taparía el cartel
+  // de controles, que justo en ese momento sigue abierto.
+  const countdown = el('div', 'fight-countdown', root)
+  countdown.hidden = true
+
   const paintNames = (): void => {
     ;([0, 1] as const).forEach((index) => {
       const panel = panels[index]!
@@ -262,6 +270,21 @@ export function createFightHud(mount: HTMLElement, view: { width: number; height
     setStatus(text) {
       status.hidden = text === null
       status.textContent = text ?? ''
+    },
+    countdown(frame) {
+      if (!frame) {
+        countdown.hidden = true
+        countdown.textContent = ''
+        return
+      }
+      countdown.hidden = false
+      countdown.textContent = frame.label
+      countdown.classList.toggle('is-go', !frame.holds)
+      // Se reinicia la animación en cada escalón: sacar la clase, forzar un
+      // layout y volver a ponerla (igual que el temblor del panel).
+      countdown.classList.remove('is-step')
+      void countdown.offsetWidth
+      countdown.classList.add('is-step')
     },
     placeTags(anchors) {
       anchors.forEach((anchor, index) => {

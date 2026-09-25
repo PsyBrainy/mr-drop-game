@@ -603,6 +603,43 @@ body.is-immersive { overflow: hidden; }
 /* Sin estado, la columna del medio igual existe y mantiene a los paneles en sus lados. */
 .fight-hud__status[hidden] { display: block; visibility: hidden; padding: 0; border: 0; }
 
+/* --- cuenta regresiva del arranque (fightCountdown.ts) ------------------- */
+.fight-countdown {
+  position: absolute; left: 50%; top: 32%;
+  transform: translate(-50%, -50%);
+  font-size: clamp(40px, 11cqw, 132px); font-weight: 900; line-height: 1;
+  letter-spacing: -0.02em; white-space: nowrap;
+  color: #fff;
+  -webkit-text-stroke: 0.25cqw rgba(10, 8, 24, 0.85);
+  text-shadow: 0 0.5cqw 1.6cqw rgba(0, 0, 0, 0.55);
+}
+.fight-countdown[hidden] { display: none; }
+/* La largada es más larga que un número: más chica, para que entre en un celular. */
+.fight-countdown.is-go {
+  font-size: clamp(28px, 7cqw, 88px);
+  color: var(--accent);
+  text-shadow: 0 0 2.4cqw color-mix(in srgb, var(--accent) 55%, transparent), 0 0.5cqw 1.6cqw rgba(0, 0, 0, 0.55);
+}
+.fight-countdown.is-step { animation: fight-countdown-pop 0.9s ease-out both; }
+.fight-countdown.is-go.is-step { animation: fight-countdown-go 0.8s ease-out both; }
+@keyframes fight-countdown-pop {
+  0% { opacity: 0; transform: translate(-50%, -50%) scale(1.8); }
+  18% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+  80% { opacity: 1; transform: translate(-50%, -50%) scale(0.94); }
+  100% { opacity: 0; transform: translate(-50%, -50%) scale(0.85); }
+}
+@keyframes fight-countdown-go {
+  0% { opacity: 0; transform: translate(-50%, -50%) scale(0.6); }
+  20% { opacity: 1; transform: translate(-50%, -50%) scale(1.08); }
+  35% { transform: translate(-50%, -50%) scale(1); }
+  75% { opacity: 1; }
+  100% { opacity: 0; transform: translate(-50%, -50%) scale(1.05); }
+}
+/* Sin animaciones, el cartel queda quieto y visible: el `both` del global lo dejaría en opacidad 0. */
+@media (prefers-reduced-motion: reduce) {
+  .fight-countdown.is-step, .fight-countdown.is-go.is-step { animation: none; }
+}
+
 /* --- nombre sobre la cabeza ----------------------------------------------- */
 .fight-tag {
   --accent-color: var(--p1);

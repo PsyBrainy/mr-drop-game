@@ -128,6 +128,7 @@ tools/fight-stage/                   ✓ generador del escenario: cielo, dos cap
 src/games/modules/fightControls.ts   ✓ el teclado, compartido por las dos vistas
 src/games/modules/fightLocal.ts      ✓ vista local: dos jugadores en un teclado, sin red
 src/games/modules/fightOnline.ts     ✓ vista online: 1v1 contra otra persona por psy-ws
+src/games/modules/fightCountdown.ts  ✓ "3, 2, 1, ¡Buenos Humos!" antes del tick 0 (online y bot)
 src/infrastructure/ws/               ✓ el adaptador WebSocket y el token de Supabase
 ```
 
@@ -234,6 +235,11 @@ para validar resultados, y hashear el estado para detectar desyncs.
   el protocolo. psy-ws lo refleja, y `protocol.fixtures.json` está commiteado en los dos repos y
   los dos lo verifican. **Al cambiar el protocolo se edita el fixture en los dos lados, o no se
   cambia.** El servidor y su harness están documentados en `psy-ws/CLAUDE.md`.
+- **La cuenta del arranque no es de la sim.** "3, 2, 1, ¡Buenos Humos!" pasa *antes* del tick
+  0: la vista no llama a `session.tick()` hasta que termina, así que no cambia `SIM_VERSION` ni el
+  replay. Saltearla no adelanta nada (la sesión se frena esperando al rival). Tiene que entrar
+  holgada en `fight.silence-timeout-seconds` de psy-ws, porque contando no se mandan inputs; lo
+  verifica `fightCountdown.test.ts`.
 - El transporte está detrás de `Transport` (`net/port.ts`). WebSocket hoy; si algún día hace
   falta UDP real (WebTransport / WebRTC DataChannel) se cambia el adaptador y la sim no se entera.
 

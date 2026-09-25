@@ -27,6 +27,7 @@ import { COLORS, drawMatch, loadFightAssets, tagAnchors, VIEW } from './fightVie
 import { createFightHud, panelOf } from './fightHud'
 import { createFightDevices } from './fightDevices'
 import { createFightSoundPlayer } from './fightSounds'
+import { createCountdown } from './fightCountdown'
 import { analytics } from '../../infrastructure/analytics'
 import { myFightName, rivalFightName } from '../../infrastructure/ws/fightNames'
 
@@ -131,15 +132,22 @@ function start(k: KAPLAYCtx, context: GameContext): () => void {
   const devices = createFightDevices(context.mountPoint)
   // Los sonidos de la comunidad: cada personaje con los suyos.
   const sounds = createFightSoundPlayer()
-  // El cartel de controles se cierra solo un rato después de que arranca la
-  // pelea: mientras se busca rival hay tiempo de leerlo.
-  let helpClosing = false
-  const matchStarted = (): void => {
-    if (helpClosing) return
-    helpClosing = true
-    devices.help.hideIn(6000)
-  }
   overlay.setNames(['…', '…'])
+
+  // "3, 2, 1, ¡Buenos Humos!" antes del tick 0, contra una persona o contra la
+  // máquina. Mientras dura, la sim no avanza. Por qué vive acá y no en la sim:
+  // `fightCountdown.ts`.
+  //
+  // El cartel de controles se cierra cuando la cuenta llega al "2": se lee
+  // mientras se busca rival y en el "3", y los dos segundos que quedan son para
+  // mirar el escenario y ubicarse antes de la largada. Abierto tapa la parte de
+  // abajo, que es donde se cae. Si el jugador lo abrió a mano, `hideIn` lo
+  // respeta. Vuelve con el botón "Controles".
+  const helpClosesAt = 1
+  const countdown = createCountdown((frame) => {
+    overlay.countdown(frame)
+    if (frame && frame.step >= helpClosesAt) devices.help.hideIn(0)
+  })
 
   // El teclado escribe en las dos ranuras, pero online sólo se usa la primera:
   // las teclas son siempre las mismas y a qué peleador mueven lo decide el lugar
@@ -164,6 +172,8 @@ function start(k: KAPLAYCtx, context: GameContext): () => void {
     onEnd: (reason, winner) => {
       if (mode === 'bot') return
       ended = true
+      // Si el rival se fue durante la cuenta, el cartel no se queda colgado.
+      overlay.countdown(null)
       hud()
       const snapshot = session?.snapshot()
       const me = snapshot?.slot ?? 0
@@ -180,6 +190,7 @@ function start(k: KAPLAYCtx, context: GameContext): () => void {
     onError: (code, message) => {
       if (mode === 'bot') return
       ended = true
+      overlay.countdown(null)
       analytics.track('fight_error', { code })
       overlay.setStatus(code)
       context.onGameOver(0, { message })
@@ -214,7 +225,6 @@ function start(k: KAPLAYCtx, context: GameContext): () => void {
     overlay.setStatus(snapshot.phase === 'playing' ? null : describe(snapshot.phase, snapshot.stalledFrames))
     if (!state) return
     if (!namesAsked) askNames(snapshot.slot, snapshot.opponent)
-    if (snapshot.phase === 'playing') matchStarted()
     overlay.update([panelOf(state.fighters[0], world.rules), panelOf(state.fighters[1], world.rules)])
   }
 
@@ -227,7 +237,6 @@ function start(k: KAPLAYCtx, context: GameContext): () => void {
       source: directBot ? 'menu' : 'queue',
       wait_seconds: directBot ? undefined : Math.round(queuedTicks / TICKS_PER_SECOND),
     })
-    matchStarted()
     offering = false
     overlay.offerBot(null)
     overlay.setStatus(null)
@@ -246,10 +255,12 @@ function start(k: KAPLAYCtx, context: GameContext): () => void {
     overlay.setNames(['…', botName])
     void myFightName().then((mine) => overlay.setNames([mine, botName]))
     overlay.update([panelOf(state.fighters[0], world.rules), panelOf(state.fighters[1], world.rules)])
+    countdown.begin()
   }
 
   const tickBot = (): void => {
     if (!vsBot || ended) return
+    if (countdown.tick()) return
     const decided = botStep(vsBot.bot, vsBot.state, 1, world)
     const next = step(vsBot.state, [pressed[0] | devices.primary(), decided.input], world)
     sounds.update(vsBot.state, next)
@@ -298,6 +309,11 @@ function start(k: KAPLAYCtx, context: GameContext): () => void {
       offering = false
       overlay.offerBot(null)
     }
+
+    // Hay rival: arranca la cuenta, y hasta que termine no se juega el tick 0.
+    // Tampoco se lee el teclado: lo que se aprieta contando no se acumula.
+    if (session.snapshot().state) countdown.begin()
+    if (countdown.tick()) return
 
     const advanced = session.tick(pressed[0] | devices.primary())
     const snapshot = session.snapshot()
