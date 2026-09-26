@@ -455,3 +455,74 @@ def ko():
     for k, ang in enumerate([0, -90, -180, -270, 0, -90]):
         frames.append((fly, k, ang))
     return frames
+
+
+# ------------------------------------------------------------------ reaparecer (10 dibujos, 3 s)
+# No es una pose del rasta: es lo que se ve en su spawn mientras espera para
+# volver. Un porro armado parado en el piso aparece, se prende, se consume
+# entero, y de la bola de humo que queda sale el personaje (eso último lo hace la
+# vista, dibujándolo detrás del humo que se disipa). Un dibujo cada 18 ticks.
+JOINT_FULL = 34
+FILTER = (214, 170, 110)
+
+
+def _joint(cv_, L, lit):
+    """El porro parado sobre el piso, de L px de alto: cono con filtro abajo."""
+    # Cono bien marcado (1,5 abajo, 4 arriba): con los lados paralelos se leía
+    # como un cigarrillo común.
+    top_w = 4.0
+    pts = [(-1.5, 0), (1.5, 0), (top_w, L), (-top_w, L)]
+    cv_.part(m_poly(pts), 'paper', 'paper_s')
+    # el filtro (la tuca): la parte de abajo, de cartón
+    for y in range(0, 5):
+        for x in range(-1, 2):
+            cv_.px((x, y + 0.5), FILTER)
+    if lit:
+        cv_.part(m_ellipse((0, L), top_w + 0.2, 1.8), 'ember', None, 'ember_hot')
+        cv_.px((0, L + 0.5), 'ember_hot')
+        cv_.px((-1, L + 1.5), 'ash')
+        cv_.px((1, L + 1.2), 'ash')
+    else:
+        # sin prender: la puntita retorcida del papel
+        cv_.px((0, L + 0.5), 'paper')
+        cv_.px((1, L + 1.5), 'paper')
+        cv_.px((1, L + 2.5), 'paper_s')
+
+
+def _smoke_column(cv_, base_y, k, n=3):
+    """Humito que sube de la brasa: bollos chicos que se agrandan al subir."""
+    for i in range(n):
+        up = 6 + i * 8 + (k % 2) * 3
+        x = math.sin((k + i) * 1.3) * 3
+        cloud(cv_, (x, base_y + up), 2.2 + i * 1.1, seed=300 + k * 7 + i)
+
+
+# Alto del porro en cada dibujo: aparece entero, se prende y se consume.
+JOINT_LENGTH = [JOINT_FULL, JOINT_FULL, 30, 26, 22, 18, 13, 7]
+
+
+def respawn_fx():
+    frames = []
+    for k in range(10):
+        cv_ = Canvas()
+        if k == 0:
+            _joint(cv_, JOINT_FULL, False)
+            spark(cv_, (7, JOINT_FULL - 4), 5)
+        elif k <= 6:
+            _joint(cv_, JOINT_LENGTH[k], True)
+            _smoke_column(cv_, JOINT_LENGTH[k], k, n=2 if k == 1 else 3)
+        elif k == 7:
+            _joint(cv_, JOINT_LENGTH[k], True)
+            cloud(cv_, (0, 14), 9, seed=401)
+            cloud(cv_, (2, 27), 6, seed=402)
+        elif k == 8:
+            # La bola de humo: tapa el cuerpo entero (56 px) para que el personaje
+            # aparezca adentro sin que se vea el corte.
+            for (c, r, sd) in [((0, 12), 13, 411), ((-3, 30), 15, 412), ((4, 46), 12, 413), ((0, 58), 8, 414)]:
+                cloud(cv_, c, r, seed=sd)
+        else:
+            for (c, r, sd) in [((-16, 10), 6, 421), ((16, 16), 6, 422), ((-13, 40), 5.5, 423),
+                               ((14, 48), 5, 424), ((0, 66), 4.5, 425)]:
+                cloud(cv_, c, r, seed=sd)
+        frames.append(cv_.image())
+    return frames

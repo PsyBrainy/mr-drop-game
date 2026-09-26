@@ -83,7 +83,8 @@ function candidateHit(
 ): PendingHit | null {
   const hitter = draft.fighters[attacker]
   const victim = draft.fighters[defender]
-  if (victim.state === 'dead') return null
+  // Muerto o esperando para reaparecer: no está en el escenario.
+  if (victim.state === 'dead' || victim.state === 'respawn') return null
 
   const box = activeHitbox(hitter, world.tuning[attacker])
   if (!box || hitter.attack === null) return null

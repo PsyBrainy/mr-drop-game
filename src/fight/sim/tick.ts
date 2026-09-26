@@ -33,7 +33,7 @@ import {
   type MatchState,
   type PlayerIndex,
 } from './state'
-import type { FighterTuning, World } from './world'
+import type { FighterTuning, MatchRules, World } from './world'
 
 /** Ticks por segundo de la simulación. La vista dibuja a los FPS que dé el navegador. */
 export const TICKS_PER_SECOND = 60
@@ -61,7 +61,7 @@ export function step(state: MatchState, inputs: readonly [Input, Input], world: 
 
   // 2. Input y máquina de estados, jugador 0 y después jugador 1
   for (const index of PLAYERS) {
-    applyInput(draft.fighters[index], inputs[index], world.tuning[index])
+    applyInput(draft.fighters[index], inputs[index], world.tuning[index], world.rules)
   }
 
   // 3. Física
@@ -107,8 +107,14 @@ function advanceTimers(draft: FighterDraft): void {
   if (draft.dropThrough > 0) draft.dropThrough -= 1
 }
 
-function applyInput(draft: FighterDraft, input: Input, tuning: FighterTuning): void {
+function applyInput(draft: FighterDraft, input: Input, tuning: FighterTuning, rules: MatchRules): void {
   if (draft.state === 'dead') return
+  // Esperando para reaparecer: no hay nadie que maneje. Ni siquiera se anotan
+  // los botones, así que lo que se aprieta esperando no sale al aparecer.
+  if (draft.state === 'respawn') {
+    if (draft.stateFrames >= rules.respawnFrames) appear(draft, rules)
+    return
+  }
 
   // El salto y los golpes se anotan siempre, incluso sin poder hacerlos: para eso
   // están los buffers. Si en el mismo frame se aprietan los dos golpes, gana el
@@ -289,6 +295,13 @@ function wallJump(draft: FighterDraft, tuning: FighterTuning): void {
   enter(draft, 'air')
 }
 
+/** Terminó la espera: aparece parado en su spawn, invulnerable un rato. */
+function appear(draft: FighterDraft, rules: MatchRules): void {
+  draft.state = 'idle'
+  draft.stateFrames = 0
+  draft.invuln = rules.respawnInvuln
+}
+
 function jump(draft: FighterDraft, tuning: FighterTuning): void {
   if (draft.grounded) {
     draft.vy = tuning.jumpVelocity
@@ -311,6 +324,8 @@ function jump(draft: FighterDraft, tuning: FighterTuning): void {
 }
 
 function integrate(draft: FighterDraft, tuning: FighterTuning, world: World, tick: number): void {
+  // Esperando para reaparecer no hay física: está quieto en su spawn, afuera del juego.
+  if (draft.state === 'respawn') return
   const wasAirborne = !draft.grounded
 
   if (draft.state === 'cling') {
@@ -398,7 +413,7 @@ function resolveBounds(draft: MatchDraft, world: World): void {
 
   for (const index of PLAYERS) {
     const fighter = draft.fighters[index]
-    if (fighter.state === 'dead') continue
+    if (fighter.state === 'dead' || fighter.state === 'respawn') continue
     if (!isOutOfBounds(fighter, world.tuning[index], world.stage)) continue
 
     fighter.stocks -= 1

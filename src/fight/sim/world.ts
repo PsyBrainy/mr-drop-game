@@ -178,6 +178,14 @@ export interface MatchRules {
   /** Frames de invulnerabilidad al reaparecer. */
   readonly respawnInvuln: number
   /**
+   * Frames entre perder una vida y volver a aparecer. Mientras tanto el
+   * personaje no está: no se lo puede tocar, no se mueve y no escucha el input,
+   * y en su lugar la vista dibuja un porro que se consume y se hace humo.
+   * 180 son 3 segundos: lo bastante para que perder una vida se sienta (y el
+   * otro respire), y no tanto como para aburrir.
+   */
+  readonly respawnFrames: number
+  /**
    * Con cuánta resistencia arranca cada uno. NO es estado ni entra en la física:
    * el daño acumulado es lo único que existe para la sim, y la resistencia es
    * ese mismo número leído al revés para poder mostrarlo como barra. Tener las
@@ -194,4 +202,4 @@ export interface World {
   readonly rules: MatchRules
 }
 
-export const DEFAULT_RULES: MatchRules = { stocks: 3, respawnInvuln: 60, maxResistance: 100 }
+export const DEFAULT_RULES: MatchRules = { stocks: 3, respawnInvuln: 60, respawnFrames: 180, maxResistance: 100 }

@@ -117,6 +117,32 @@ problema: lo que falta son golpes que dejen al rival cerca y arriba, y eso es F3
 contra el +2 que se midió a mano antes es la definición: ahora cuenta el primer frame en que el
 esquive del rival *arranca*.)
 
+### Reaparecer tarda 3 segundos (2026-09-25) — SIM_VERSION 10
+
+Pedido de Martín: que al perder una vida no se vuelva a aparecer enseguida, sino con una
+animación de 3 segundos: un porro armado aparece, se consume, y de la bola de humo que se disipa
+sale el personaje.
+
+- **Es de la sim, no sólo de la vista**: durante esos 3 segundos el personaje no está en el
+  escenario, y eso cambia la partida (el otro no tiene a quién pegarle, respira, se acomoda). Por
+  eso es una regla del match, `respawnFrames` = 180, y un estado nuevo, `respawn`.
+- Esperando: está quieto en su spawn, sin física, **no se lo puede tocar** y **no escucha el
+  input** (ni siquiera guarda botones, así que nada de lo que se apriete sale al aparecer). Al
+  terminar aparece parado, y **recién ahí** arranca el segundo de invulnerabilidad de siempre
+  (si arrancara antes, se gastaría entero esperando).
+- **La animación es de la vista**, derivada de cuánto lleva esperando: 10 dibujos de 18 ticks
+  (`respawn` en `tools/rasta-sprites`): el porro aparece con un destello, se prende, se consume en
+  seis dibujos soltando humo, queda la tuca con una nube, la bola de humo tapa el cuerpo entero, y
+  se abre en bollos. En los últimos 30 ticks la vista dibuja al personaje detrás del humo,
+  apareciendo de a poco (`respawnReveal`), así que "sale de la nube". Un test exige que la hoja
+  dure exactamente los 180 ticks.
+- Probado en el navegador: la secuencia se ve de punta a punta y el personaje aparece
+  parpadeando (invulnerable), como antes.
+- El nombre sobre la cabeza no se muestra mientras espera. El bot no aprieta nada esperando.
+- Partidas más largas: el test de bot contra bot pasó a tener 30 s de margen.
+- La hoja nueva entra en las mismas 2 páginas de atlas; el margen para hojas futuras bajó de 8 a
+  6 por piel.
+
 ### Quinto audio (2026-09-25) — sin cambio de sim: los once golpes con sonido propio
 
 Audio de las 13:21:05, 12,6 s, con cuatro tramos de voz separados por silencios. Martín avisó

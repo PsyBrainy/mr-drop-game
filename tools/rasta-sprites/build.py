@@ -31,6 +31,7 @@ def render_all():
     A['wall'] = [render(P, t) for P, t in wall()]
     A['hurt'] = [render(P, t) for P, t in hurt()]
     A['ko'] = [ko_frame(P, t, a) for P, t, a in ko()]
+    A['respawn'] = respawn_fx()
     return A, T
 
 

@@ -21,7 +21,10 @@ Antes del primer frame hay una cuenta: "3, 2, 1, ¡Buenos Humos!".
   cuanto más daño tenés, **más lejos te manda el próximo golpe**. Lo que mata es salir volando.
 - La barra de **resistencia** que se ve es ese daño al revés (arranca en 100). Llega a 0 y el
   daño sigue subiendo por debajo: con la barra vacía cada golpe te manda más lejos.
-- Al perder una vida el daño vuelve a 0 y se reaparece con **1 segundo de invulnerabilidad**.
+- Al perder una vida **se tarda 3 segundos en volver**: en tu lugar aparece un porro armado que
+  se consume solo, se hace una bola de humo y de ahí salís. Mientras tanto no estás en el
+  escenario (nadie te puede pegar y no te podés mover). Volvés con el daño en 0 y **1 segundo de
+  invulnerabilidad**.
 - Online, abandonar es perder (salvo que la partida ya hubiera terminado).
 
 ## Moverse

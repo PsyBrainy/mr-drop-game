@@ -1,7 +1,7 @@
 import { MOVE_KEYS, totalFrames, type MoveKey } from '../../fight/sim/attack'
 import { toPixels } from '../../fight/sim/fixed'
 import type { Fighter, PlayerIndex } from '../../fight/sim/state'
-import type { FighterTuning } from '../../fight/sim/world'
+import { DEFAULT_RULES, type FighterTuning, type MatchRules } from '../../fight/sim/world'
 
 /**
  * La capa que elige qué dibujo va en cada frame. No importa Kaplay: es una
@@ -48,7 +48,7 @@ export function skinOf(index: PlayerIndex): Skin {
 export type AnimName =
   | 'idle' | 'walk' | 'air' | 'land'
   | 'lightGround' | 'nLight' | 'dLight' | 'lightAir' | 'nAir' | 'dAir' | 'groundPound' | 'heavy' | 'nSig' | 'dSig' | 'recovery'
-  | 'dodge' | 'wall' | 'hurt' | 'ko'
+  | 'dodge' | 'wall' | 'hurt' | 'ko' | 'respawn'
 
 /** Cuántos dibujos tiene cada hoja y cómo se llama el archivo (sin la piel adelante). */
 export const SHEETS: Record<AnimName, { readonly file: string; readonly frames: number }> = {
@@ -71,6 +71,7 @@ export const SHEETS: Record<AnimName, { readonly file: string; readonly frames: 
   wall: { file: 'wall_4x1_96', frames: 4 },
   hurt: { file: 'hurt_2x1_96', frames: 2 },
   ko: { file: 'ko_6x1_96', frames: 6 },
+  respawn: { file: 'respawn_10x1_96', frames: 10 },
 }
 
 export const ANIMS = Object.keys(SHEETS) as AnimName[]
@@ -260,12 +261,40 @@ export function spriteFrame(fighter: Fighter): SpriteFrame {
       return { anim: 'hurt', frame: t < HURT_FLINCH ? 0 : 1, flip }
     }
 
+    case 'respawn':
+      // No es el personaje: es el porro que se consume en su spawn (la hoja
+      // mira siempre para el mismo lado). El personaje lo agrega la vista al
+      // final, detrás del humo: ver `respawnReveal`.
+      return { anim: 'respawn', frame: Math.min(SHEETS.respawn.frames - 1, Math.floor(t / RESPAWN_TICKS_PER_FRAME)), flip: false }
+
     case 'idle':
     case 'dead':
       break
   }
 
   return { anim: 'idle', frame: loop(SHEETS.idle.frames, LOOP_TICKS.idle, t), flip }
+}
+
+/**
+ * Ticks de cada dibujo del porro. La hoja tiene que durar exactamente la espera
+ * de la regla del match (lo verifica un test): si durara menos, el porro se
+ * quedaría quieto en el último dibujo; si durara más, el personaje aparecería
+ * con el porro a medio fumar.
+ */
+export const RESPAWN_TICKS_PER_FRAME = DEFAULT_RULES.respawnFrames / SHEETS.respawn.frames
+
+/** Los últimos ticks de la espera, en los que el personaje va apareciendo detrás del humo. */
+export const RESPAWN_REVEAL_TICKS = 30
+
+/**
+ * Qué tan visible está el personaje mientras espera para reaparecer: nada hasta
+ * los últimos `RESPAWN_REVEAL_TICKS`, y de ahí sube hasta entero justo cuando la
+ * sim lo hace aparecer. Es lo que hace que "salga de la bola de humo".
+ */
+export function respawnReveal(fighter: Fighter, rules: MatchRules = DEFAULT_RULES): number {
+  if (fighter.state !== 'respawn') return 1
+  const from = rules.respawnFrames - RESPAWN_REVEAL_TICKS
+  return Math.min(1, Math.max(0, (fighter.stateFrames - from) / RESPAWN_REVEAL_TICKS))
 }
 
 /** Para los tests: cuánto dura cada tabla contra lo que dura de verdad el movimiento. */

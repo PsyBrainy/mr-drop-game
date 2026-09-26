@@ -1,9 +1,9 @@
 {
   "comment": "Fixtures del contrato entre el front y psy-ws. Este archivo está commiteado en los dos repos y los dos lo verifican: si alguien renombra un campo de un lado, el test del otro rompe. No se edita a mano en uno solo.",
-  "simVersion": 9,
+  "simVersion": 10,
   "client": [
-    { "type": "hello", "simVersion": 9 },
-    { "type": "hello", "simVersion": 9, "token": "ey.un.token" },
+    { "type": "hello", "simVersion": 10 },
+    { "type": "hello", "simVersion": 10, "token": "ey.un.token" },
     { "type": "queue" },
     { "type": "queue", "eventGameId": "0b7d3c1e-5a2f-4e8b-9c61-2f4d8a7e1b90" },
     { "type": "leave" },
@@ -13,7 +13,7 @@
     { "type": "result", "frame": 900, "winner": null }
   ],
   "server": [
-    { "type": "welcome", "playerId": "anon-7f3a", "simVersion": 9 },
+    { "type": "welcome", "playerId": "anon-7f3a", "simVersion": 10 },
     { "type": "queued" },
     {
       "type": "match",

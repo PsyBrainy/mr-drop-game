@@ -15,6 +15,9 @@ import {
   MOVE_ANIM,
   ORIGIN_X,
   POSE_BY_FRAME,
+  RESPAWN_REVEAL_TICKS,
+  RESPAWN_TICKS_PER_FRAME,
+  respawnReveal,
   SHEETS,
   SKINS,
   spriteFrame,
@@ -75,7 +78,7 @@ describe('el timing de los dibujos', () => {
 
 describe('qué dibujo corresponde a cada estado', () => {
   const base = initialState(world, 1).fighters[0]
-  const states: FighterStateName[] = ['idle', 'walk', 'air', 'land', 'attack', 'dodge', 'cling', 'hitstun', 'dead']
+  const states: FighterStateName[] = ['idle', 'walk', 'air', 'land', 'attack', 'dodge', 'cling', 'hitstun', 'respawn', 'dead']
 
   it('nunca pide un frame que la hoja no tiene', () => {
     for (const state of states) {
@@ -113,6 +116,28 @@ describe('qué dibujo corresponde a cada estado', () => {
   })
 })
 
+describe('reaparecer', () => {
+  const base = initialState(world, 1).fighters[0]
+  const waiting = (stateFrames: number) => ({ ...base, state: 'respawn' as const, stateFrames })
+
+  it('el porro dura exactamente la espera: termina de hacerse humo cuando aparece', () => {
+    expect(RESPAWN_TICKS_PER_FRAME * SHEETS.respawn.frames).toBe(DEFAULT_RULES.respawnFrames)
+    expect(Number.isInteger(RESPAWN_TICKS_PER_FRAME)).toBe(true)
+    expect(spriteFrame(waiting(0))).toMatchObject({ anim: 'respawn', frame: 0 })
+    expect(spriteFrame(waiting(DEFAULT_RULES.respawnFrames - 1)).frame).toBe(SHEETS.respawn.frames - 1)
+  })
+
+  it('el personaje sale del humo al final, no antes', () => {
+    const from = DEFAULT_RULES.respawnFrames - RESPAWN_REVEAL_TICKS
+    expect(respawnReveal(waiting(0))).toBe(0)
+    expect(respawnReveal(waiting(from))).toBe(0)
+    expect(respawnReveal(waiting(from + RESPAWN_REVEAL_TICKS / 2))).toBeCloseTo(0.5)
+    expect(respawnReveal(waiting(DEFAULT_RULES.respawnFrames))).toBe(1)
+    // La bola de humo grande tiene que estar a la vista cuando empieza a aparecer.
+    expect(spriteFrame(waiting(from)).frame).toBeGreaterThanOrEqual(SHEETS.respawn.frames - 2)
+  })
+})
+
 describe('las hojas del rasta', () => {
   function pngSize(path: string): { width: number; height: number } {
     const buffer = readFileSync(`public${path}`)
@@ -146,11 +171,12 @@ describe('las hojas del rasta', () => {
     expect(worstAtlasUse(images).pages).toBeLessThanOrEqual(2)
   })
 
-  it('queda lugar para ocho hojas más por piel sin abrir otra página', () => {
-    // Los once golpes ya están dibujados. Este margen es para lo que venga
-    // (burlas, un arma, otro personaje con otra paleta), del tamaño de la hoja
-    // más larga de hoy: 9 dibujos.
-    const missing = SKINS.length * 8
+  it('queda lugar para seis hojas más por piel sin abrir otra página', () => {
+    // Los once golpes y el porro de reaparecer ya están dibujados. Este margen es
+    // para lo que venga (burlas, un arma, otro personaje con otra paleta), del
+    // tamaño de la hoja más larga de hoy: 9 dibujos. Con el porro entran 7; se
+    // pide 6 para no quedar justo.
+    const missing = SKINS.length * 6
     const longest = { width: SHEETS.heavy.frames * FRAME_PX, height: FRAME_PX }
     const future = [...images, ...Array.from({ length: missing }, () => longest)]
     expect(worstAtlasUse(future).pages).toBeLessThanOrEqual(2)

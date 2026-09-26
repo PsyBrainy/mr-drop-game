@@ -27,5 +27,7 @@
  * 9: gravity cancel (M6 F5): desde un esquive quieto en el aire se tira el golpe
  *    de piso (`gravityCancel` en el estado, `dodge.attackCancelFrom`). Un golpe de
  *    piso que aterriza sigue; los pasos de `sLight` y `sSig` ya no tocan `vy`.
+ * 10: reaparecer tarda 3 segundos (`respawnFrames` en las reglas, estado
+ *    `respawn`): mientras tanto el personaje no está en el escenario.
  */
-export const SIM_VERSION = 9
+export const SIM_VERSION = 10

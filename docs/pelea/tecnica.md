@@ -154,6 +154,12 @@ grounded + 'light'|'heavy' ───┴──moveFor──> MoveKey ──> tuni
   dirección. En la rama del esquive de `applyInput`, desde `dodge.attackCancelFrom` y con un golpe
   en el buffer, sale `moveFor(true, …)` (la tabla de piso) aunque esté en el aire. Se apaga al
   usarlo, al terminar el esquive, al aterrizar (`land`) y al recibir un golpe.
+- **Reaparecer**: `resolveBounds` → `respawn` pone al peleador en su spawn en estado `respawn`,
+  sin invulnerabilidad. En ese estado `applyInput` no hace nada (y no anota botones) hasta que
+  `stateFrames` llega a `rules.respawnFrames`; ahí `appear` lo pasa a `idle` con
+  `respawnInvuln`. `integrate` lo saltea (sin física), `candidateHit` no lo toca y
+  `resolveBounds` no lo revisa. La vista dibuja la hoja `respawn` según `stateFrames`
+  (`RESPAWN_TICKS_PER_FRAME`) y al personaje detrás del humo con `respawnReveal`.
 - **Aterrizar en medio de un golpe**: sólo los aéreos (`isAerialMove`) se cortan con castigo; un
   golpe de piso tirado en el aire sigue. `landLag` vale el `landingLag` del golpe si lo tiene, y si
   no, `landFrames` del personaje.

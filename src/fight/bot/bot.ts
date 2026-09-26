@@ -161,7 +161,8 @@ export function botStep(
     }
   }
 
-  if (self.state === 'dead' || state.over) return out({ recovery: null, plan: null }, NONE)
+  // Muerto o esperando para reaparecer: no hay nada que apretar.
+  if (self.state === 'dead' || self.state === 'respawn' || state.over) return out({ recovery: null, plan: null }, NONE)
 
   const stage = world.stage
   const left = toPixels(stage.ground.left)

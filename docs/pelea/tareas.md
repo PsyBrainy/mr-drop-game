@@ -100,6 +100,10 @@ sonido sí puede seguir por familia hasta que la comunidad grabe más.
 - [x] **Quinto audio ✓** (2026-09-25): sonido propio para `dLight`, `nSig`, `dSig` y `sAir`
   (**los once golpes suenan distinto**), y "mirá que te voy a cobrar, psy" al perder una vida.
 
+- [x] **Reaparecer en 3 segundos ✓** (2026-09-25): al perder una vida el personaje espera 3 s
+  (estado `respawn`, regla `respawnFrames`) mientras en su spawn un porro se consume y se hace
+  humo; sale de la nube. `SIM_VERSION` 10 (mrdrop y psy-ws).
+
 ### Invariantes que tienen que existir al cerrar M6
 
 - ✓ Existe una ruta real a daño bajo: `dLight → sAir` a 0, 20 y 40, saltando (`combos.test.ts`).

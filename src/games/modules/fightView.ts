@@ -15,6 +15,7 @@ import {
   SHEETS,
   SKINS,
   skinOf,
+  respawnReveal,
   spriteFrame,
   spriteKey,
   spriteSrc,
@@ -93,6 +94,23 @@ export function drawFighter(
   // Espejado, el origen queda a la misma distancia del borde derecho del frame.
   const shown = spriteFrame(fighter)
   const scale = camera.scale * ART_SCALE
+
+  // Esperando para reaparecer: al final el personaje se va viendo detrás del
+  // humo (se dibuja antes, así la nube lo tapa), y encima va el porro o el humo.
+  const reveal = respawnReveal(fighter)
+  if (fighter.state === 'respawn' && reveal > 0) {
+    const originBehind = fighter.facing === -1 ? FRAME_PX - ORIGIN_X : ORIGIN_X
+    k.drawSprite({
+      sprite: spriteKey(skinOf(index), 'idle'),
+      frame: 0,
+      pos: k.vec2(feet.x - originBehind * scale, feet.y - FEET_Y * scale),
+      anchor: 'topleft',
+      scale,
+      flipX: fighter.facing === -1,
+      opacity: reveal,
+    })
+  }
+
   const originX = shown.flip ? FRAME_PX - ORIGIN_X : ORIGIN_X
   k.drawSprite({
     sprite: spriteKey(skinOf(index), shown.anim),
@@ -118,7 +136,8 @@ export function tagAnchors(
 ): [TagAnchor, TagAnchor] {
   const anchor = (index: 0 | 1): TagAnchor => {
     const fighter = state.fighters[index]
-    if (fighter.state === 'dead') return null
+    // Mientras espera para reaparecer no hay nadie a quien ponerle el nombre.
+    if (fighter.state === 'dead' || fighter.state === 'respawn') return null
     const before = previous.fighters[index]
     const x = interpolate(toPixels(before.x), toPixels(fighter.x), alpha)
     const y = interpolate(toPixels(before.y), toPixels(fighter.y), alpha)

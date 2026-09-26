@@ -34,6 +34,7 @@ export type FighterStateName =
   | 'dodge'
   | 'cling'
   | 'hitstun'
+  | 'respawn'
   | 'dead'
 
 /** Códigos explícitos para el hash: el nombre es para leer, el número es para comparar. */
@@ -47,6 +48,7 @@ export const STATE_CODES: Record<FighterStateName, number> = {
   cling: 6,
   hitstun: 7,
   dead: 8,
+  respawn: 9,
 }
 
 export interface Fighter {
@@ -202,7 +204,10 @@ export function initialState(world: World, seed: number): MatchState {
   }
 }
 
-/** Vuelve a poner a un jugador en juego después de un ring-out, gastando una vida. */
+/**
+ * Después de un ring-out, gastando una vida: el jugador pasa a esperar en su
+ * spawn (`respawn`) y aparece recién a los `respawnFrames`. Ver `appear` en el tick.
+ */
 export function respawn(draft: FighterDraft, world: World, index: PlayerIndex): void {
   const spawn = world.stage.spawns[index]
   const tuning = world.tuning[index]
@@ -211,7 +216,7 @@ export function respawn(draft: FighterDraft, world: World, index: PlayerIndex): 
   draft.y = spawn.y
   draft.vx = FX_ZERO
   draft.vy = FX_ZERO
-  draft.state = 'idle'
+  draft.state = 'respawn'
   draft.stateFrames = 0
   draft.grounded = true
   draft.platform = -1
@@ -229,7 +234,9 @@ export function respawn(draft: FighterDraft, world: World, index: PlayerIndex): 
   // El daño se reinicia con la vida: si no, la segunda vida duraría dos golpes.
   draft.damage = 0
   draft.hitstun = 0
-  draft.invuln = world.rules.respawnInvuln
+  // La invulnerabilidad arranca cuando aparece, no ahora: si no, se gastaría
+  // entera esperando.
+  draft.invuln = 0
 }
 
 export function cloneState(state: MatchState): MatchDraft {

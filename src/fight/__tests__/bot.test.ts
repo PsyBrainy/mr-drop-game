@@ -164,7 +164,9 @@ describe('el bot', () => {
     // verdad más difícil, y no sólo más rápido contra un muñeco quieto.
     expect(duel('medium', 'easy', 12).wins).toBeGreaterThan(8)
     expect(duel('hard', 'medium', 6).wins).toBeGreaterThan(4)
-  })
+    // Juega 18 partidas enteras, y desde que reaparecer tarda 3 segundos cada
+    // partida es más larga: se le da más tiempo que al resto.
+  }, 30000)
 
   it.each<BotLevel>(['easy', 'medium', 'hard'])('en %s no se cae solo peleando', (level) => {
     // Contra un rival que pega, perder vidas es parte del juego; perderlas sin

@@ -3,7 +3,8 @@ import { jumpAirFrames, jumpApexPx, walkFrames } from '../data/fighter'
 import { OSO } from '../data/characters/oso'
 import { groundWidthPx, SMALL_STAGE } from '../data/stage'
 import { fx, toPixels } from '../sim/fixed'
-import { JUMP, LEFT, NONE, RIGHT } from '../sim/input'
+import { JUMP, LEFT, LIGHT, NONE, RIGHT } from '../sim/input'
+import { DEFAULT_RULES } from '../sim/world'
 import { initialState } from '../sim/state'
 import { step, TICKS_PER_SECOND } from '../sim/tick'
 import { hold, testWorld, withFighter } from './harness'
@@ -122,7 +123,7 @@ describe('salto', () => {
 })
 
 describe('ring-out', () => {
-  it('caerse gasta una vida y reaparece en el spawn', () => {
+  it('caerse gasta una vida y reaparece en el spawn, después de la espera', () => {
     let state = initialState(world, 1)
     const spawn = SMALL_STAGE.spawns[0]
 
@@ -132,7 +133,29 @@ describe('ring-out', () => {
 
     expect(state.fighters[0].stocks).toBe(2)
     expect(state.fighters[0].x).toBe(spawn.x)
-    expect(state.fighters[0].invuln).toBeGreaterThan(0)
+    expect(state.fighters[0].state).toBe('respawn')
+
+    // Esperando no se mueve aunque se aprieten cosas, y no se lo puede tocar.
+    for (let frame = 0; frame < DEFAULT_RULES.respawnFrames - 1; frame += 1) {
+      state = step(state, [LEFT | JUMP, NONE], world)
+      expect(state.fighters[0].state).toBe('respawn')
+      expect(state.fighters[0].x).toBe(spawn.x)
+      expect(state.fighters[0].y).toBe(spawn.y)
+    }
+
+    // A los 3 segundos aparece, quieto e invulnerable.
+    state = step(state, [NONE, NONE], world)
+    expect(state.fighters[0].state).toBe('idle')
+    expect(state.fighters[0].invuln).toBe(DEFAULT_RULES.respawnInvuln)
+  })
+
+  it('esperando para reaparecer no se le puede pegar', () => {
+    let state = initialState(world, 1)
+    state = withFighter(state, 0, { state: 'respawn', stateFrames: 0, x: SMALL_STAGE.spawns[0].x })
+    state = withFighter(state, 1, { x: SMALL_STAGE.spawns[0].x + OSO.halfWidth * 2 + fx(4), facing: -1 })
+    for (let frame = 0; frame < 30; frame += 1) state = step(state, [NONE, frame < 2 ? LIGHT : NONE], world)
+    expect(state.fighters[0].damage).toBe(0)
+    expect(state.fighters[0].hitstun).toBe(0)
   })
 
   it('agotar las vidas termina el match y el otro gana', () => {
